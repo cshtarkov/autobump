@@ -1,5 +1,6 @@
 """Convert a Python codebase into a list of Units."""
 import os
+import inspect
 import importlib
 from autobump import common
 
@@ -24,7 +25,7 @@ def _module_to_unit(name, module):
     for member_name in dir(module):
         visibility = _determine_visibility(member_name)
         member = getattr(module, member_name)
-        if type(member) is type:
+        if inspect.isclass(member):
             units.append(_class_to_unit(member_name, member))
         elif callable(member):
             functions.append(common.Function(member_name, visibility, []))
