@@ -39,7 +39,7 @@ class Parameter(CodeProperty):
 
 class Function(CodeProperty):
     """Top-level function or class method."""
-    def __init__(self, name, visibility, parameters):
+    def __init__(self, name, visibility, parameters=[]):
         self.name = name
         self.visibility = visibility
         self.parameters = parameters
