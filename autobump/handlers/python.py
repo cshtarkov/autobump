@@ -1,7 +1,8 @@
 """Convert a Python codebase into a list of Units."""
 import os
+import sys
+import imp
 import inspect
-import importlib
 from autobump import common
 
 
@@ -36,15 +37,21 @@ def _module_to_unit(name, module):
 
 def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
-    importlib.invalidate_caches()
     units = []
     for root, dirs, files in os.walk(location):
         pyfiles = [f for f in files if f.endswith(".py")]
         for pyfile in pyfiles:
             pymodule = pyfile[:-3]  # Strip ".py"
-            importpath = os.path.join(root, pymodule).replace("/", ".")
-            print(importpath)
-            units.append(_module_to_unit(importpath, importlib.import_module(importpath, location)))
+            file, pathname, description = imp.find_module(pymodule, [root])
+            try:
+                units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
+                units[-1].visibility = common.Visibility.public  # HACK!
+            except ImportError as e:
+                print("Failed to import {} from {}!".format(pymodule, pathname),
+                      file=sys.stderr)
+            finally:
+                if file is not None:
+                    file.close()
     return units
 
 codebase_to_units = python_codebase_to_units
