@@ -2,6 +2,10 @@
 from enum import Enum
 
 
+class VersionControlException(Exception):
+    pass
+
+
 class Visibility(Enum):
     unit = 0
     package = 1
