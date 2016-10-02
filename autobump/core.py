@@ -110,7 +110,7 @@ def _compare_properties(a_prop, b_prop):
 
             if ki not in b_inner:
                 # Handle case when a property was removed.
-                _report_change(Change.property_was_removed, a_inner[ki])
+                _report_change(Change.property_was_removed, a_inner[ki].name)
                 _report_bump(Bump.patch)
                 if hasattr(a_inner[ki], "visibility") and a_inner[ki].visibility == Visibility.public:
                     # Handle case when a visible property was removed.
