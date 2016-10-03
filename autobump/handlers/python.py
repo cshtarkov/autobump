@@ -35,21 +35,28 @@ def _get_parameters(function):
     return parameters
 
 
-def _module_to_unit(name, module):
-    """Convert a Python module to a Unit."""
+def _container_to_unit(name, module, already_converted):
+    """Convert a Python module or class to a Unit."""
     fields = []
     functions = []
     units = []
-    for member_name in dir(module):
+    for member_name, member in inspect.getmembers(module):
+        if id(member) in already_converted:
+            continue
+        already_converted.add(id(member))
         visibility = _determine_visibility(member_name)
-        member = getattr(module, member_name)
         if inspect.isclass(member):
-            units.append(_class_to_unit(member_name, member))
+            units.append(_container_to_unit(member_name, member, already_converted))
         elif callable(member):
             functions.append(common.Function(member_name, visibility, _get_parameters(member)))
         else:
             fields.append(common.Field(member_name, visibility))
     return common.Unit(name, fields, functions, units)
+
+
+def _module_to_unit(name, module):
+    """Convert a Python module to a Unit."""
+    return _container_to_unit(name, module, set())
 
 
 def python_codebase_to_units(location):
