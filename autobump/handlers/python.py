@@ -20,7 +20,17 @@ def _class_to_unit(name, classdef):
 
 def _get_parameters(function):
     """Return a list of Parameters to the function."""
-    argspec = inspect.getargspec(function)
+    try:
+        argspec = inspect.getfullargspec(function)
+    except TypeError:
+        # It could be that a method such as __dir__
+        # is not implemented, which will result in a ValueError
+        # when trying to get the argspec, even if the method
+        # itself is there.
+        # In that case just consider the parameter list empty.
+        print("Failed to get argspec for {}".format(str(function)),
+              file=sys.stderr)
+        return []
     args = argspec.args if argspec.args is not None else []
     defaults = argspec.defaults if argspec.defaults is not None else []
     parameters = []
