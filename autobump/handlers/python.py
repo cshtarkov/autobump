@@ -29,7 +29,7 @@ def _get_parameters(function):
         parameters.append(common.Parameter(args[i]))
         i += 1
     while i < len(args):
-        default = defaults[i - len(defaults) - 1]
+        default = defaults[i - (len(args) - len(defaults))]
         parameters.append(common.Parameter(args[i], default_value=default))
         i += 1
     return parameters
