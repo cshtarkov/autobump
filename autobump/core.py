@@ -39,7 +39,7 @@ def _report_change(change, name):
     print(name + ": " + change.value)
 
 
-def _compare_properties(a_prop, b_prop, path):
+def _compare_properties(a_prop, b_prop, path=""):
     """Compare two code properties which have the same name.
 
     Return a Bump enum based on whether
@@ -47,7 +47,7 @@ def _compare_properties(a_prop, b_prop, path):
     assert a_prop.name == b_prop.name, "Shouldn't compare properties with different names."
     assert type(a_prop) is type(b_prop), "Shouldn't compare properties of different types."
 
-    path = path + "." + a_prop.name
+    path = (path + "." if path != "" else path) + a_prop.name
 
     highestBump = Bump.patch  # Biggest bump encountered so far.
 
@@ -138,4 +138,4 @@ def compare_codebases(a_units, b_units):
     # Represent both codebases as a single unit, and compare that.
     a_unit = Unit("codebase", [], [], a_units)
     b_unit = Unit("codebase", [], [], b_units)
-    return _compare_properties(a_unit, b_unit, "root")
+    return _compare_properties(a_unit, b_unit)
