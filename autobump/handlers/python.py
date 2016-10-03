@@ -18,6 +18,23 @@ def _class_to_unit(name, classdef):
     return common.Unit(name, [], [], [])
 
 
+def _get_parameters(function):
+    """Return a list of Parameters to the function."""
+    argspec = inspect.getargspec(function)
+    args = argspec.args if argspec.args is not None else []
+    defaults = argspec.defaults if argspec.defaults is not None else []
+    parameters = []
+    i = 0
+    while i < len(args) - len(defaults):
+        parameters.append(common.Parameter(args[i]))
+        i += 1
+    while i < len(args):
+        default = defaults[i - len(defaults) - 1]
+        parameters.append(common.Parameter(args[i], default_value=default))
+        i += 1
+    return parameters
+
+
 def _module_to_unit(name, module):
     """Convert a Python module to a Unit."""
     fields = []
@@ -29,7 +46,7 @@ def _module_to_unit(name, module):
         if inspect.isclass(member):
             units.append(_class_to_unit(member_name, member))
         elif callable(member):
-            functions.append(common.Function(member_name, visibility, []))
+            functions.append(common.Function(member_name, visibility, _get_parameters(member)))
         else:
             fields.append(common.Field(member_name, visibility))
     return common.Unit(name, fields, functions, units)
