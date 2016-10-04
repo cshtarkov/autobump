@@ -53,8 +53,9 @@ class Unit(CodeProperty):
     """Generic unit of code containing fields and functions.
 
     Could be a Java class, a Python module, a C translation unit and so on. """
-    def __init__(self, name, fields, functions, units):
+    def __init__(self, name, visibility, fields, functions, units):
         self.name = name
+        self.visibility = visibility
         self.fields = fields
         self.functions = functions
         self.units = units

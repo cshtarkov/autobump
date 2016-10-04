@@ -61,7 +61,7 @@ def _container_to_unit(name, module, already_converted):
             functions.append(common.Function(member_name, visibility, _get_parameters(member)))
         else:
             fields.append(common.Field(member_name, visibility))
-    return common.Unit(name, fields, functions, units)
+    return common.Unit(name, _determine_visibility(name), fields, functions, units)
 
 
 def _module_to_unit(name, module):

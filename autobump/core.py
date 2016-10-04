@@ -136,6 +136,6 @@ def compare_codebases(a_units, b_units):
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
     # Represent both codebases as a single unit, and compare that.
-    a_unit = Unit("codebase", [], [], a_units)
-    b_unit = Unit("codebase", [], [], b_units)
+    a_unit = Unit("codebase", Visibility.public, [], [], a_units)
+    b_unit = Unit("codebase", Visibility.public, [], [], b_units)
     return _compare_properties(a_unit, b_unit)
