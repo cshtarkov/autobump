@@ -13,11 +13,6 @@ def _determine_visibility(member_name):
     return common.Visibility.public
 
 
-def _class_to_unit(name, classdef):
-    """Convert a Python class definition to a Unit."""
-    return common.Unit(name, [], [], [])
-
-
 def _get_parameters(function):
     """Return a list of Parameters to the function."""
     try:
