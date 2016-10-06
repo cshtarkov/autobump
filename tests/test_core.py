@@ -1,6 +1,6 @@
 import unittest
 from autobump.core import Bump, compare_codebases
-from autobump.common import Visibility, Field, Parameter, Function, Unit
+from autobump.common import Visibility, Field, Parameter, Function
 
 
 class TestSingleProperties(unittest.TestCase):
