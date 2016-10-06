@@ -74,7 +74,6 @@ def python_codebase_to_units(location):
             file, pathname, description = imp.find_module(pymodule, [root])
             try:
                 units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
-                units[-1].visibility = common.Visibility.public  # HACK!
             except ImportError as e:
                 print("Failed to import {} from {}!".format(pymodule, pathname),
                       file=sys.stderr)
