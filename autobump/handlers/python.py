@@ -74,7 +74,7 @@ def python_codebase_to_units(location):
             file, pathname, description = imp.find_module(pymodule, [root])
             try:
                 units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
-            except ImportError as e:
+            except ImportError:
                 print("Failed to import {} from {}!".format(pymodule, pathname),
                       file=sys.stderr)
             finally:
