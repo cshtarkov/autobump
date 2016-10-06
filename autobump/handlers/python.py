@@ -40,12 +40,12 @@ def _get_parameters(function):
     return parameters
 
 
-def _container_to_unit(name, module, already_converted):
+def _container_to_unit(name, container, already_converted):
     """Convert a Python module or class to a Unit."""
     fields = []
     functions = []
     units = []
-    for member_name, member in inspect.getmembers(module):
+    for member_name, member in inspect.getmembers(container):
         if id(member) in already_converted:
             continue
         already_converted.add(id(member))
