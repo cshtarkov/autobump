@@ -8,8 +8,7 @@ class VersionControlException(Exception):
 
 class Visibility(Enum):
     unit = 0
-    package = 1
-    public = 2
+    public = 1
 
 
 class CodeProperty(object):
