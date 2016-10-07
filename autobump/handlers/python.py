@@ -52,9 +52,13 @@ def _container_to_unit(name, container, already_converted):
     functions = []
     units = []
     for member_name, member in inspect.getmembers(container):
-        if id(member) in already_converted or _is_builtin(member_name):
+        if _is_builtin(member_name):
             continue
-        already_converted.add(id(member))
+        # Handle possible circular references.
+        if inspect.isclass(member):
+            if id(member) in already_converted:
+                continue
+            already_converted.add(id(member))
         visibility = _determine_visibility(member_name)
         if inspect.isclass(member):
             units.append(_container_to_unit(member_name, member, already_converted))
