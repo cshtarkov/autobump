@@ -13,6 +13,12 @@ def _determine_visibility(member_name):
     return common.Visibility.public
 
 
+def _is_builtin(member_name):
+    """Return True if this is a built-in member."""
+    # TODO: This may not always be the case.
+    return member_name.startswith("__")
+
+
 def _get_parameters(function):
     """Return a list of Parameters to the function."""
     try:
@@ -46,7 +52,7 @@ def _container_to_unit(name, container, already_converted):
     functions = []
     units = []
     for member_name, member in inspect.getmembers(container):
-        if id(member) in already_converted:
+        if id(member) in already_converted or _is_builtin(member_name):
             continue
         already_converted.add(id(member))
         visibility = _determine_visibility(member_name)
