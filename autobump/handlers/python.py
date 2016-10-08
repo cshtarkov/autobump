@@ -56,9 +56,9 @@ def _container_to_unit(name, container, already_converted):
             continue
         # Handle possible circular references.
         if inspect.isclass(member):
-            if id(member) in already_converted:
+            if hash((member_name, id(member))) in already_converted:
                 continue
-            already_converted.add(id(member))
+            already_converted.add(hash((member_name, id(member))))
         visibility = _determine_visibility(member_name)
         if inspect.isclass(member):
             units.append(_container_to_unit(member_name, member, already_converted))

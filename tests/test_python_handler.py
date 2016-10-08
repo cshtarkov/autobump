@@ -68,6 +68,17 @@ class TestClassConversion(unittest.TestCase):
         self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
         self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
 
+    def test_class_with_fields_being_class_defs(self):
+        class a(object):
+            pass
+
+        class c(object):
+            u1 = a
+            u2 = a
+        unit = python._container_to_unit("c", c, set())
+        self.assertEqual(len([u for u in unit.units if u.name == "u1"]), 1)
+        self.assertEqual(len([u for u in unit.units if u.name == "u2"]), 1)
+
     def test_class_with_fields_different_value(self):
         class c(object):
             f1 = "value1"
