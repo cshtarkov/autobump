@@ -56,9 +56,9 @@ class _Semver(object):
         if bump is core.Bump.patch:
             return _Semver(self.major, self.minor, self.patch + 1)
         if bump is core.Bump.minor:
-            return _Semver(self.major, self.minor + 1, self.patch)
+            return _Semver(self.major, self.minor + 1, 0)
         if bump is core.Bump.major:
-            return _Semver(self.major + 1, self.minor, self.patch)
+            return _Semver(self.major + 1, 0, 0)
         # No bump
         return _Semver(self.major, self.minor, self.patch)
 
