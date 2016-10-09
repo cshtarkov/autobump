@@ -8,7 +8,7 @@ from autobump import common
 
 def _determine_visibility(member_name):
     """Determine visibility of a member based on its name."""
-    if member_name.startswith("_"):
+    if member_name.startswith("_") and member_name != "__init__":
         return common.Visibility.unit
     return common.Visibility.public
 
@@ -52,7 +52,7 @@ def _container_to_unit(name, container, already_converted):
     functions = []
     units = []
     for member_name, member in inspect.getmembers(container):
-        if _is_builtin(member_name):
+        if _is_builtin(member_name) and member_name != "__init__":
             continue
         # Handle possible circular references.
         if inspect.isclass(member):

@@ -57,7 +57,7 @@ class TestClassConversion(unittest.TestCase):
             pass
         unit = python._container_to_unit("c", c, set())
         self.assertEqual(len(unit.fields), 0)
-        self.assertEqual(len(unit.functions), 0)
+        self.assertEqual(len(unit.functions), 1)  # __init__
         self.assertEqual(len(unit.units), 0)
 
     def test_class_with_fields_same_value(self):
