@@ -3,6 +3,7 @@ import os
 import sys
 import imp
 import inspect
+from uuid import uuid4
 from autobump import common
 
 
@@ -81,9 +82,14 @@ def python_codebase_to_units(location):
         pyfiles = [f for f in files if f.endswith(".py")]
         for pyfile in pyfiles:
             pymodule = pyfile[:-3]  # Strip ".py"
+            # Need to generate a random name for the module,
+            # otherwise all sorts of trouble can happen
+            # with importing it twice, or even worse -
+            # overriding functions used by this handler.
+            importas = pymodule + str(uuid4())
             file, pathname, description = imp.find_module(pymodule, [root])
             try:
-                units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
+                units.append(_module_to_unit(pymodule, imp.load_module(importas, file, pathname, description)))
             except ImportError:
                 print("Failed to import {} from {}!".format(pymodule, pathname),
                       file=sys.stderr)
