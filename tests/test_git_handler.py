@@ -35,6 +35,8 @@ class TestGitRepoConversion(unittest.TestCase):
         self.dir_handle = tempfile.TemporaryDirectory()
         self.dir = self.dir_handle.name
         _run_git(self.dir, ["init"])
+        _run_git(self.dir, ["config", "user.email", "mock@autobump.com"])
+        _run_git(self.dir, ["config", "user.name", "Mock"])
 
     def tearDown(self):
         self.dir_handle.cleanup()
