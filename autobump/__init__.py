@@ -70,7 +70,7 @@ def autobump():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Determine semantic version of one commit, given the version of a previous commit.")
     parser.add_argument("repo", type=str, help="Repository location")
-    parser.add_argument("language", type=str, help="Repository location")
+    parser.add_argument("language", type=str, help="Repository language")
     parser.add_argument("c1", type=str, help="Earlier commit ID")
     parser.add_argument("c1version", type=str, help="Earlier commit version")
     parser.add_argument("c2", type=str, help="Later commit ID")
