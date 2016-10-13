@@ -20,6 +20,8 @@ class Change(Enum):
     property_was_removed = "Property was removed"
     parameter_added_to_signature = "Parameter was added to function signature"
     parameter_removed_from_signature = "Parameter was removed from function signature"
+    type_changed_to_compatible_type = "Type was changed to a compatible type"
+    type_changed_to_incompatible_type = "Type was changed to an incompatible type"
 
 
 def _list_to_dict_by_name(code_properties):
@@ -65,6 +67,27 @@ def _compare_properties(a_prop, b_prop, path=""):
         if a_prop.visibility != Visibility.public and b_prop.visibility == Visibility.public:
             _report_change(Change.visibility_became_public, path)
             _report_bump(Bump.minor)
+
+    # Compare types
+    if hasattr(a_prop, "type"):
+        assert hasattr(b_prop, "type"), "Should never happen: comparing properties when one has 'type' and other doesn't."
+        if a_prop.type is not b_prop.type:
+            # Type has changed.
+            if hasattr(a_prop, "visibility") and b_prop.visibility != Visibility.public:
+                # Code property is non-public - patch change.
+                if a_prop.type.is_compatible(b_prop.type):
+                    _report_change(Change.type_changed_to_compatible_type, path)
+                else:
+                    _report_change(Change.type_changed_to_incompatible_type, path)
+                _report_bump(Bump.patch)
+            else:
+                # Core property is public - major change if it's an incompatible type.
+                if a_prop.type.is_compatible(b_prop.type):
+                    _report_change(Change.type_changed_to_compatible_type, path)
+                    _report_bump(Bump.patch)
+                else:
+                    _report_change(Change.type_changed_to_incompatible_type, path)
+                    _report_bump(Bump.major)
 
     # Compare default values
     if hasattr(a_prop, "default_value"):

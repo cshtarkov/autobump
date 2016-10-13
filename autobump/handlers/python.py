@@ -7,6 +7,18 @@ from uuid import uuid4
 from autobump import common
 
 
+# Type System
+class _PythonType(common.Type):
+    pass
+
+
+class _Dynamic(_PythonType):
+    pass
+
+
+_dynamic = _Dynamic()
+
+
 def _determine_visibility(member_name):
     """Determine visibility of a member based on its name."""
     if member_name.startswith("_") and member_name != "__init__":
@@ -38,11 +50,11 @@ def _get_parameters(function):
     parameters = []
     i = 0
     while i < len(args) - len(defaults):
-        parameters.append(common.Parameter(args[i]))
+        parameters.append(common.Parameter(args[i], _dynamic))
         i += 1
     while i < len(args):
         default = defaults[i - (len(args) - len(defaults))]
-        parameters.append(common.Parameter(args[i], default_value=default))
+        parameters.append(common.Parameter(args[i], _dynamic, default_value=default))
         i += 1
     return parameters
 
@@ -64,9 +76,9 @@ def _container_to_unit(name, container, already_converted):
         if inspect.isclass(member):
             units.append(_container_to_unit(member_name, member, already_converted))
         elif callable(member):
-            functions.append(common.Function(member_name, visibility, _get_parameters(member)))
+            functions.append(common.Function(member_name, visibility, _dynamic, _get_parameters(member)))
         else:
-            fields.append(common.Field(member_name, visibility))
+            fields.append(common.Field(member_name, visibility, _dynamic))
     return common.Unit(name, _determine_visibility(name), fields, functions, units)
 
 

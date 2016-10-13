@@ -25,26 +25,40 @@ class CodeProperty(object):
         return self.name
 
 
+class Type(CodeProperty):
+    """Generic representation of a type.
+
+    Handlers are expected to inherit this class
+    once for every time in the language's type system.
+    They should also implement the is_compatible() method
+    so that it does something sensible in that context."""
+    def is_compatible(self, other):
+        return isinstance(other, type(self))
+
+
 class Field(CodeProperty):
     """Class field or constant."""
-    def __init__(self, name, visibility, default_value=None):
+    def __init__(self, name, visibility, type, default_value=None):
         self.name = name
         self.visibility = visibility
+        self.type = type
         self.default_value = default_value
 
 
 class Parameter(CodeProperty):
     """Parameter to a function."""
-    def __init__(self, name, default_value=None):
+    def __init__(self, name, type, default_value=None):
         self.name = name
+        self.type = type
         self.default_value = default_value
 
 
 class Function(CodeProperty):
     """Top-level function or class method."""
-    def __init__(self, name, visibility, parameters=[]):
+    def __init__(self, name, visibility, type, parameters=[]):
         self.name = name
         self.visibility = visibility
+        self.type = type
         self.parameters = parameters
 
 
