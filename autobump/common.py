@@ -51,6 +51,7 @@ class Parameter(CodeProperty):
         self.name = name
         self.type = type
         self.default_value = default_value
+        self.visibility = True
 
 
 class Function(CodeProperty):
