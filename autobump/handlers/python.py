@@ -76,7 +76,7 @@ def _container_to_unit(name, container, already_converted):
         if inspect.isclass(member):
             units.append(_container_to_unit(member_name, member, already_converted))
         elif callable(member):
-            functions.append(common.Function(member_name, visibility, _dynamic, _get_parameters(member)))
+            functions.append(common.Function(member_name, visibility, _dynamic, common.Signature(_get_parameters(member))))
         else:
             fields.append(common.Field(member_name, visibility, _dynamic))
     return common.Unit(name, _determine_visibility(name), fields, functions, units)

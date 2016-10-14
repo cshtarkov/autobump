@@ -1,6 +1,6 @@
 import unittest
 from autobump.core import Bump, compare_codebases
-from autobump.common import Visibility, Type, Field, Parameter, Function
+from autobump.common import Visibility, Type, Field, Parameter, Signature, Function
 
 
 # Mock Type System
@@ -117,44 +117,6 @@ class TestSingleProperties(unittest.TestCase):
         self.second.append(Field("foo", Visibility.public, _incompatWithA))
         self.expect(Bump.major)
 
-    # Parameters to functions.
-
-    def test_add_parameter(self):
-        self.second.append(Parameter("foo", _generic))
-        self.expect(Bump.major)
-
-    def test_add_parameter_with_default_value(self):
-        self.second.append(Parameter("foo", _generic))
-        # TODO: What bump is this?
-
-    def test_remove_parameter(self):
-        self.first.append(Parameter("foo", _generic))
-        self.expect(Bump.major)
-
-    def test_remove_parameter_with_default_value(self):
-        self.first.append(Parameter("foo", _generic, default_value=1))
-        self.expect(Bump.major)
-
-    def test_give_parameter_default_value(self):
-        self.first.append(Parameter("foo", _generic))
-        self.second.append(Parameter("foo", _generic, default_value=1))
-        self.expect(Bump.patch)
-
-    def test_take_away_parameter_default_value(self):
-        self.first.append(Parameter("foo", _generic, default_value=1))
-        self.second.append(Parameter("foo", _generic))
-        self.expect(Bump.major)
-
-    def test_change_type_of_parameter_compatible(self):
-        self.first.append(Parameter("foo", _a))
-        self.second.append(Parameter("foo", _compatWithA))
-        self.expect(Bump.patch)
-
-    def test_change_type_of_parameter_incompatible(self):
-        self.first.append(Parameter("foo", _a))
-        self.second.append(Parameter("foo", _incompatWithA))
-        self.expect(Bump.major)
-
     # Functions.
 
     def test_reduce_visibility_of_function(self):
@@ -203,6 +165,42 @@ class TestSingleProperties(unittest.TestCase):
         self.second.append(Function("foo", Visibility.public, _incompatWithA))
         self.expect(Bump.major)
 
+    # Function signatures.
+
+    def test_change_signature_add_parameter_nodefault(self):
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic)])))
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic),
+                                           Parameter("c", _generic)])))
+        self.expect(Bump.major)
+
+    def test_change_signature_add_parameter_default(self):
+        self.first.append(Function("foo", Visibility.public, _generic, Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic)])))
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic),
+                                           Parameter("c", _generic, default_value=True)])))
+        # TODO: What bump is this?
+
+    def test_change_signature_remove_parameter_nodefault(self):
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic)])))
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic)])))
+        self.expect(Bump.major)
+
+    def test_change_signature_remove_parameter_default(self):
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic, default_value=True)])))
+        self.first.append(Function("foo", Visibility.public, _generic,
+                                Signature([Parameter("a", _generic)])))
+        # TODO: What bump is this?
 
 if __name__ == "__main__":
     unittest.main()

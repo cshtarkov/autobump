@@ -54,13 +54,26 @@ class Parameter(CodeProperty):
         self.visibility = True
 
 
+class Signature(CodeProperty):
+    """Signature of a function."""
+    def __init__(self, parameters=[]):
+        self.parameters = parameters
+
+    def add_parameter(self, param):
+        self.parameters.append(param)
+
+    def parameter(self, param):
+        self.add_parameter(param)
+        return self
+
+
 class Function(CodeProperty):
     """Top-level function or class method."""
-    def __init__(self, name, visibility, type, parameters=[]):
+    def __init__(self, name, visibility, type, signature=None):
         self.name = name
         self.visibility = visibility
         self.type = type
-        self.parameters = parameters
+        self.signature = signature
 
 
 class Unit(CodeProperty):

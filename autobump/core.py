@@ -1,6 +1,6 @@
 """Core codebase comparison logic."""
 from enum import Enum
-from autobump.common import Visibility, Unit, Parameter
+from autobump.common import Visibility, Unit
 
 
 class Bump(Enum):
@@ -111,14 +111,10 @@ def _compare_properties(a_prop, b_prop, path=""):
                 # Handle case when a property was added.
                 _report_change(Change.property_was_introduced, path + "." + b_inner[ki].name)
                 _report_bump(Bump.patch)
-                if b_inner[ki].visibility == Visibility.public and not isinstance(b_inner[ki], Parameter):
+                if b_inner[ki].visibility == Visibility.public:
                     # Handle case when a visible property was added.
                     _report_change(Change.visibility_became_public, path + "." + b_inner[ki].name)
                     _report_bump(Bump.minor)
-                if isinstance(b_inner[ki], Parameter):
-                    # Handle case when function signature has changed.
-                    _report_change(Change.parameter_added_to_signature, path + "." + b_inner[ki].name)
-                    _report_bump(Bump.major)
                 continue
 
             if ki not in b_inner:
@@ -128,10 +124,6 @@ def _compare_properties(a_prop, b_prop, path=""):
                 if a_inner[ki].visibility == Visibility.public:
                     # Handle case when a visible property was removed.
                     _report_change(Change.visibility_from_public_to_nonpublic, path + "." + a_inner[ki].name)
-                    _report_bump(Bump.major)
-                if isinstance(a_inner[ki], Parameter):
-                    # Handle case when function signature has changed.
-                    _report_change(Change.parameter_removed_from_signature, path + "." + a_inner[ki].name)
                     _report_bump(Bump.major)
                 continue
 
