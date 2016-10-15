@@ -67,18 +67,6 @@ def _compare_types(a_prop, b_prop):
     return changes
 
 
-def _compare_default_value(a_prop, b_prop):
-    """Compare default values of two properties and return a list of Changes."""
-    changes = []
-    if a_prop.default_value is None and b_prop.default_value is not None:
-        changes.append(Change.introduced_default_value)
-    elif a_prop.default_value is not None and b_prop.default_value is None:
-        changes.append(Change.removed_default_value)
-    elif a_prop.default_value != b_prop.default_value:
-        changes.append(Change.changed_default_value)
-    return changes
-
-
 def _compare_signature(a_prop, b_prop):
     """Compare signatures of two properties and return a list of Changes."""
 
@@ -137,7 +125,6 @@ def _compare_properties(a_prop, b_prop, path=""):
     # (attribute required) -> (comparison function)
     comparisons = {
         "type": _compare_types,
-        "default_value": _compare_default_value,
         "signature": _compare_signature
     }
 

@@ -49,21 +49,6 @@ class TestSingleProperties(unittest.TestCase):
         self.first.append(Field("foo", _generic))
         self.expect(Bump.major)
 
-    def test_change_field_default_value(self):
-        self.first.append(Field("foo", _generic, default_value=1))
-        self.second.append(Field("foo", _generic, default_value=2))
-        # TODO: What bump is this?
-
-    def test_remove_field_default_value(self):
-        self.first.append(Field("foo", _generic, default_value=1))
-        self.second.append(Field("foo", _generic, default_value=None))
-        self.expect(Bump.major)
-
-    def test_add_field_default_value(self):
-        self.first.append(Field("foo", _generic, default_value=None))
-        self.second.append(Field("foo", _generic, default_value=1))
-        # TODO: What bump is this?
-
     def test_change_type_of_field_compatible(self):
         self.first.append(Field("foo", _a))
         self.second.append(Field("foo", _compatWithA))
