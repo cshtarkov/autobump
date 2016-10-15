@@ -1,5 +1,4 @@
 import unittest
-from autobump import common
 from autobump.handlers import python
 
 
@@ -9,11 +8,11 @@ class TestVisibility(unittest.TestCase):
 
     def test_public_name(self):
         name = "public"
-        self.assertEqual(python._determine_visibility(name), common.Visibility.public)
+        self.assertTrue(python._is_public(name))
 
     def test_private_name(self):
         name = "_private"
-        self.assertNotEqual(python._determine_visibility(name), common.Visibility.public)
+        self.assertFalse(python._is_public(name))
 
 
 class TestSignature(unittest.TestCase):

@@ -19,11 +19,9 @@ class _Dynamic(_PythonType):
 _dynamic = _Dynamic()
 
 
-def _determine_visibility(member_name):
+def _is_public(member_name):
     """Determine visibility of a member based on its name."""
-    if member_name.startswith("_") and member_name != "__init__":
-        return common.Visibility.unit
-    return common.Visibility.public
+    return not (member_name.startswith("_") and member_name != "__init__")
 
 
 def _is_builtin(member_name):
@@ -67,19 +65,22 @@ def _container_to_unit(name, container, already_converted):
     for member_name, member in inspect.getmembers(container):
         if _is_builtin(member_name) and member_name != "__init__":
             continue
+        if not _is_public(member_name):
+            # Completely ignore any private things -
+            # they are irrelevant to the API.
+            continue
         # Handle possible circular references.
         if inspect.isclass(member):
             if hash((member_name, id(member))) in already_converted:
                 continue
             already_converted.add(hash((member_name, id(member))))
-        visibility = _determine_visibility(member_name)
         if inspect.isclass(member):
             units.append(_container_to_unit(member_name, member, already_converted))
         elif callable(member):
-            functions.append(common.Function(member_name, visibility, _dynamic, common.Signature(_get_parameters(member))))
+            functions.append(common.Function(member_name, _dynamic, common.Signature(_get_parameters(member))))
         else:
-            fields.append(common.Field(member_name, visibility, _dynamic))
-    return common.Unit(name, _determine_visibility(name), fields, functions, units)
+            fields.append(common.Field(member_name, _dynamic))
+    return common.Unit(name, fields, functions, units)
 
 
 def _module_to_unit(name, module):

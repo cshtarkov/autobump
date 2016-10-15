@@ -2,7 +2,7 @@ import os
 import unittest
 import tempfile
 import subprocess
-from autobump.common import VersionControlException, Visibility, Unit
+from autobump.common import VersionControlException, Unit
 from autobump.handlers import git
 
 
@@ -22,7 +22,7 @@ def mock_transformator(checkout_dir):
     units = []
     for _, _, files in os.walk(checkout_dir):
         for file in files:
-            units.append(Unit(file, Visibility.public, [], [], []))
+            units.append(Unit(file, [], [], []))
     return units
 
 

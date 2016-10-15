@@ -1,6 +1,6 @@
 """Core codebase comparison logic."""
 from enum import Enum
-from autobump.common import Visibility, Unit
+from autobump.common import Unit
 
 
 class Bump(Enum):
@@ -11,8 +11,6 @@ class Bump(Enum):
 
 
 class Change(Enum):
-    visibility_from_public_to_nonpublic = "Visibility went from public to non-public"
-    visibility_became_public = "Visibility became public"
     introduced_default_value = "Introduced default value where there was previously none"
     removed_default_value = "Removed a default value"
     changed_default_value = "Changed a default value"
@@ -58,45 +56,24 @@ def _compare_properties(a_prop, b_prop, path=""):
         if bump.value > highestBump.value:
             highestBump = bump
 
-    # Compare visibility
-    if a_prop.visibility == Visibility.public and b_prop.visibility != Visibility.public:
-        _report_change(Change.visibility_from_public_to_nonpublic, path)
-        _report_bump(Bump.major)
-    if a_prop.visibility != Visibility.public and b_prop.visibility == Visibility.public:
-        _report_change(Change.visibility_became_public, path)
-        _report_bump(Bump.minor)
-
-    # Nothing further to inspect if the later property is non-public
-    if b_prop.visibility != Visibility.public:
-        return highestBump
-
     # Compare types
     if hasattr(a_prop, "type"):
         assert hasattr(b_prop, "type"), "Should never happen: comparing properties when one has 'type' and other doesn't."
         if a_prop.type is not b_prop.type:
-            if a_prop.visibility == b_prop.visibility and b_prop.visibility == Visibility.public:
-                # Code property is public - major change if it's an incompatible type.
-                if a_prop.type.is_compatible(b_prop.type):
-                    _report_change(Change.type_changed_to_compatible_type, path)
-                    _report_bump(Bump.patch)
-                else:
-                    _report_change(Change.type_changed_to_incompatible_type, path)
-                    _report_bump(Bump.major)
+            if a_prop.type.is_compatible(b_prop.type):
+                _report_change(Change.type_changed_to_compatible_type, path)
+            else:
+                _report_change(Change.type_changed_to_incompatible_type, path)
 
     # Compare default values
     if hasattr(a_prop, "default_value"):
         assert hasattr(b_prop, "default_value"), "Should never happen: comparing properties when one has 'default_value' and other doesn't."
-        if a_prop.visibility == b_prop.visibility and b_prop.visibility == Visibility.public:
-            # Code property is public.
-            if a_prop.default_value is None and b_prop.default_value is not None:
-                _report_change(Change.introduced_default_value, path)
-                # TODO: What bump is this?
-            elif a_prop.default_value is not None and b_prop.default_value is None:
-                _report_change(Change.removed_default_value, path)
-                _report_bump(Bump.major)
-            elif a_prop.default_value != b_prop.default_value:
-                _report_change(Change.changed_default_value, path)
-                _report_bump(Bump.patch)
+        if a_prop.default_value is None and b_prop.default_value is not None:
+            _report_change(Change.introduced_default_value, path)
+        elif a_prop.default_value is not None and b_prop.default_value is None:
+            _report_change(Change.removed_default_value, path)
+        elif a_prop.default_value != b_prop.default_value:
+            _report_change(Change.changed_default_value, path)
 
     # Compare inner properties recursively
     for k, v in a_prop.__dict__.items():
@@ -110,21 +87,11 @@ def _compare_properties(a_prop, b_prop, path=""):
             if ki not in a_inner:
                 # Handle case when a property was added.
                 _report_change(Change.property_was_introduced, path + "." + b_inner[ki].name)
-                _report_bump(Bump.patch)
-                if b_inner[ki].visibility == Visibility.public:
-                    # Handle case when a visible property was added.
-                    _report_change(Change.visibility_became_public, path + "." + b_inner[ki].name)
-                    _report_bump(Bump.minor)
                 continue
 
             if ki not in b_inner:
                 # Handle case when a property was removed.
                 _report_change(Change.property_was_removed, a_inner[ki].name)
-                _report_bump(Bump.patch)
-                if a_inner[ki].visibility == Visibility.public:
-                    # Handle case when a visible property was removed.
-                    _report_change(Change.visibility_from_public_to_nonpublic, path + "." + a_inner[ki].name)
-                    _report_bump(Bump.major)
                 continue
 
             # Handle general case when a property may have changed.
@@ -139,6 +106,6 @@ def compare_codebases(a_units, b_units):
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
     # Represent both codebases as a single unit, and compare that.
-    a_unit = Unit("codebase", Visibility.public, [], [], a_units)
-    b_unit = Unit("codebase", Visibility.public, [], [], b_units)
+    a_unit = Unit("codebase", [], [], a_units)
+    b_unit = Unit("codebase", [], [], b_units)
     return _compare_properties(a_unit, b_unit)
