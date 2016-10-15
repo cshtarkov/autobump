@@ -19,6 +19,17 @@ class _Dynamic(_PythonType):
 
 _dynamic = _Dynamic()
 
+# Set of files to exclude when importing
+_excluded_files = {
+    "setup.py",
+    "__main__.py"
+}
+_excluded_dirs = {
+    "tests",
+    "test",
+    "scripts"
+}
+
 
 def _is_public(member_name):
     """Determine visibility of a member based on its name."""
@@ -98,6 +109,10 @@ def python_codebase_to_units(location):
     for root, dirs, files in os.walk(location):
         pyfiles = [f for f in files if f.endswith(".py")]
         for pyfile in pyfiles:
+            if os.path.basename(root) in _excluded_dirs:
+                continue
+            if pyfile in _excluded_files:
+                continue
             pymodule = pyfile[:-3]  # Strip ".py"
             # Need to generate a random name for the module,
             # otherwise all sorts of trouble can happen
