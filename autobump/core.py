@@ -21,6 +21,19 @@ class Change(Enum):
     type_changed_to_compatible_type = "Type was changed to a compatible type"
     type_changed_to_incompatible_type = "Type was changed to an incompatible type"
 
+    @staticmethod
+    def get_bump(change):
+        bump_map = {
+            Change.introduced_default_value: Bump.none,  # TODO: What bump is this?
+            Change.removed_default_value: Bump.major,
+            Change.changed_default_value: Bump.patch,
+            Change.property_was_introduced: Bump.minor,
+            Change.property_was_removed: Bump.major,
+            Change.type_changed_to_compatible_type: Bump.none,  # TODO: What bump is this?
+            Change.type_changed_to_incompatible_type: Bump.major
+        }
+        return bump_map.get(change)
+
 
 def _list_to_dict_by_name(code_properties):
     """Convert a list of CodeProperties to a dictionary,
@@ -34,7 +47,7 @@ def _list_to_dict_by_name(code_properties):
     return d
 
 
-def _report_change(change, name):
+def _log_change(change, name):
     """Report a change in a code property."""
     print(name + ": " + change.value)
 
@@ -50,6 +63,10 @@ def _compare_properties(a_prop, b_prop, path=""):
     path = (path + "." if path != "" else path) + a_prop.name
 
     highestBump = Bump.patch  # Biggest bump encountered so far.
+
+    def _report_change(change, path, logger=_log_change):
+        logger(change, path)
+        _report_bump(Change.get_bump(change))
 
     def _report_bump(bump):
         nonlocal highestBump
