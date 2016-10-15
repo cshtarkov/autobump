@@ -65,6 +65,8 @@ class Function(CodeProperty):
         self.name = name
         self.type = type
         self.signature = signature
+        if self.signature is None:
+            self.signature = Signature()
 
 
 class Unit(CodeProperty):

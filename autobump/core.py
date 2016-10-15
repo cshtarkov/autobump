@@ -16,8 +16,9 @@ class Change(Enum):
     changed_default_value = "Changed a default value"
     property_was_introduced = "Property was introduced"
     property_was_removed = "Property was removed"
-    parameter_added_to_signature = "Parameter was added to function signature"
-    parameter_removed_from_signature = "Parameter was removed from function signature"
+    parameter_added_to_signature = "Parameter(s) added to function signature"
+    parameter_defaults_added_to_signature = "Parameter(s) with default value(s) added to function signature"
+    parameter_removed_from_signature = "Parameter(s) removed from function signature"
     type_changed_to_compatible_type = "Type was changed to a compatible type"
     type_changed_to_incompatible_type = "Type was changed to an incompatible type"
 
@@ -29,6 +30,9 @@ class Change(Enum):
             Change.changed_default_value: Bump.patch,
             Change.property_was_introduced: Bump.minor,
             Change.property_was_removed: Bump.major,
+            Change.parameter_added_to_signature: Bump.major,
+            Change.parameter_defaults_added_to_signature: Bump.minor,
+            Change.parameter_removed_from_signature: Bump.major,
             Change.type_changed_to_compatible_type: Bump.none,  # TODO: What bump is this?
             Change.type_changed_to_incompatible_type: Bump.major
         }
@@ -57,6 +61,7 @@ def _compare_properties(a_prop, b_prop, path=""):
 
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
+    print("Path is", path)
     assert a_prop.name == b_prop.name, "Shouldn't compare properties with different names."
     assert type(a_prop) is type(b_prop), "Shouldn't compare properties of different types."
 
@@ -92,10 +97,39 @@ def _compare_properties(a_prop, b_prop, path=""):
         elif a_prop.default_value != b_prop.default_value:
             _report_change(Change.changed_default_value, path)
 
+    # Compare signatures
+    if hasattr(a_prop, "signature"):
+        assert hasattr(b_prop, "signature"), "Should never happen: comparing properties where one has 'signature' and other doesn't."
+        a_parameters = a_prop.signature.parameters
+        b_parameters = b_prop.signature.parameters
+        # Check for type compatibility
+        for pi in range(min(len(a_parameters), len(b_parameters))):
+            if a_parameters[pi].type is not b_parameters[pi].type:
+                if not a_parameters[pi].type.is_compatible(b_parameters[pi].type):
+                    _report_change(Change.type_changed_to_incompatible_type, path)
+                else:
+                    _report_change(Change.type_changed_to_compatible_type, path)
+        # Check whether size of signature has changed
+        if len(a_parameters) < len(b_parameters):
+            # Signature was expanded - check for default values.
+            all_new_have_defaults = True
+            for pi in range(len(a_parameters), len(b_parameters)):
+                if b_parameters[pi].default_value is None:
+                    all_new_have_defaults = False
+                    break
+            if all_new_have_defaults:
+                _report_change(Change.parameter_defaults_added_to_signature, path)
+            else:
+                _report_change(Change.parameter_added_to_signature, path)
+        elif len(a_parameters) > len(b_parameters):
+            # Signature has shrunk - always a breaking change.
+            _report_change(Change.parameter_removed_from_signature, path)
+
     # Compare inner properties recursively
     for k, v in a_prop.__dict__.items():
         if type(v) is not list:
             continue
+        print("Comparing ", k)
         assert k in b_prop.__dict__, "Should never happen: comparing properties with different inner properties."
         a_inner = _list_to_dict_by_name(a_prop.__dict__[k])
         b_inner = _list_to_dict_by_name(b_prop.__dict__[k])
@@ -123,6 +157,7 @@ def compare_codebases(a_units, b_units):
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
     # Represent both codebases as a single unit, and compare that.
+    print("comparing now")
     a_unit = Unit("codebase", [], [], a_units)
     b_unit = Unit("codebase", [], [], b_units)
     return _compare_properties(a_unit, b_unit)

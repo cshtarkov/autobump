@@ -100,7 +100,7 @@ class TestSingleProperties(unittest.TestCase):
         self.first.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic)])))
-        self.first.append(Function("foo", _generic,
+        self.second.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
                                            Parameter("c", _generic)])))
@@ -108,18 +108,18 @@ class TestSingleProperties(unittest.TestCase):
 
     def test_change_signature_add_parameter_default(self):
         self.first.append(Function("foo", _generic, Signature([Parameter("a", _generic),
-                                           Parameter("b", _generic)])))
-        self.first.append(Function("foo", _generic,
+                                                            Parameter("b", _generic)])))
+        self.second.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
                                            Parameter("c", _generic, default_value=True)])))
-        # TODO: What bump is this?
+        self.expect(Bump.minor)
 
     def test_change_signature_remove_parameter_nodefault(self):
         self.first.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic)])))
-        self.first.append(Function("foo", _generic,
+        self.second.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic)])))
         self.expect(Bump.major)
 
@@ -127,9 +127,39 @@ class TestSingleProperties(unittest.TestCase):
         self.first.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic, default_value=True)])))
+        self.second.append(Function("foo", _generic,
+                                Signature([Parameter("a", _generic)])))
+        self.expect(Bump.major)
+
+    def test_change_signature_rename_parameter(self):
         self.first.append(Function("foo", _generic,
                                 Signature([Parameter("a", _generic)])))
-        # TODO: What bump is this?
+        self.second.append(Function("foo", _generic,
+                                Signature([Parameter("b", _generic)])))
+        self.expect(Bump.patch)
+
+    def test_change_signature_rename_parameters(self):
+        self.first.append(Function("foo", _generic,
+                                Signature([Parameter("a", _generic),
+                                           Parameter("b", _generic)])))
+        self.second.append(Function("foo", _generic,
+                                 Signature([Parameter("b", _generic),
+                                            Parameter("a", _generic)])))
+        self.expect(Bump.patch)
+
+    def test_change_signature_parameter_type_compatible(self):
+        self.first.append(Function("foo", _a,
+                                Signature([Parameter("a", _generic)])))
+        self.second.append(Function("foo", _compatWithA,
+                                Signature([Parameter("a", _generic)])))
+        self.expect(Bump.patch)
+
+    def test_change_signature_parameter_type_incompatible(self):
+        self.first.append(Function("foo", _a,
+                                Signature([Parameter("a", _generic)])))
+        self.second.append(Function("foo", _incompatWithA,
+                                Signature([Parameter("a", _generic)])))
+        self.expect(Bump.major)
 
 if __name__ == "__main__":
     unittest.main()
