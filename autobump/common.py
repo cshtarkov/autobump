@@ -1,4 +1,5 @@
 """Common classes and functions used by the core logic and the handlers."""
+import uuid
 
 
 class VersionControlException(Exception):
@@ -26,8 +27,14 @@ class Type(CodeProperty):
     once for every time in the language's type system.
     They should also implement the is_compatible() method
     so that it does something sensible in that context."""
+    def __init__(self):
+        self.name = str(uuid.uuid4())
+
     def is_compatible(self, other):
         return isinstance(other, type(self))
+
+    def __eq__(self, other):
+        return self.is_compatible(other) and self.name == other.name
 
 
 class Field(CodeProperty):

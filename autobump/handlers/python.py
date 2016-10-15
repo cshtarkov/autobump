@@ -4,7 +4,7 @@ import sys
 import imp
 import inspect
 import traceback
-from uuid import uuid4
+import multiprocessing
 from autobump import common
 
 
@@ -22,12 +22,16 @@ _dynamic = _Dynamic()
 # Set of files to exclude when importing
 _excluded_files = {
     "setup.py",
-    "__main__.py"
+    "__main__.py",
+    "run-tests.py"
 }
 _excluded_dirs = {
+    "testsuite",
     "tests",
     "test",
-    "scripts"
+    "scripts",
+    "examples",
+    "docs"
 }
 
 
@@ -100,37 +104,40 @@ def _module_to_unit(name, module):
     return _container_to_unit(name, module, set())
 
 
-def python_codebase_to_units(location):
+def _python_codebase_to_units(location, queue):
     """Returns a list of Units representing a Python codebase in 'location'."""
     sys.path.append(location)
     for root, dirs, files in os.walk(location):
+        dirs[:] = [d for d in dirs if d not in _excluded_dirs]
         sys.path.append(root)
     units = []
     for root, dirs, files in os.walk(location):
+        dirs[:] = [d for d in dirs if d not in _excluded_dirs]
         pyfiles = [f for f in files if f.endswith(".py")]
         for pyfile in pyfiles:
-            if os.path.basename(root) in _excluded_dirs:
-                continue
             if pyfile in _excluded_files:
                 continue
             pymodule = pyfile[:-3]  # Strip ".py"
-            # Need to generate a random name for the module,
-            # otherwise all sorts of trouble can happen
-            # with importing it twice, or even worse -
-            # overriding functions used by this handler.
-            importas = pymodule + str(uuid4())
             file, pathname, description = imp.find_module(pymodule, [root])
             try:
-                units.append(_module_to_unit(pymodule, imp.load_module(importas, file, pathname, description)))
+                units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
             except ImportError:
                 print("Failed to import {} from {}!".format(pymodule, pathname),
                       file=sys.stderr)
                 traceback.print_exc()
-                print("PYTHONPATH was: {}".format(os.environ["PYTHONPATH"]),
-                      file=sys.stderr)
             finally:
                 if file is not None:
                     file.close()
-    return units
 
-codebase_to_units = python_codebase_to_units
+    queue.put(units)
+
+
+def codebase_to_units(location):
+    """ss"""
+    queue = multiprocessing.Queue()
+    process = multiprocessing.Process(target=_python_codebase_to_units,
+                                      args=(location, queue))
+    process.start()
+    units = queue.get()
+    process.join()
+    return units

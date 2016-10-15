@@ -59,7 +59,7 @@ def _log_change(change, name):
 def _compare_types(a_prop, b_prop):
     """Compare types of two properties and return a list of Changes."""
     changes = []
-    if a_prop.type is not b_prop.type:
+    if a_prop.type != b_prop.type:
         if a_prop.type.is_compatible(b_prop.type):
             changes.append(Change.type_changed_to_compatible_type)
         else:
@@ -76,7 +76,7 @@ def _compare_signature(a_prop, b_prop):
 
     # Check for type compatibility
     for pi in range(min(len(a_parameters), len(b_parameters))):
-        if a_parameters[pi].type is not b_parameters[pi].type:
+        if a_parameters[pi].type != b_parameters[pi].type:
             if not a_parameters[pi].type.is_compatible(b_parameters[pi].type):
                 changes.append(Change.type_changed_to_incompatible_type)
             else:
