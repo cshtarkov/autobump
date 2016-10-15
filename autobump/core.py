@@ -57,33 +57,32 @@ def _log_change(change, name):
 
 
 def _compare_types(a_prop, b_prop):
-    """Compare types of two properties and return a Change.
-
-    Returns None if there is no change."""
+    """Compare types of two properties and return a list of Changes."""
+    changes = []
     if a_prop.type is not b_prop.type:
         if a_prop.type.is_compatible(b_prop.type):
-            return Change.type_changed_to_compatible_type
+            changes.append(Change.type_changed_to_compatible_type)
         else:
-            return Change.type_changed_to_incompatible_type
+            changes.append(Change.type_changed_to_incompatible_type)
+    return changes
 
 
 def _compare_default_value(a_prop, b_prop):
-    """Compare default values of two properties and return a
-
-    Returns None if there is no change."""
+    """Compare default values of two properties and return a list of Changes."""
+    changes = []
     if a_prop.default_value is None and b_prop.default_value is not None:
-        return Change.introduced_default_value
+        changes.append(Change.introduced_default_value)
     elif a_prop.default_value is not None and b_prop.default_value is None:
-        return Change.removed_default_value
+        changes.append(Change.removed_default_value)
     elif a_prop.default_value != b_prop.default_value:
-        return Change.changed_default_value
+        changes.append(Change.changed_default_value)
+    return changes
 
 
 def _compare_signature(a_prop, b_prop):
-    """Compare signatures of two properties and return a Change.
+    """Compare signatures of two properties and return a list of Changes."""
 
-    Returns None if there is no change."""
-
+    changes = []
     a_parameters = a_prop.signature.parameters
     b_parameters = b_prop.signature.parameters
 
@@ -91,9 +90,9 @@ def _compare_signature(a_prop, b_prop):
     for pi in range(min(len(a_parameters), len(b_parameters))):
         if a_parameters[pi].type is not b_parameters[pi].type:
             if not a_parameters[pi].type.is_compatible(b_parameters[pi].type):
-                return Change.type_changed_to_incompatible_type
+                changes.append(Change.type_changed_to_incompatible_type)
             else:
-                return Change.type_changed_to_compatible_type
+                changes.append(Change.type_changed_to_compatible_type)
     # Check whether size of signature has changed
     if len(a_parameters) < len(b_parameters):
         # Signature was expanded - check for default values.
@@ -103,12 +102,14 @@ def _compare_signature(a_prop, b_prop):
                 all_new_have_defaults = False
                 break
         if all_new_have_defaults:
-            return Change.parameter_defaults_added_to_signature
+            changes.append(Change.parameter_defaults_added_to_signature)
         else:
-            return Change.parameter_added_to_signature
+            changes.append(Change.parameter_added_to_signature)
     elif len(a_parameters) > len(b_parameters):
         # Signature has shrunk - always a breaking change.
-        return Change.parameter_removed_from_signature
+        changes.append(Change.parameter_removed_from_signature)
+
+    return changes
 
 
 def _compare_properties(a_prop, b_prop, path=""):
@@ -143,8 +144,7 @@ def _compare_properties(a_prop, b_prop, path=""):
     for attribute, comparator in comparisons.items():
         if hasattr(a_prop, attribute):
             assert hasattr(b_prop, attribute), "Should never happen: properties have mismatching attributes."
-            change = comparator(a_prop, b_prop)
-            if change is not None:
+            for change in comparator(a_prop, b_prop):
                 _report_change(change, path)
 
     # Compare inner properties recursively
