@@ -132,26 +132,20 @@ def _compare_properties(a_prop, b_prop, path=""):
         if bump.value > highestBump.value:
             highestBump = bump
 
-    # Compare types
-    if hasattr(a_prop, "type"):
-        assert hasattr(b_prop, "type"), "Should never happen: comparing properties when one has 'type' and other doesn't."
-        change = _compare_types(a_prop, b_prop)
-        if change is not None:
-            _report_change(change, path)
+    # Map of the form:
+    # (attribute required) -> (comparison function)
+    comparisons = {
+        "type": _compare_types,
+        "default_value": _compare_default_value,
+        "signature": _compare_signature
+    }
 
-    # Compare default values
-    if hasattr(a_prop, "default_value"):
-        assert hasattr(b_prop, "default_value"), "Should never happen: comparing properties when one has 'default_value' and other doesn't."
-        change = _compare_default_value(a_prop, b_prop)
-        if change is not None:
-            _report_change(change, path)
-
-    # Compare signatures
-    if hasattr(a_prop, "signature"):
-        assert hasattr(b_prop, "signature"), "Should never happen: comparing properties where one has 'signature' and other doesn't."
-        change = _compare_signature(a_prop, b_prop)
-        if change is not None:
-            _report_change(change, path)
+    for attribute, comparator in comparisons.items():
+        if hasattr(a_prop, attribute):
+            assert hasattr(b_prop, attribute), "Should never happen: properties have mismatching attributes."
+            change = comparator(a_prop, b_prop)
+            if change is not None:
+                _report_change(change, path)
 
     # Compare inner properties recursively
     for k, v in a_prop.__dict__.items():
