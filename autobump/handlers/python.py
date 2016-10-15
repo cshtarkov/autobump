@@ -3,6 +3,7 @@ import os
 import sys
 import imp
 import inspect
+import traceback
 from uuid import uuid4
 from autobump import common
 
@@ -90,6 +91,9 @@ def _module_to_unit(name, module):
 
 def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
+    sys.path.append(location)
+    for root, dirs, files in os.walk(location):
+        sys.path.append(root)
     units = []
     for root, dirs, files in os.walk(location):
         pyfiles = [f for f in files if f.endswith(".py")]
@@ -105,6 +109,9 @@ def python_codebase_to_units(location):
                 units.append(_module_to_unit(pymodule, imp.load_module(importas, file, pathname, description)))
             except ImportError:
                 print("Failed to import {} from {}!".format(pymodule, pathname),
+                      file=sys.stderr)
+                traceback.print_exc()
+                print("PYTHONPATH was: {}".format(os.environ["PYTHONPATH"]),
                       file=sys.stderr)
             finally:
                 if file is not None:
