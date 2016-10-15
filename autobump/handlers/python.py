@@ -105,7 +105,11 @@ def _module_to_unit(name, module):
 
 
 def _python_codebase_to_units(location, queue):
-    """Returns a list of Units representing a Python codebase in 'location'."""
+    """Returns a list of Units representing a Python codebase in 'location'.
+
+    This function should not be called directly. Instead it should be
+    run as a separate process, so that imports only apply for that
+    Python process and pollute the namespace where autobump is running."""
     sys.path.append(location)
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if d not in _excluded_dirs]
@@ -133,7 +137,7 @@ def _python_codebase_to_units(location, queue):
 
 
 def codebase_to_units(location):
-    """ss"""
+    """Returns a list of Units representing a Python codebase in 'location'."""
     queue = multiprocessing.Queue()
     process = multiprocessing.Process(target=_python_codebase_to_units,
                                       args=(location, queue))
