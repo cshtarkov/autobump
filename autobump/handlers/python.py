@@ -1,5 +1,6 @@
 """Convert a Python codebase into a list of Units."""
 import os
+import re
 import ast
 import multiprocessing
 from autobump import common
@@ -17,19 +18,22 @@ class _Dynamic(_PythonType):
 _dynamic = _Dynamic()
 
 # Set of files to exclude when importing
-_excluded_files = {
-    "setup.py",
-    "__main__.py",
-    "run-tests.py"
-}
-_excluded_dirs = {
-    "testsuite",
-    "tests",
-    "test",
-    "scripts",
-    "examples",
-    "docs"
-}
+_excluded_files = [
+    re.compile(r"^test_"),
+    re.compile(r"^tests.py$"),
+    re.compile(r".*_test.py$"),
+    re.compile(r"^setup.py$"),
+    re.compile(r"^__main__.py$"),
+    re.compile(r"^run-tests.py$")
+]
+_excluded_dirs = [
+    re.compile(r"^test"),
+    re.compile(r"^script"),
+    re.compile(r"^example"),
+    re.compile(r"^doc"),
+    re.compile(r"^.git$"),
+    re.compile(r"^.svn$")
+]
 
 
 def _is_public(member_name):
@@ -99,13 +103,9 @@ def _python_codebase_to_units(location, queue):
     Python process and pollute the namespace where autobump is running."""
     units = []
     for root, dirs, files in os.walk(location):
-        print("dirs before excl: ", str(root), str(dirs))
-        dirs[:] = [d for d in dirs if d not in _excluded_dirs]
-        print("dirs after excl: ", str(root), str(dirs))
-        pyfiles = [f for f in files if f.endswith(".py")]
+        dirs[:] = [d for d in dirs if any(r.match(d) for r in _excluded_dirs)]
+        pyfiles = [f for f in files if f.endswith(".py") and not any(r.match(f) for r in _excluded_files)]
         for pyfile in pyfiles:
-            if pyfile in _excluded_files:
-                continue
             pymodule = pyfile[:-3]  # Strip ".py"
             with open(os.path.join(root, pyfile), "r") as f:
                 units.append(_module_to_unit(pymodule, ast.parse(''.join(list(f)))))
