@@ -1,8 +1,6 @@
 """Convert a Python codebase into a list of Units."""
 import os
-import sys
-import imp
-import traceback
+import ast
 import multiprocessing
 from autobump import common
 
@@ -57,6 +55,8 @@ def _get_parameters(function):
             # TODO: This does not differentiate between
             # "abc" and abc.
             default = default.id
+        elif isinstance(default, ast.NameConstant):
+            default = default.value
         elif isinstance(default, ast.Num):
             default = default.n
         elif isinstance(default, ast.Str):
@@ -65,35 +65,30 @@ def _get_parameters(function):
     return parameters
 
 
-def _container_to_unit(name, container, already_converted):
-    """Convert a Python module or class to a Unit."""
+def _container_to_unit(name, container):
+    """Convert a Python AST module or class to a Unit."""
     fields = []
     functions = []
     units = []
-    for member_name, member in inspect.getmembers(container):
-        if _is_builtin(member_name) and member_name != "__init__":
-            continue
-        if not _is_public(member_name):
+    for node in container.body:
+        if hasattr(node, "name") and not _is_public(node.name):
             # Completely ignore any private things -
             # they are irrelevant to the API.
             continue
-        # Handle possible circular references.
-        if inspect.isclass(member):
-            if hash((member_name, id(member))) in already_converted:
-                continue
-            already_converted.add(hash((member_name, id(member))))
-        if inspect.isclass(member):
-            units.append(_container_to_unit(member_name, member, already_converted))
-        elif callable(member):
-            functions.append(common.Function(member_name, _dynamic, common.Signature(_get_parameters(member))))
-        else:
-            fields.append(common.Field(member_name, _dynamic))
+        if isinstance(node, ast.ClassDef):
+            units.append(_container_to_unit(node.name, node))
+        elif isinstance(node, ast.FunctionDef):
+            functions.append(common.Function(node.name, _dynamic, common.Signature(_get_parameters(node))))
+        elif isinstance(node, ast.Assign):
+            # TODO: Handle other forms of assignment.
+            for target in [t for t in node.targets if isinstance(t, ast.Name) and _is_public(t.id)]:
+                fields.append(common.Field(target.id, _dynamic))
     return common.Unit(name, fields, functions, units)
 
 
 def _module_to_unit(name, module):
-    """Convert a Python module to a Unit."""
-    return _container_to_unit(name, module, set())
+    """Convert a Python AST module to a Unit."""
+    return _container_to_unit(name, module)
 
 
 def _python_codebase_to_units(location, queue):
@@ -102,28 +97,18 @@ def _python_codebase_to_units(location, queue):
     This function should not be called directly. Instead it should be
     run as a separate process, so that imports only apply for that
     Python process and pollute the namespace where autobump is running."""
-    sys.path.append(location)
-    for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if d not in _excluded_dirs]
-        sys.path.append(root)
     units = []
     for root, dirs, files in os.walk(location):
+        print("dirs before excl: ", str(root), str(dirs))
         dirs[:] = [d for d in dirs if d not in _excluded_dirs]
+        print("dirs after excl: ", str(root), str(dirs))
         pyfiles = [f for f in files if f.endswith(".py")]
         for pyfile in pyfiles:
             if pyfile in _excluded_files:
                 continue
             pymodule = pyfile[:-3]  # Strip ".py"
-            file, pathname, description = imp.find_module(pymodule, [root])
-            try:
-                units.append(_module_to_unit(pymodule, imp.load_module(pymodule, file, pathname, description)))
-            except ImportError:
-                print("Failed to import {} from {}!".format(pymodule, pathname),
-                      file=sys.stderr)
-                traceback.print_exc()
-            finally:
-                if file is not None:
-                    file.close()
+            with open(os.path.join(root, pyfile), "r") as f:
+                units.append(_module_to_unit(pymodule, ast.parse(''.join(list(f)))))
 
     queue.put(units)
 
