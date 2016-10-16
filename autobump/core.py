@@ -150,7 +150,7 @@ def _compare_properties(a_prop, b_prop, path=""):
 
             if ki not in b_inner:
                 # Handle case when a property was removed.
-                _report_change(Change.property_was_removed, a_inner[ki].name)
+                _report_change(Change.property_was_removed, path + "." + a_inner[ki].name)
                 continue
 
             # Handle general case when a property may have changed.
