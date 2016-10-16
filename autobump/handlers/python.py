@@ -2,7 +2,6 @@
 import os
 import re
 import ast
-import multiprocessing
 from autobump import common
 
 
@@ -95,12 +94,8 @@ def _module_to_unit(name, module):
     return _container_to_unit(name, module)
 
 
-def _python_codebase_to_units(location, queue):
-    """Returns a list of Units representing a Python codebase in 'location'.
-
-    This function should not be called directly. Instead it should be
-    run as a separate process, so that imports only apply for that
-    Python process and pollute the namespace where autobump is running."""
+def python_codebase_to_units(location):
+    """Returns a list of Units representing a Python codebase in 'location'."""
     units = []
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if any(r.match(d) for r in _excluded_dirs)]
@@ -109,16 +104,6 @@ def _python_codebase_to_units(location, queue):
             pymodule = pyfile[:-3]  # Strip ".py"
             with open(os.path.join(root, pyfile), "r") as f:
                 units.append(_module_to_unit(pymodule, ast.parse(''.join(list(f)))))
-
-    queue.put(units)
-
-
-def codebase_to_units(location):
-    """Returns a list of Units representing a Python codebase in 'location'."""
-    queue = multiprocessing.Queue()
-    process = multiprocessing.Process(target=_python_codebase_to_units,
-                                      args=(location, queue))
-    process.start()
-    units = queue.get()
-    process.join()
     return units
+
+codebase_to_units = python_codebase_to_units
