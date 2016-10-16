@@ -26,11 +26,11 @@ _compatWithA = _CompatWithA()
 _incompatWithA = _IncompatWithA()
 
 
-class TestSingleProperties(unittest.TestCase):
-    """Test comparison of codebases consisting of a single property.
+class TestSingleEntities(unittest.TestCase):
+    """Test comparison of codebases consisting of a single entity.
 
     Each test gives two variants of the same codebase
-    which contain a single code property
+    which contain a single entity
     and expects a major, minor, patch or no bump."""
     def setUp(self):
         self.first = []

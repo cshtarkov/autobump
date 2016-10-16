@@ -11,7 +11,7 @@ def _source_to_units(source):
 
 class TestVisibility(unittest.TestCase):
     """Test how the Python handler detects visibility
-    just by the name of the property. """
+    just by the name of the entity."""
 
     def test_public_name(self):
         name = "public"

@@ -6,12 +6,12 @@ class VersionControlException(Exception):
     pass
 
 
-class CodeProperty(object):
-    """Generic code property."""
+class Entity(object):
+    """Generic entity."""
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
-        raise TypeError("Comparing code property to something else.")
+        raise TypeError("Comparing entity to something else.")
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -20,7 +20,7 @@ class CodeProperty(object):
         return self.name
 
 
-class Type(CodeProperty):
+class Type(Entity):
     """Generic representation of a type.
 
     Handlers are expected to inherit this class
@@ -37,14 +37,14 @@ class Type(CodeProperty):
         return self.is_compatible(other) and self.name == other.name
 
 
-class Field(CodeProperty):
+class Field(Entity):
     """Class field or constant."""
     def __init__(self, name, type):
         self.name = name
         self.type = type
 
 
-class Parameter(CodeProperty):
+class Parameter(Entity):
     """Parameter to a function."""
     def __init__(self, name, type, default_value=None):
         self.name = name
@@ -52,7 +52,7 @@ class Parameter(CodeProperty):
         self.default_value = default_value
 
 
-class Signature(CodeProperty):
+class Signature(Entity):
     """Signature of a function."""
     def __init__(self, parameters=[]):
         self.parameters = parameters
@@ -65,7 +65,7 @@ class Signature(CodeProperty):
         return self
 
 
-class Function(CodeProperty):
+class Function(Entity):
     """Top-level function or class method."""
     def __init__(self, name, type, signature=None):
         self.name = name
@@ -75,7 +75,7 @@ class Function(CodeProperty):
             self.signature = Signature()
 
 
-class Unit(CodeProperty):
+class Unit(Entity):
     """Generic unit of code containing fields and functions.
 
     Could be a Java class, a Python module, a C translation unit and so on. """
