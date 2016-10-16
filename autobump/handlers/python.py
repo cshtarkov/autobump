@@ -2,7 +2,6 @@
 import os
 import sys
 import imp
-import inspect
 import traceback
 import multiprocessing
 from autobump import common
@@ -47,29 +46,22 @@ def _is_builtin(member_name):
 
 
 def _get_parameters(function):
-    """Return a list of Parameters to the function."""
-    try:
-        argspec = inspect.getfullargspec(function)
-    except TypeError:
-        # It could be that a method such as __dir__
-        # is not implemented, which will result in a ValueError
-        # when trying to get the argspec, even if the method
-        # itself is there.
-        # In that case just consider the parameter list empty.
-        print("Failed to get argspec for {}".format(str(function)),
-              file=sys.stderr)
-        return []
-    args = argspec.args if argspec.args is not None else []
-    defaults = argspec.defaults if argspec.defaults is not None else []
+    """Return a list of Parameters to a function AST node."""
     parameters = []
-    i = 0
-    while i < len(args) - len(defaults):
-        parameters.append(common.Parameter(args[i], _dynamic))
-        i += 1
-    while i < len(args):
-        default = defaults[i - (len(args) - len(defaults))]
-        parameters.append(common.Parameter(args[i], _dynamic, default_value=default))
-        i += 1
+    args = function.args.args
+    defaults = [None] * (len(args) - len(function.args.defaults)) + function.args.defaults
+    args_with_defaults = list(zip(args, defaults))
+    for arg_with_default in args_with_defaults:
+        arg, default = arg_with_default
+        if isinstance(default, ast.Name):
+            # TODO: This does not differentiate between
+            # "abc" and abc.
+            default = default.id
+        elif isinstance(default, ast.Num):
+            default = default.n
+        elif isinstance(default, ast.Str):
+            default = default.s
+        parameters.append(common.Parameter(arg.arg, _dynamic, default))
     return parameters
 
 
