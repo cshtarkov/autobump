@@ -98,7 +98,7 @@ def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
     units = []
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if any(r.match(d) for r in _excluded_dirs)]
+        dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
         pyfiles = [f for f in files if f.endswith(".py") and not any(r.match(f) for r in _excluded_files)]
         for pyfile in pyfiles:
             pymodule = pyfile[:-3]  # Strip ".py"
