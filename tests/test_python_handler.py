@@ -139,5 +139,48 @@ class c(object):
         unit = codebase.units[0]
         self.assertEqual(len([u for u in unit.units if u.name == "inner"]), 1)
 
+
+class TestTypeOfParameters(unittest.TestCase):
+    """Test how types of parameters are determined."""
+
+    def test_same_type(self):
+        source = """
+def func(a, b):
+    a.m1()
+    b.m1()
+        """
+        codebase = _source_to_unit(source)
+        function = codebase.functions[0]
+        type_of_a = function.signature.parameters[0].type
+        type_of_b = function.signature.parameters[1].type
+        self.assertEqual(type_of_a, type_of_b)
+
+    def test_compatible_types(self):
+        source = """
+def func(a, b):
+    a.m1()
+    b.m1()
+    b.m2()
+        """
+        codebase = _source_to_unit(source)
+        function = codebase.functions[0]
+        type_of_a = function.signature.parameters[0].type
+        type_of_b = function.signature.parameters[1].type
+        self.assertTrue(type_of_a.is_compatible(type_of_b))
+
+    def test_incompatible_types(self):
+        source = """
+def func(a, b):
+    a.m1()
+    b.m1()
+    b.m2()
+        """
+        codebase = _source_to_unit(source)
+        function = codebase.functions[0]
+        type_of_a = function.signature.parameters[0].type
+        type_of_b = function.signature.parameters[1].type
+        self.assertFalse(type_of_b.is_compatible(type_of_a))
+
+
 if __name__ == "__main__":
     unittest.main()

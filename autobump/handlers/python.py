@@ -14,6 +14,15 @@ class _Dynamic(_PythonType):
     pass
 
 
+class _StructuralType(_PythonType):
+    def __init__(self, method_set):
+        self.name = str(method_set)
+        self.method_set = method_set
+
+    def is_compatible(self, other):
+        return self.method_set.issubset(other.method_set)
+
+
 _dynamic = _Dynamic()
 
 # Set of files to exclude when importing
@@ -46,6 +55,32 @@ def _is_builtin(member_name):
     return member_name.startswith("__")
 
 
+def _get_type_of_parameter(function, parameter):
+    """Return the type of a parameter used in a function AST node.
+
+    In this case, 'type' means structural instead of nominal type.
+    Because Python is dynamically typed, it would be very hard to guess
+    what type a parameter is without looking at usage. Instead of doing that,
+    this walks the AST node describing the function and considers the type to be
+    the set of all methods called on the parameter."""
+    assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
+    method_set = set()
+    for call in [n for n in ast.walk(function)
+                 if
+                 isinstance(n, ast.Call) and
+                 isinstance(n.func, ast.Attribute) and
+                 isinstance(n.func.value, ast.Name)]:
+        # TODO: This also counts variables which have the same
+        # name as the parameter, e.g. in inner functions.
+        name = call.func.value.id
+        method = call.func.attr
+        if name == parameter:
+            # TODO: Also consider method signature.
+            method_set.add(method)
+
+    return _StructuralType(method_set)
+
+
 def _get_parameters(function):
     """Return a list of Parameters to a function AST node."""
     parameters = []
@@ -64,7 +99,8 @@ def _get_parameters(function):
             default = default.n
         elif isinstance(default, ast.Str):
             default = default.s
-        parameters.append(common.Parameter(arg.arg, _dynamic, default))
+        type = _get_type_of_parameter(function, arg.arg)
+        parameters.append(common.Parameter(arg.arg, type, default))
     return parameters
 
 
