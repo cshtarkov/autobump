@@ -3,9 +3,8 @@ import unittest
 from autobump.handlers import python
 
 
-def _source_to_units(source):
-    """Helper function to convert Python source code into a list
-    of Units."""
+def _source_to_unit(source):
+    """Helper function to convert Python source code into a single Unit."""
     return python._container_to_unit("", ast.parse(source))
 
 
@@ -30,24 +29,24 @@ class TestSignature(unittest.TestCase):
 def f():
     pass
         """
-        units = _source_to_units(source)
-        self.assertEqual(len(units.functions[0].signature.parameters), 0)
+        codebase = _source_to_unit(source)
+        self.assertEqual(len(codebase.functions[0].signature.parameters), 0)
 
     def test_parameter_correct_count(self):
         source = """
 def f(p1, p2):
     pass
         """
-        units = _source_to_units(source)
-        self.assertEqual(len(units.functions[0].signature.parameters), 2)
+        codebase = _source_to_unit(source)
+        self.assertEqual(len(codebase.functions[0].signature.parameters), 2)
 
     def test_parameter_names(self):
         source = """
 def f(p1, p2):
     pass
         """
-        units = _source_to_units(source)
-        parameters = units.functions[0].signature.parameters
+        codebase = _source_to_unit(source)
+        parameters = codebase.functions[0].signature.parameters
         self.assertEqual(parameters[0].name, "p1")
         self.assertEqual(parameters[1].name, "p2")
 
@@ -56,8 +55,8 @@ def f(p1, p2):
 def f(p1, p2, p3=True, p4=False):
     pass
         """
-        units = _source_to_units(source)
-        parameters = units.functions[0].signature.parameters
+        codebase = _source_to_unit(source)
+        parameters = codebase.functions[0].signature.parameters
         self.assertEqual(parameters[0].default_value, None)
         self.assertEqual(parameters[1].default_value, None)
         self.assertEqual(parameters[2].default_value, True)
@@ -73,8 +72,8 @@ class TestClassConversion(unittest.TestCase):
 class c(object):
     pass
         """
-        units = _source_to_units(source)
-        unit = units.units[0]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[0]
         self.assertEqual(len(unit.fields), 0)
         self.assertEqual(len(unit.functions), 0)
         self.assertEqual(len(unit.units), 0)
@@ -85,8 +84,8 @@ class c(object):
     f1 = None
     f2 = None
         """
-        units = _source_to_units(source)
-        unit = units.units[0]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[0]
         self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
         self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
 
@@ -99,8 +98,8 @@ class c(object):
     f1 = a
     f2 = a
         """
-        units = _source_to_units(source)
-        unit = units.units[1]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[1]
         self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
         self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
 
@@ -110,8 +109,8 @@ class c(object):
     f1 = "value1"
     f2 = "value2"
         """
-        units = _source_to_units(source)
-        unit = units.units[0]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[0]
         self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
         self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
 
@@ -124,8 +123,8 @@ class c(object):
     def m2(p1):
         pass
         """
-        units = _source_to_units(source)
-        unit = units.units[0]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[0]
         self.assertEqual(len([m for m in unit.functions if m.name == "m1"]), 1)
         self.assertEqual(len([m for m in unit.functions if m.name == "m2"]), 1)
 
@@ -136,8 +135,8 @@ class c(object):
         pass
     pass
         """
-        units = _source_to_units(source)
-        unit = units.units[0]
+        codebase = _source_to_unit(source)
+        unit = codebase.units[0]
         self.assertEqual(len([u for u in unit.units if u.name == "inner"]), 1)
 
 if __name__ == "__main__":
