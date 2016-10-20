@@ -64,19 +64,36 @@ def _get_type_of_parameter(function, parameter):
     this walks the AST node describing the function and considers the type to be
     the set of all methods called on the parameter."""
     assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
+
+    # Generators to filter out AST
+    def gen_no_inner_definitions(node):
+        """Recursively yield all descendant nodes
+        without walking any function or class definitions."""
+        yield node
+        for n in ast.iter_child_nodes(node):
+            if isinstance(n, ast.FunctionDef) or \
+               isinstance(n, ast.ClassDef):
+                continue
+            yield from gen_no_inner_definitions(n)
+
+    def gen_only_attributes(node):
+        """Yield only descendant nodes that represent attribute access,
+        without traversing any function or class definitions."""
+        for n in gen_no_inner_definitions(node):
+            if isinstance(n, ast.Attribute) and \
+               isinstance(n.value, ast.Name):
+                yield n
+
+    # Find the set of attributes for that parameter
     attr_set = set()
-    for attr in [n for n in ast.walk(function)
-                 if
-                 isinstance(n, ast.Attribute) and
-                 isinstance(n.value, ast.Name)]:
-        # TODO: This also counts variables which have the same
-        # name as the parameter, e.g. in inner functions.
+    for attr in [n for n in gen_only_attributes(function)]:
         name = attr.value.id
         method = attr.attr
         if name == parameter:
             # TODO: Also consider method signature.
             attr_set.add(method)
 
+    # Convert set of attribytes to structural type
     return _StructuralType(attr_set)
 
 
