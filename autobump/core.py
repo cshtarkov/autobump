@@ -19,7 +19,6 @@ class Bump(Enum):
 
 
 class Change(Enum):
-    introduced_default_value = "Introduced default value where there was previously none"
     removed_default_value = "Removed a default value"
     changed_default_value = "Changed a default value"
     entity_was_introduced = "Entity was introduced"
@@ -33,7 +32,6 @@ class Change(Enum):
     @staticmethod
     def get_bump(change):
         bump_map = {
-            Change.introduced_default_value: Bump.none,  # TODO: What bump is this?
             Change.removed_default_value: Bump.major,
             Change.changed_default_value: Bump.patch,
             Change.entity_was_introduced: Bump.minor,
