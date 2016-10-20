@@ -68,6 +68,11 @@ def _get_type_of_parameter(function, parameter):
     the set of all methods called on the parameter."""
     assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
 
+    # TODO: Don't completely ommit 'self' in class methods,
+    # it can be used to identify addition or removal of fields.
+    if parameter == "self":
+        return _StructuralType(set())
+
     # Generators to filter out AST
     def gen_no_inner_definitions(node):
         """Recursively yield all descendant nodes
