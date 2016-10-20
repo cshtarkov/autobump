@@ -59,7 +59,7 @@ def _list_to_dict_by_name(entities):
     return d
 
 
-def _log_change(change, name):
+def _print_change(change, name):
     """Report a change in a entity."""
     print(name + ": " + change.value)
 
@@ -136,8 +136,8 @@ def _compare_entities(a_ent, b_ent, path=""):
 
     highestBump = Bump.patch  # Biggest bump encountered so far.
 
-    def _report_change(change, path, logger=_log_change):
-        logger(change, path)
+    def _report_change(change, path, printer=_print_change):
+        printer(change, path)
         _report_bump(Change.get_bump(change))
 
     def _report_bump(bump):
