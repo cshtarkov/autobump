@@ -3,5 +3,5 @@
 
 ((python-mode
   (eval highlight-regexp "TODO" 'hilight-yellow)
-  (eval setenv "PYTHONPATH" (vc-git-root (buffer-file-name)))
+  (eval setenv "PYTHONPATH" (expand-file-name (vc-git-root (buffer-file-name))))
   (python-shell-interpreter . "python3")))
