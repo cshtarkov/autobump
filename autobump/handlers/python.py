@@ -89,7 +89,7 @@ def _get_type_of_parameter(function, parameter):
 
     # Find the set of attributes for that parameter
     attr_set = set()
-    for attr in [n for n in gen_only_attributes(function)]:
+    for attr in gen_only_attributes(function):
         name = attr.value.id
         method = attr.attr
         if name == parameter:
