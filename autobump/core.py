@@ -76,11 +76,8 @@ def _compare_signature(a_ent, b_ent):
 
     # Check for type compatibility
     for pi in range(min(len(a_parameters), len(b_parameters))):
-        if a_parameters[pi].type != b_parameters[pi].type:
-            if not a_parameters[pi].type.is_compatible(b_parameters[pi].type):
-                changes.append(Change.type_changed_to_incompatible_type)
-            else:
-                changes.append(Change.type_changed_to_compatible_type)
+        changes = changes + _compare_types(a_parameters[pi], b_parameters[pi])
+
     # Check whether size of signature has changed
     if len(a_parameters) < len(b_parameters):
         # Signature was expanded - check for default values.
