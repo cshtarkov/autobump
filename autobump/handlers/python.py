@@ -22,6 +22,9 @@ class _StructuralType(_PythonType):
     def is_compatible(self, other):
         return self.attr_set.issubset(other.attr_set)
 
+    def __str__(self):
+        return str(self.attr_set)
+
 
 _dynamic = _Dynamic()
 
