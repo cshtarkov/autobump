@@ -15,12 +15,12 @@ class _Dynamic(_PythonType):
 
 
 class _StructuralType(_PythonType):
-    def __init__(self, method_set):
-        self.name = str(method_set)
-        self.method_set = method_set
+    def __init__(self, attr_set):
+        self.name = str(attr_set)
+        self.attr_set = attr_set
 
     def is_compatible(self, other):
-        return self.method_set.issubset(other.method_set)
+        return self.attr_set.issubset(other.attr_set)
 
 
 _dynamic = _Dynamic()
@@ -64,21 +64,20 @@ def _get_type_of_parameter(function, parameter):
     this walks the AST node describing the function and considers the type to be
     the set of all methods called on the parameter."""
     assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
-    method_set = set()
-    for call in [n for n in ast.walk(function)
+    attr_set = set()
+    for attr in [n for n in ast.walk(function)
                  if
-                 isinstance(n, ast.Call) and
-                 isinstance(n.func, ast.Attribute) and
-                 isinstance(n.func.value, ast.Name)]:
+                 isinstance(n, ast.Attribute) and
+                 isinstance(n.value, ast.Name)]:
         # TODO: This also counts variables which have the same
         # name as the parameter, e.g. in inner functions.
-        name = call.func.value.id
-        method = call.func.attr
+        name = attr.value.id
+        method = attr.attr
         if name == parameter:
             # TODO: Also consider method signature.
-            method_set.add(method)
+            attr_set.add(method)
 
-    return _StructuralType(method_set)
+    return _StructuralType(attr_set)
 
 
 def _get_parameters(function):

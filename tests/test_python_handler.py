@@ -155,7 +155,7 @@ def func(a, b):
         type_of_b = function.signature.parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
 
-    def test_compatible_types(self):
+    def test_compatible_types_methods(self):
         source = """
 def func(a, b):
     a.m1()
@@ -168,7 +168,7 @@ def func(a, b):
         type_of_b = function.signature.parameters[1].type
         self.assertTrue(type_of_a.is_compatible(type_of_b))
 
-    def test_incompatible_types(self):
+    def test_incompatible_types_methods(self):
         source = """
 def func(a, b):
     a.m1()
@@ -181,6 +181,31 @@ def func(a, b):
         type_of_b = function.signature.parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
+    def test_compatible_types_fields(self):
+        source = """
+def func(a, b):
+    a.f1 = 1
+    a.f2 = 1
+    b.f1 = 1
+        """
+        codebase = _source_to_unit(source)
+        function = codebase.functions[0]
+        type_of_a = function.signature.parameters[0].type
+        type_of_b = function.signature.parameters[1].type
+        self.assertTrue(type_of_b.is_compatible(type_of_a))
+
+    def test_incompatible_types_fields(self):
+        source = """
+def func(a, b):
+    a.f1 = 1
+    b.f1 = 1
+    b.f2 = 1
+        """
+        codebase = _source_to_unit(source)
+        function = codebase.functions[0]
+        type_of_a = function.signature.parameters[0].type
+        type_of_b = function.signature.parameters[1].type
+        self.assertFalse(type_of_b.is_compatible(type_of_a))
 
 if __name__ == "__main__":
     unittest.main()
