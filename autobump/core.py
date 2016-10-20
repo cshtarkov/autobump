@@ -73,6 +73,7 @@ def _compare_types(a_ent, b_ent):
         logger.debug("Types are different:\n\tVariant A: {}\n\tVariant B: {}"
                      .format(a_ent.type, b_ent.type))
         if a_ent.type.is_compatible(b_ent.type):
+        if b_ent.type.is_compatible(a_ent.type):
             logger.debug("Furthermore, types are compatible")
             changes.append(Change.type_changed_to_compatible_type)
         else:
