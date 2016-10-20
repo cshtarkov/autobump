@@ -39,7 +39,7 @@ class Change(Enum):
             Change.parameter_added_to_signature: Bump.major,
             Change.parameter_defaults_added_to_signature: Bump.minor,
             Change.parameter_removed_from_signature: Bump.major,
-            Change.type_changed_to_compatible_type: Bump.none,  # TODO: What bump is this?
+            Change.type_changed_to_compatible_type: Bump.patch,
             Change.type_changed_to_incompatible_type: Bump.major
         }
         return bump_map.get(change)
