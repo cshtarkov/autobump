@@ -1,6 +1,14 @@
 """Core codebase comparison logic."""
+import logging
 from enum import Enum
 from autobump.common import Unit
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+stderr_handler = logging.StreamHandler()
+stderr_handler.setLevel(logging.DEBUG)
+stderr_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+logger.addHandler(stderr_handler)
 
 
 class Bump(Enum):
@@ -59,11 +67,19 @@ def _log_change(change, name):
 def _compare_types(a_ent, b_ent):
     """Compare types of two entities and return a list of Changes."""
     changes = []
+    logger.debug("Comparing types of {} and {}"
+                 .format(str(a_ent), str(b_ent)))
     if a_ent.type != b_ent.type:
+        logger.debug("Types are different:\n\tVariant A: {}\n\tVariant B: {}"
+                     .format(a_ent.type, b_ent.type))
         if a_ent.type.is_compatible(b_ent.type):
+            logger.debug("Furthermore, types are compatible")
             changes.append(Change.type_changed_to_compatible_type)
         else:
+            logger.debug("Furthermore, types are NOT compatible")
             changes.append(Change.type_changed_to_incompatible_type)
+    else:
+        logger.debug("Types are identical")
     return changes
 
 
@@ -74,6 +90,9 @@ def _compare_signature(a_ent, b_ent):
     a_parameters = a_ent.signature.parameters
     b_parameters = b_ent.signature.parameters
 
+    logger.debug("Comparing signatures of {} and {}"
+                 .format(a_ent, b_ent))
+
     # Check for type compatibility
     for pi in range(min(len(a_parameters), len(b_parameters))):
         changes = changes + _compare_types(a_parameters[pi], b_parameters[pi])
@@ -81,17 +100,25 @@ def _compare_signature(a_ent, b_ent):
     # Check whether size of signature has changed
     if len(a_parameters) < len(b_parameters):
         # Signature was expanded - check for default values.
+        logger.debug("Signature was expanded in later version: {} became {}"
+                     .format(len(a_parameters), len(b_parameters)))
         all_new_have_defaults = True
         for pi in range(len(a_parameters), len(b_parameters)):
             if b_parameters[pi].default_value is None:
+                logger.debug("At least one new parameter missing default value: {}"
+                             .format(b_parameters[pi]))
                 all_new_have_defaults = False
                 break
         if all_new_have_defaults:
+            logger.debug("All new parameters have default values")
             changes.append(Change.parameter_defaults_added_to_signature)
         else:
+            logger.debug("NOT all new parameters have default values")
             changes.append(Change.parameter_added_to_signature)
     elif len(a_parameters) > len(b_parameters):
         # Signature has shrunk - always a breaking change.
+        logger.debug("Signature has shrunk in later version: {} became {}"
+                     .format(len(a_parameters), len(b_parameters)))
         changes.append(Change.parameter_removed_from_signature)
 
     return changes
