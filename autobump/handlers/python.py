@@ -109,7 +109,18 @@ def _get_parameters(function):
     """Return a list of Parameters to a function AST node."""
     parameters = []
     args = function.args.args
-    defaults = [None] * (len(args) - len(function.args.defaults)) + function.args.defaults
+
+    # Map all None parameters to a "TrueNone" object
+    # because None indicates the absense of a default value.
+    class TrueNone(object):
+        pass
+    defaults = [TrueNone
+                if isinstance(a, ast.NameConstant) and a.value is None
+                else a
+                for a in function.args.defaults]
+    # Prepend no default values.
+    defaults = [None] * (len(args) - len(defaults)) + defaults
+
     args_with_defaults = list(zip(args, defaults))
     for arg_with_default in args_with_defaults:
         arg, default = arg_with_default

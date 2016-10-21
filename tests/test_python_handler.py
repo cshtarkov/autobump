@@ -62,6 +62,17 @@ def f(p1, p2, p3=True, p4=False):
         self.assertEqual(parameters[2].default_value, True)
         self.assertEqual(parameters[3].default_value, False)
 
+    def test_parameter_default_none(self):
+        source = """
+def f(p1, p2=None, p3=True):
+    pass
+"""
+        codebase = _source_to_unit(source)
+        parameters = codebase.functions[0].signature.parameters
+        self.assertEqual(parameters[0].default_value, None)
+        self.assertNotEqual(parameters[1].default_value, None)
+        self.assertEqual(parameters[2].default_value, True)
+
 
 class TestClassConversion(unittest.TestCase):
     """Test how the Python handlers converts class
