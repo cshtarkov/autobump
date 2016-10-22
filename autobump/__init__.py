@@ -132,35 +132,60 @@ Determine change of semantic version of code in a repository.
 
 Example usage:
 
-{0} python
+$ {0} python
 
-  Shows what version the last commit should be, by guessing the
-  previous version from the last tag.
-  The tool will only look at Python files found in the repository.
+    Shows what version the last commit should be, by guessing the
+    previous version from the last tag.
+    The tool will only look at Python files found in the repository.
 
-{0} python --from milestone-foo --from-version 1.1.0
+$ {0} python --changelog changelog.txt
 
-  Shows what version the last commit should be, if the previous
-  release was `milestone-foo` at version 1.1.0.
-  `milestone-foo` can be a tag name or commit identifier.
-  The tool will only look at Python files found in the repository.
+    Shows what version the last commit should be, by guessing the
+    previous version from the last tag.
+    Also, it records found changes to `changelog.txt`.
+    The tool will only look at Python files found in the repository.
 
-{0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
+$ {0} python --from milestone-foo --from-version 1.1.0
 
-  Shows what version `milestone-bar` should be, if the previous
-  release was `milestone-foo` at version 1.1.0.
-  The tool will only look at Java files found in the repository.
+    Shows what version the last commit should be, if the previous
+    release was `milestone-foo` at version 1.1.0.
+    `milestone-foo` can be a tag name or commit identifier.
+    The tool will only look at Python files found in the repository.
+
+$ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
+
+    Shows what version `milestone-bar` should be, if the previous
+    release was `milestone-foo` at version 1.1.0.
+    The tool will only look at Java files found in the repository.
 """.format(os.path.basename(sys.argv[0]))
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=description)
-    parser.add_argument("-c", "--changelog", type=str, help="generate changelog and write it to a file")
-    parser.add_argument("-cstdout", "--changelog-stdout", help="write changelog to stdout (incompatible with `--changelog`)", action="store_true")
-    parser.add_argument("-d", "--debug", help="print debugging information to stderr (implies `--info`)", action="store_true")
-    parser.add_argument("-i", "--info", help="print progress information to stderr", action="store_true")
-    parser.add_argument("-r", "--repo", help="repository location, will use working directory if not specified", type=str)
-    parser.add_argument("-f", "--from", type=str, help="identifier of earlier revision, will use last tag if not specified")
-    parser.add_argument("-fv", "--from-version", type=str, help="version of earlier revision, will try to guess if not specified!")
-    parser.add_argument("-t", "--to", type=str, help="identifier of later revision, will use last commit if not specified")
-    parser.add_argument("language", type=str, help="repository language {python}")
+    parser.add_argument("language",
+                        type=str,
+                        help="repository language {python}")
+    parser.add_argument("-c", "--changelog",
+                        type=str,
+                        help="generate changelog and write it to a file")
+    parser.add_argument("-cstdout", "--changelog-stdout",
+                        action="store_true",
+                        help="write changelog to stdout (incompatible with `--changelog`)")
+    parser.add_argument("-d", "--debug",
+                        action="store_true",
+                        help="print debugging information to stderr (implies `--info`)")
+    parser.add_argument("-i", "--info",
+                        action="store_true",
+                        help="print progress information to stderr")
+    parser.add_argument("-r", "--repo",
+                        type=str,
+                        help="repository location, will use working directory if not specified")
+    parser.add_argument("-f", "--from",
+                        type=str,
+                        help="identifier of earlier revision, will use last tag if not specified")
+    parser.add_argument("-fv", "--from-version",
+                        type=str,
+                        help="version of earlier revision, will try to guess if not specified!")
+    parser.add_argument("-t", "--to",
+                        type=str,
+                        help="identifier of later revision, will use last commit if not specified")
 
     args = parser.parse_args()
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
@@ -200,7 +225,7 @@ Example usage:
     except KeyError:
         def codebase_to_units(location):
             raise NotImplementedException("No language identified!")
-    logging.info("Language identified as {}".repo_language)
+    logging.info("Language identified as {}".format(repo_language))
 
     # Identify revisions
     a_revision = args.f if args.f is not None else repo.last_tag()
