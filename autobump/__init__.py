@@ -168,6 +168,8 @@ Example usage:
     elif args.info:
         logging.basicConfig(level=logging.INFO,
                             format=log_format)
+    else:
+        logging.basicConfig(format=log_format)
 
     # Identify VCS
     repo = _Repository(args.repo if args.repo is not None else os.getcwd())
