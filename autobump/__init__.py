@@ -97,7 +97,7 @@ class _Semver(object):
         "v1.2" -> "1.2.0"
         "v1" -> "1.0.0"
         """
-        logger.warn("Guessing version from string {}".format(string))
+        logger.warning("Guessing version from string {}".format(string))
         match = re.match(r"(v|ver|version)?-?(\d)\.?(\d)?\.?(\d)?", string)
         if match:
             major = int(match.group(2))
@@ -175,6 +175,7 @@ Example usage:
                             format=log_format)
     else:
         logging.basicConfig(format=log_format)
+    logging.info("Logging enabled")
 
     # Identify VCS
     repo = _Repository(args.repo if args.repo is not None else os.getcwd())
@@ -186,6 +187,7 @@ Example usage:
     except KeyError:
         def commit_to_units(repo, commit, transformator):
             raise NotImplementedException("No VCS identified!")
+    logging.info("VCS identified as {}".format(repo.vcs))
 
     # Identify language
     repo_language = args.language
@@ -198,21 +200,22 @@ Example usage:
     except KeyError:
         def codebase_to_units(location):
             raise NotImplementedException("No language identified!")
+    logging.info("Language identified as {}".repo_language)
 
     # Identify revisions
     a_revision = args.f if args.f is not None else repo.last_tag()
-    logging.debug("Earlier revision is {}".format(a_revision))
+    logging.info("Earlier revision identified as {}".format(a_revision))
     b_revision = args.to if args.to is not None else repo.last_commit()
-    logging.debug("Later revision is {}".format(b_revision))
+    logging.info("Later revision identified as {}".format(b_revision))
 
     # Identify changelog policy
     changelog_file = None
     if args.changelog and not args.changelog_stdout:
         changelog_file = open(args.changelog, "w")
-        logging.debug("Writing changelog to {}".format(args.changelog))
+        logging.info("Writing changelog to {}".format(args.changelog))
     elif args.changelog_stdout and not args.changelog:
         changelog_file = sys.stdout
-        logging.debug("Writing changelog to stdout")
+        logging.info("Writing changelog to stdout")
     elif args.changelog and args.changelog_stdout:
         logger.error("`--changelog` and `--changelog-stdout` are mutually exclusive")
         exit(1)
@@ -225,15 +228,19 @@ Example usage:
     b_queue = multiprocessing.Queue()
     a_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, a_revision, codebase_to_units), a_queue))
     b_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, b_revision, codebase_to_units), b_queue))
+    logging.debug("Starting conversion to common format of earlier revision")
     a_process.start()
+    logging.debug("Starting conversion to common format of later revision")
     b_process.start()
     a_units = a_queue.get()
+    logging.debug("Conversion of earlier revision finished")
     b_units = b_queue.get()
+    logging.debug("Conversion of later revision finished")
     a_process.join()
     b_process.join()
 
     bump = core.compare_codebases(a_units, b_units, changelog_file)
-    logging.debug("Bump found to be {}".format(bump))
+    logging.info("Bump found to be {}".format(bump))
     if changelog_file is not sys.stdout:
         changelog_file.close()
         logging.debug("Changelog file closed")
