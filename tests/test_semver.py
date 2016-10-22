@@ -8,24 +8,24 @@ class TestSemver(unittest.TestCase):
 
     def test_create(self):
         ver = _Semver(5, 3, 2)
-        self.assertEquals(ver.major, 5)
-        self.assertEquals(ver.minor, 3)
-        self.assertEquals(ver.patch, 2)
+        self.assertEqual(ver.major, 5)
+        self.assertEqual(ver.minor, 3)
+        self.assertEqual(ver.patch, 2)
 
     def test_create_invalid(self):
         self.assertRaises(AssertionError, _Semver, "a", 3, 2)
 
     def test_create_from_string(self):
         ver = _Semver.from_string("5.3.2")
-        self.assertEquals(ver.major, 5)
-        self.assertEquals(ver.minor, 3)
-        self.assertEquals(ver.patch, 2)
+        self.assertEqual(ver.major, 5)
+        self.assertEqual(ver.minor, 3)
+        self.assertEqual(ver.patch, 2)
 
     def test_create_from_tuple(self):
         ver = _Semver.from_tuple((5, 3, 2))
-        self.assertEquals(ver.major, 5)
-        self.assertEquals(ver.minor, 3)
-        self.assertEquals(ver.patch, 2)
+        self.assertEqual(ver.major, 5)
+        self.assertEqual(ver.minor, 3)
+        self.assertEqual(ver.patch, 2)
 
     def test_guess_from_string(self):
         guesses = {
@@ -38,7 +38,7 @@ class TestSemver(unittest.TestCase):
             "9.0": "9.0.0"
         }
         for string, version in guesses.items():
-            self.assertEquals(str(_Semver.guess_from_string(string)), version)
+            self.assertEqual(str(_Semver.guess_from_string(string)), version)
 
     def test_guess_from_string_invalid(self):
         self.assertRaises(_Semver.NotAVersionNumber, _Semver.guess_from_string, "not a version")
@@ -46,8 +46,8 @@ class TestSemver(unittest.TestCase):
     def test_bump(self):
         a = _Semver(2, 1, 0)
         b = a.bump(Bump.major)
-        self.assertEquals(b.major, 3)
+        self.assertEqual(b.major, 3)
         b = a.bump(Bump.minor)
-        self.assertEquals(b.minor, 2)
+        self.assertEqual(b.minor, 2)
         b = a.bump(Bump.patch)
-        self.assertEquals(b.patch, 1)
+        self.assertEqual(b.patch, 1)
