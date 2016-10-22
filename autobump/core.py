@@ -4,11 +4,6 @@ from enum import Enum
 from autobump.common import Unit
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-stderr_handler = logging.StreamHandler()
-stderr_handler.setLevel(logging.DEBUG)
-stderr_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-logger.addHandler(stderr_handler)
 
 
 class Bump(Enum):
