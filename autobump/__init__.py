@@ -152,7 +152,8 @@ Example usage:
   The tool will only look at Java files found in the repository.
 """.format(os.path.basename(sys.argv[0]))
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=description)
-    parser.add_argument("-c", "--changelog", help="generate changelog", action="store_true")
+    parser.add_argument("-c", "--changelog", type=str, help="generate changelog and write it to a file")
+    parser.add_argument("-cstdout", "--changelog-stdout", help="write changelog to stdout (incompatible with `--changelog`)", action="store_true")
     parser.add_argument("-d", "--debug", help="print debugging information to stderr (implies `--info`)", action="store_true")
     parser.add_argument("-i", "--info", help="print progress information to stderr", action="store_true")
     parser.add_argument("-r", "--repo", help="repository location, will use working directory if not specified", type=str)
@@ -204,6 +205,18 @@ Example usage:
     b_revision = args.to if args.to is not None else repo.last_commit()
     logging.debug("Later revision is {}".format(b_revision))
 
+    # Identify changelog policy
+    changelog_file = None
+    if args.changelog and not args.changelog_stdout:
+        changelog_file = open(args.changelog, "w")
+        logging.debug("Writing changelog to {}".format(args.changelog))
+    elif args.changelog_stdout and not args.changelog:
+        changelog_file = sys.stdout
+        logging.debug("Writing changelog to stdout")
+    elif args.changelog and args.changelog_stdout:
+        logger.error("`--changelog` and `--changelog-stdout` are mutually exclusive")
+        exit(1)
+
     # Determine bump
     def async_commit_to_units(args, queue):
         queue.put(commit_to_units(*args))
@@ -219,8 +232,11 @@ Example usage:
     a_process.join()
     b_process.join()
 
-    bump = core.compare_codebases(a_units, b_units)
+    bump = core.compare_codebases(a_units, b_units, changelog_file)
     logging.debug("Bump found to be {}".format(bump))
+    if changelog_file is not sys.stdout:
+        changelog_file.close()
+        logging.debug("Changelog file closed")
 
     # Determine version
     a_version = _Semver.from_string(args.from_version) if args.from_version is not None else _Semver.guess_from_string(a_revision)

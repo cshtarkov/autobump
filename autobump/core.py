@@ -52,11 +52,6 @@ def _list_to_dict_by_name(entities):
     return d
 
 
-def _print_change(change, name):
-    """Report a change in a entity."""
-    print(name + ": " + change.value)
-
-
 def _compare_types(a_ent, b_ent):
     """Compare types of two entities and return a list of Changes."""
     changes = []
@@ -110,7 +105,7 @@ def _compare_signature(a_ent, b_ent):
     return changes
 
 
-def _compare_entities(a_ent, b_ent, path=""):
+def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     """Compare two code entities which have the same name.
 
     Return a Bump enum based on whether
@@ -122,8 +117,9 @@ def _compare_entities(a_ent, b_ent, path=""):
 
     highestBump = Bump.patch  # Biggest bump encountered so far.
 
-    def _report_change(change, path, printer=_print_change):
-        printer(change, path)
+    def _report_change(change, path):
+        if changelog_file is not None:
+            print("{}: {}".format(path, change.value), file=changelog_file)
         _report_bump(Change.get_bump(change))
 
     def _report_bump(bump):
@@ -164,12 +160,12 @@ def _compare_entities(a_ent, b_ent, path=""):
                 continue
 
             # Handle general case when a entity may have changed.
-            _report_bump(_compare_entities(a_inner[ki], b_inner[ki], path))
+            _report_bump(_compare_entities(a_inner[ki], b_inner[ki], changelog_file, path))
 
     return highestBump
 
 
-def compare_codebases(a_units, b_units):
+def compare_codebases(a_units, b_units, changelog_file):
     """Compare codebases consisting of Units.
 
     Return a Bump enum based on whether
@@ -177,4 +173,4 @@ def compare_codebases(a_units, b_units):
     # Represent both codebases as a single unit, and compare that.
     a_unit = Unit("codebase", [], [], a_units)
     b_unit = Unit("codebase", [], [], b_units)
-    return _compare_entities(a_unit, b_unit)
+    return _compare_entities(a_unit, b_unit, changelog_file)

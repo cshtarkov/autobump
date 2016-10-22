@@ -37,7 +37,7 @@ class TestSingleEntities(unittest.TestCase):
         self.second = []
 
     def expect(self, bump):
-        self.assertEqual(compare_codebases(self.first, self.second), bump)
+        self.assertEqual(compare_codebases(self.first, self.second, None), bump)
 
     # Fields.
 
