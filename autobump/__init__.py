@@ -69,6 +69,9 @@ class _Semver(object):
         pass
 
     def __init__(self, major, minor, patch):
+        assert type(major) is int
+        assert type(minor) is int
+        assert type(patch) is int
         self.major, self.minor, self.patch = major, minor, patch
 
     @classmethod
