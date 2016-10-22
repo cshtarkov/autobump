@@ -42,7 +42,7 @@ class _Repository(object):
     def last_tag(self):
         """Return name of most recently made tag."""
         if self.vcs is self.VCS.git:
-            child = subprocess.Popen(["git", "describe", "--tags", "--abbrev=0"], cwd=self.location, stdout=PIPE)
+            child = subprocess.Popen(["git", "describe", "--tags", "--abbrev=0"], cwd=self.location, stdout=PIPE, stderr=PIPE)
             stdout_data, stderr_data = child.communicate()
             if child.returncode != 0:
                 raise common.VersionControlException("Failed to get last tag of Git repository {}".format(self.location))
@@ -53,7 +53,7 @@ class _Repository(object):
     def last_commit(self):
         """Return identifier of most recently made commit."""
         if self.vcs is self.VCS.git:
-            child = subprocess.Popen(["git", "log", "-1", "--oneline"], cwd=self.location, stdout=PIPE)
+            child = subprocess.Popen(["git", "log", "-1", "--oneline"], cwd=self.location, stdout=PIPE, stderr=PIPE)
             stdout_data, stderr_data = child.communicate()
             if child.returncode != 0:
                 raise common.VersionControlException("Failed to get last commit of Git repository {}".format(self.location))

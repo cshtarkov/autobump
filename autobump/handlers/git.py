@@ -2,12 +2,13 @@
 import os
 import tempfile
 import subprocess
+from subprocess import PIPE
 from autobump.common import VersionControlException
 
 
 def _clone_repo(repo, checkout_dir):
     """Clone a git repository into a directory."""
-    child = subprocess.Popen(["git", "clone", repo, checkout_dir])
+    child = subprocess.Popen(["git", "clone", repo, checkout_dir], stdout=PIPE, stderr=PIPE)
     child.communicate()
     if child.returncode != 0:
         raise VersionControlException("Cloning {} into {} failed!".format(repo, checkout_dir))
@@ -15,7 +16,7 @@ def _clone_repo(repo, checkout_dir):
 
 def _checkout_commit(checkout_dir, commit):
     """Checkout a Git commit at some location."""
-    child = subprocess.Popen(["git", "checkout", commit], cwd=checkout_dir)
+    child = subprocess.Popen(["git", "checkout", commit], cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
     child.communicate()
     if child.returncode != 0:
         raise VersionControlException("Checking out commit {} at {} failed!".format(commit, checkout_dir))
