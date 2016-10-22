@@ -6,6 +6,7 @@ import sys
 import logging
 import argparse
 import subprocess
+import multiprocessing
 from subprocess import PIPE
 from enum import Enum
 from autobump import core
@@ -204,8 +205,20 @@ Example usage:
     logging.debug("Later revision is {}".format(b_revision))
 
     # Determine bump
-    a_units = commit_to_units(repo.location, a_revision, codebase_to_units)
-    b_units = commit_to_units(repo.location, b_revision, codebase_to_units)
+    def async_commit_to_units(args, queue):
+        queue.put(commit_to_units(*args))
+
+    a_queue = multiprocessing.Queue()
+    b_queue = multiprocessing.Queue()
+    a_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, a_revision, codebase_to_units), a_queue))
+    b_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, b_revision, codebase_to_units), b_queue))
+    a_process.start()
+    b_process.start()
+    a_units = a_queue.get()
+    b_units = b_queue.get()
+    a_process.join()
+    b_process.join()
+
     bump = core.compare_codebases(a_units, b_units)
     logging.debug("Bump found to be {}".format(bump))
 
