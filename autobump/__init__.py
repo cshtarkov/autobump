@@ -266,7 +266,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
     bump = core.compare_codebases(a_units, b_units, changelog_file)
     logging.info("Bump found to be {}".format(bump))
-    if changelog_file is not sys.stdout:
+    if changelog_file not in {None, sys.stdout}:
         changelog_file.close()
         logging.debug("Changelog file closed")
 
