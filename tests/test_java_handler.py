@@ -111,29 +111,39 @@ class TestMethodOverloading(TestJavaHandlerBase):
 
     def test_additional_parameter(self):
         signature = self.codebase["ClassC"].functions["overloaded"].signatures[1]
-        self.assertEqual(signature.parameters[1].type, self.codebase["ClassA"].type)
+        self.assertEqual(signature.parameters[1].type.name, "packageX.ClassA")
 
     def test_parameter_different_type(self):
         signature = self.codebase["ClassC"].functions["overloaded"].signatures[2]
-        self.assertEqual(signature.parameters[1].type, self.codebase["ClassB"].type)
+        self.assertEqual(signature.parameters[1].type.name, "packageX.ClassB")
 
 
 class TestTypes(TestJavaHandlerBase):
 
-    def superclass_not_compatible_with_subclass(self):
-        self.assertFalse(self.codebase["ClassA"].type.is_compatible(self.codebase["ClassC"].type))
+    def test_superclass_compatible_with_subclass(self):
+        superclass = self.codebase["ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
+        subclass = self.codebase["ClassD"].functions["acceptsClassC"].signatures[0].parameters[0].type
+        self.assertTrue(superclass.is_compatible(subclass))
 
-    def subclass_compatible_with_superclass(self):
-        self.assertTrue(self.codebase["ClassC"].type.is_compatible(self.codebase["ClassA"].type))
+    def test_subclass_not_compatible_with_superclass(self):
+        superclass = self.codebase["ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
+        subclass = self.codebase["ClassD"].functions["acceptsClassC"].signatures[0].parameters[0].type
+        self.assertFalse(subclass.is_compatible(superclass))
 
-    def subclass_compatible_with_superclass_skip_one(self):
-        self.assertTrue(self.codebase["ClassD"].type.is_compatible(self.codebase["ClassA"].type))
+    def test_superclass_compatible_with_subclass_skip_one(self):
+        superclass = self.codebase["ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
+        subclass = self.codebase["ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        self.assertTrue(superclass.is_compatible(subclass))
 
-    def interface_not_compatible_with_class(self):
-        self.assertFalse(self.codebase["InterfaceD"].type.is_compatible(self.codebase["ClassD"].type))
+    def test_interface_compatible_with_class(self):
+        interface = self.codebase["ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[0].type
+        subclass = self.codebase["ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        self.assertTrue(interface.is_compatible(subclass))
 
-    def class_compatible_with_interface(self):
-        self.assertTrue(self.codebase["ClassD"].type.is_compatible(self.codebase["InterfaceD"].type))
+    def test_class_not_compatible_with_interface(self):
+        interface = self.codebase["ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[0].type
+        subclass = self.codebase["ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        self.assertFalse(subclass.is_compatible(interface))
 
 if __name__ == "__main__":
     unittest.main()
