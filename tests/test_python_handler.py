@@ -30,7 +30,7 @@ def f():
     pass
         """
         codebase = _source_to_unit(source)
-        self.assertEqual(len(codebase.functions[0].signature.parameters), 0)
+        self.assertEqual(len(codebase.functions["f"].signature.parameters), 0)
 
     def test_parameter_correct_count(self):
         source = """
@@ -38,7 +38,7 @@ def f(p1, p2):
     pass
         """
         codebase = _source_to_unit(source)
-        self.assertEqual(len(codebase.functions[0].signature.parameters), 2)
+        self.assertEqual(len(codebase.functions["f"].signature.parameters), 2)
 
     def test_parameter_names(self):
         source = """
@@ -46,7 +46,7 @@ def f(p1, p2):
     pass
         """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions[0].signature.parameters
+        parameters = codebase.functions["f"].signature.parameters
         self.assertEqual(parameters[0].name, "p1")
         self.assertEqual(parameters[1].name, "p2")
 
@@ -56,7 +56,7 @@ def f(p1, p2, p3=True, p4=False):
     pass
         """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions[0].signature.parameters
+        parameters = codebase.functions["f"].signature.parameters
         self.assertEqual(parameters[0].default_value, None)
         self.assertEqual(parameters[1].default_value, None)
         self.assertEqual(parameters[2].default_value, True)
@@ -68,7 +68,7 @@ def f(p1, p2=None, p3=True):
     pass
 """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions[0].signature.parameters
+        parameters = codebase.functions["f"].signature.parameters
         self.assertEqual(parameters[0].default_value, None)
         self.assertNotEqual(parameters[1].default_value, None)
         self.assertEqual(parameters[2].default_value, True)
@@ -84,7 +84,7 @@ class c(object):
     pass
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[0]
+        unit = codebase.units["c"]
         self.assertEqual(len(unit.fields), 0)
         self.assertEqual(len(unit.functions), 0)
         self.assertEqual(len(unit.units), 0)
@@ -96,9 +96,9 @@ class c(object):
     f2 = None
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[0]
-        self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
-        self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
+        unit = codebase.units["c"]
+        self.assertTrue("f1" in unit.fields)
+        self.assertTrue("f2" in unit.fields)
 
     def test_class_with_fields_being_class_defs(self):
         source = """
@@ -110,9 +110,9 @@ class c(object):
     f2 = a
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[1]
-        self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
-        self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
+        unit = codebase.units["c"]
+        self.assertTrue("f1" in unit.fields)
+        self.assertTrue("f2" in unit.fields)
 
     def test_class_with_fields_different_value(self):
         source = """
@@ -121,9 +121,9 @@ class c(object):
     f2 = "value2"
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[0]
-        self.assertEqual(len([f for f in unit.fields if f.name == "f1"]), 1)
-        self.assertEqual(len([f for f in unit.fields if f.name == "f2"]), 1)
+        unit = codebase.units["c"]
+        self.assertTrue("f1" in unit.fields)
+        self.assertTrue("f2" in unit.fields)
 
     def test_class_with_methods(self):
         source = """
@@ -135,9 +135,9 @@ class c(object):
         pass
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[0]
-        self.assertEqual(len([m for m in unit.functions if m.name == "m1"]), 1)
-        self.assertEqual(len([m for m in unit.functions if m.name == "m2"]), 1)
+        unit = codebase.units["c"]
+        self.assertTrue("m1" in unit.functions)
+        self.assertTrue("m2" in unit.functions)
 
     def test_class_with_inner_class(self):
         source = """
@@ -147,8 +147,8 @@ class c(object):
     pass
         """
         codebase = _source_to_unit(source)
-        unit = codebase.units[0]
-        self.assertEqual(len([u for u in unit.units if u.name == "inner"]), 1)
+        unit = codebase.units["c"]
+        self.assertTrue("inner" in unit.units)
 
 
 class TestTypeOfParameters(unittest.TestCase):
@@ -161,7 +161,7 @@ def func(a, b):
     b.m1()
         """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
@@ -174,7 +174,7 @@ def func(a, b):
     b.m2()
         """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertTrue(type_of_a.is_compatible(type_of_b))
@@ -187,7 +187,7 @@ def func(a, b):
     b.m2()
         """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
@@ -200,7 +200,7 @@ def func(a, b):
     b.f1 = 1
         """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertTrue(type_of_b.is_compatible(type_of_a))
@@ -213,7 +213,7 @@ def func(a, b):
     b.f2 = 1
         """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
@@ -230,7 +230,7 @@ def func(a, b):
         b.m3()
 """
         codebase = _source_to_unit(source)
-        function = codebase.functions[0]
+        function = codebase.functions["func"]
         type_of_a = function.signature.parameters[0].type
         type_of_b = function.signature.parameters[1].type
         self.assertEqual(type_of_a, type_of_b)

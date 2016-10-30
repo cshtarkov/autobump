@@ -106,7 +106,7 @@ def _get_type_of_parameter(function, parameter):
 
 
 def _get_parameters(function):
-    """Return a list of Parameters to a function AST node."""
+    """Return a dictionary of Parameters to a function AST node."""
     parameters = []
     args = function.args.args
 
@@ -141,22 +141,22 @@ def _get_parameters(function):
 
 def _container_to_unit(name, container):
     """Convert a Python AST module or class to a Unit."""
-    fields = []
-    functions = []
-    units = []
+    fields = dict()
+    functions = dict()
+    units = dict()
     for node in container.body:
         if hasattr(node, "name") and not _is_public(node.name):
             # Completely ignore any private things -
             # they are irrelevant to the API.
             continue
         if isinstance(node, ast.ClassDef):
-            units.append(_container_to_unit(node.name, node))
+            units[node.name] = _container_to_unit(node.name, node)
         elif isinstance(node, ast.FunctionDef):
-            functions.append(common.Function(node.name, _dynamic, common.Signature(_get_parameters(node))))
+            functions[node.name] = common.Function(node.name, _dynamic, common.Signature(_get_parameters(node)))
         elif isinstance(node, ast.Assign):
             # TODO: Handle other forms of assignment.
             for target in [t for t in node.targets if isinstance(t, ast.Name) and _is_public(t.id)]:
-                fields.append(common.Field(target.id, _dynamic))
+                fields[target.id] = common.Field(target.id, _dynamic)
     return common.Unit(name, fields, functions, units)
 
 
@@ -167,14 +167,14 @@ def _module_to_unit(name, module):
 
 def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
-    units = []
+    units = dict()
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
         pyfiles = [f for f in files if f.endswith(".py") and not any(r.match(f) for r in _excluded_files)]
         for pyfile in pyfiles:
             pymodule = pyfile[:-3]  # Strip ".py"
             with open(os.path.join(root, pyfile), "r") as f:
-                units.append(_module_to_unit(pymodule, ast.parse(''.join(list(f)))))
+                units[pymodule] = _module_to_unit(pymodule, ast.parse(''.join(list(f))))
     return units
 
 codebase_to_units = python_codebase_to_units

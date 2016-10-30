@@ -40,18 +40,6 @@ class Change(Enum):
         return bump_map.get(change)
 
 
-def _list_to_dict_by_name(entities):
-    """Convert a list of Entities to a dictionary,
-    the key being the entity name.
-
-    E.g. [Parameter("foo"), Parameter("bar")] ->
-         { "foo": Parameter("foo"), "bar": Parameter("bar") }"""
-    d = {}
-    for ent in entities:
-        d[ent.name] = ent
-    return d
-
-
 def _compare_types(a_ent, b_ent):
     """Compare types of two entities and return a list of Changes."""
     changes = []
@@ -142,11 +130,11 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
 
     # Compare inner entities recursively
     for k, v in a_ent.__dict__.items():
-        if type(v) is not list:
+        if type(v) is not dict:
             continue
         assert k in b_ent.__dict__, "Should never happen: comparing entities with different inner entities."
-        a_inner = _list_to_dict_by_name(a_ent.__dict__[k])
-        b_inner = _list_to_dict_by_name(b_ent.__dict__[k])
+        a_inner = a_ent.__dict__[k]
+        b_inner = b_ent.__dict__[k]
         for ki in {**a_inner, **b_inner}:
 
             if ki not in a_inner:
@@ -171,6 +159,6 @@ def compare_codebases(a_units, b_units, changelog_file):
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
     # Represent both codebases as a single unit, and compare that.
-    a_unit = Unit("codebase", [], [], a_units)
-    b_unit = Unit("codebase", [], [], b_units)
+    a_unit = Unit("codebase", dict(), dict(), a_units)
+    b_unit = Unit("codebase", dict(), dict(), b_units)
     return _compare_entities(a_unit, b_unit, changelog_file)

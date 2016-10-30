@@ -33,8 +33,8 @@ class TestSingleEntities(unittest.TestCase):
     which contain a single entity
     and expects a major, minor, patch or no bump."""
     def setUp(self):
-        self.first = []
-        self.second = []
+        self.first = dict()
+        self.second = dict()
 
     def expect(self, bump):
         self.assertEqual(compare_codebases(self.first, self.second, None), bump)
@@ -42,107 +42,107 @@ class TestSingleEntities(unittest.TestCase):
     # Fields.
 
     def test_add_field(self):
-        self.second.append(Field("foo", _generic))
+        self.second["foo"] = (Field("foo", _generic))
         self.expect(Bump.minor)
 
     def test_remove_field(self):
-        self.first.append(Field("foo", _generic))
+        self.first["foo"] = (Field("foo", _generic))
         self.expect(Bump.major)
 
     def test_change_type_of_field_compatible(self):
-        self.first.append(Field("foo", _compatWithA))
-        self.second.append(Field("foo", _a))
+        self.first["foo"] = (Field("foo", _compatWithA))
+        self.second["foo"] = (Field("foo", _a))
         self.expect(Bump.patch)
 
     def test_change_type_of_field_incompatible(self):
-        self.first.append(Field("foo", _a))
-        self.second.append(Field("foo", _incompatWithA))
+        self.first["foo"] = (Field("foo", _a))
+        self.second["foo"] = (Field("foo", _incompatWithA))
         self.expect(Bump.major)
 
     # Functions.
 
     def test_add_function(self):
-        self.second.append(Function("foo", _generic))
+        self.second["foo"] = (Function("foo", _generic))
         self.expect(Bump.minor)
 
     def test_remove_function(self):
-        self.first.append(Function("foo", _generic))
+        self.first["foo"] = (Function("foo", _generic))
         self.expect(Bump.major)
 
     def test_change_type_of_visible_function_compatible(self):
-        self.first.append(Function("foo", _compatWithA))
-        self.second.append(Function("foo", _a))
+        self.first["foo"] = (Function("foo", _compatWithA))
+        self.second["foo"] = (Function("foo", _a))
         self.expect(Bump.patch)
 
     def test_change_type_of_visible_function_incompatible(self):
-        self.first.append(Function("foo", _a))
-        self.second.append(Function("foo", _incompatWithA))
+        self.first["foo"] = (Function("foo", _a))
+        self.second["foo"] = (Function("foo", _incompatWithA))
         self.expect(Bump.major)
 
     # Function signatures.
 
     def test_change_signature_add_parameter_nodefault(self):
-        self.first.append(Function("foo", _generic,
+        self.first["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
                                            Parameter("c", _generic)])))
         self.expect(Bump.major)
 
     def test_change_signature_add_parameter_default(self):
-        self.first.append(Function("foo", _generic, Signature([Parameter("a", _generic),
+        self.first["foo"] = (Function("foo", _generic, Signature([Parameter("a", _generic),
                                                             Parameter("b", _generic)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
                                            Parameter("c", _generic, default_value=True)])))
         self.expect(Bump.minor)
 
     def test_change_signature_remove_parameter_nodefault(self):
-        self.first.append(Function("foo", _generic,
+        self.first["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic)])))
         self.expect(Bump.major)
 
     def test_change_signature_remove_parameter_default(self):
-        self.first.append(Function("foo", _generic,
+        self.first["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic, default_value=True)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic)])))
         self.expect(Bump.major)
 
     def test_change_signature_rename_parameter(self):
-        self.first.append(Function("foo", _generic,
+        self.first["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("b", _generic)])))
         self.expect(Bump.patch)
 
     def test_change_signature_rename_parameters(self):
-        self.first.append(Function("foo", _generic,
+        self.first["foo"] = (Function("foo", _generic,
                                 Signature([Parameter("a", _generic),
                                            Parameter("b", _generic)])))
-        self.second.append(Function("foo", _generic,
+        self.second["foo"] = (Function("foo", _generic,
                                  Signature([Parameter("b", _generic),
                                             Parameter("a", _generic)])))
         self.expect(Bump.patch)
 
     def test_change_signature_parameter_type_compatible(self):
-        self.first.append(Function("foo", _compatWithA,
+        self.first["foo"] = (Function("foo", _compatWithA,
                                 Signature([Parameter("a", _generic)])))
-        self.second.append(Function("foo", _a,
+        self.second["foo"] = (Function("foo", _a,
                                 Signature([Parameter("a", _generic)])))
         self.expect(Bump.patch)
 
     def test_change_signature_parameter_type_incompatible(self):
-        self.first.append(Function("foo", _a,
+        self.first["foo"] = (Function("foo", _a,
                                 Signature([Parameter("a", _generic)])))
-        self.second.append(Function("foo", _incompatWithA,
+        self.second["foo"] = (Function("foo", _incompatWithA,
                                 Signature([Parameter("a", _generic)])))
         self.expect(Bump.major)
 

@@ -55,7 +55,9 @@ class Parameter(Entity):
 
 class Signature(Entity):
     """Signature of a function."""
-    def __init__(self, parameters=[]):
+    def __init__(self, parameters=None):
+        if parameters is None:
+            parameters = []
         self.parameters = parameters
 
     def add_parameter(self, param):
