@@ -2,13 +2,14 @@ import os
 import unittest
 import tempfile
 import subprocess
+from subprocess import PIPE
 from autobump.common import VersionControlException, Unit
 from autobump.handlers import git
 
 
 def _run_git(checkout_dir, args):
     """Run Git inside a directory with a list of arguments."""
-    child = subprocess.Popen(["git"] + args, cwd=checkout_dir)
+    child = subprocess.Popen(["git"] + args, cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
     child.communicate()
     if child.returncode != 0:
         raise VersionControlException("\'git {}\' failed!".format(args))
