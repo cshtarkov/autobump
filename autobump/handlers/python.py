@@ -105,8 +105,8 @@ def _get_type_of_parameter(function, parameter):
     return _StructuralType(attr_set)
 
 
-def _get_parameters(function):
-    """Return a dictionary of Parameters to a function AST node."""
+def _get_signature(function):
+    """Return the signature of a function AST node."""
     parameters = []
     args = function.args.args
 
@@ -136,7 +136,7 @@ def _get_parameters(function):
             default = default.s
         type = _get_type_of_parameter(function, arg.arg)
         parameters.append(common.Parameter(arg.arg, type, default))
-    return parameters
+    return common.Signature(parameters)
 
 
 def _container_to_unit(name, container):
@@ -152,7 +152,7 @@ def _container_to_unit(name, container):
         if isinstance(node, ast.ClassDef):
             units[node.name] = _container_to_unit(node.name, node)
         elif isinstance(node, ast.FunctionDef):
-            functions[node.name] = common.Function(node.name, _dynamic, common.Signature(_get_parameters(node)))
+            functions[node.name] = common.Function(node.name, _dynamic, _get_signature(node))
         elif isinstance(node, ast.Assign):
             # TODO: Handle other forms of assignment.
             for target in [t for t in node.targets if isinstance(t, ast.Name) and _is_public(t.id)]:
