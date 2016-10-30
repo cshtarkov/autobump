@@ -115,6 +115,12 @@ class _JavaTypeSystem(object):
         # TODO: Raises KeyError when this is an external type.
         return self.types[type_name]
 
+    def qualify_lookup(self, type_name, compilation):
+        """Qualify and lookup a type name and get a common.Type object.
+
+        Implicitly finalizes the JavaTypeSystem, if not done already."""
+        return self.lookup(_qualify_type(type_name, compilation))
+
 
 def _is_public(node):
     """Determine visibility of an AST node."""
@@ -165,21 +171,28 @@ def _class_or_interface_to_unit(node, compilation, type_system):
     functions = dict()
     units = dict()
     for n in [n for n in node.body if _is_public(n)]:
+
+        # Convert fields.
         if isinstance(n, javalang.tree.FieldDeclaration):
             for declarator_name in _get_declarator_names(n):
-                fields[declarator_name] = common.Field(declarator_name, type_system.lookup(_qualify_type(n.type.name, compilation)))
+                type_object = type_system.qualify_lookup(n.type.name, compilation)
+                fields[declarator_name] = common.Field(declarator_name, type_object)
+
+        # Convert methods.
         elif isinstance(n, javalang.tree.MethodDeclaration):
-            parameters = [common.Parameter(p.name, type_system.lookup(_qualify_type(p.type.name, compilation))) for p in n.parameters]
+            parameters = [common.Parameter(p.name, type_system.qualify_lookup(p.type.name, compilation)) for p in n.parameters]
             if n.return_type is None:
-                return_type = type_system.lookup(_qualify_type("void", compilation))
+                return_type = type_system.qualify_lookup("void", compilation)
             else:
-                return_type = type_system.lookup(_qualify_type(n.return_type.name, compilation))
+                return_type = type_system.qualify_lookup(n.return_type.name, compilation)
             if n.name in functions:
                 functions[n.name].signatures.append(common.Signature(parameters))
             else:
                 functions[n.name] = common.Function(n.name,
                                                     return_type,
                                                     [common.Signature(parameters)])
+
+        # Convert inner classes and interfaces.
         elif isinstance(n, javalang.tree.ClassDeclaration) or \
              isinstance(n, javalang.tree.InterfaceDeclaration):
             units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
@@ -235,7 +248,6 @@ def _compilation_get_types(compilation):
 
 def java_codebase_to_units(location):
     """Return a list of Units representing a Java codebase in 'location'."""
-    units = dict()
 
     # This needs to perform two passes on all Java files.
     #
@@ -246,6 +258,8 @@ def java_codebase_to_units(location):
     # In the second pass:
     #   1) Referential types are resolved when referring to this codebase.
     #   2) All compilation units are translated into Units.
+
+    units = dict()
 
     # First pass
     type_system = _JavaTypeSystem()
