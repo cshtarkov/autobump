@@ -30,7 +30,7 @@ def f():
     pass
         """
         codebase = _source_to_unit(source)
-        self.assertEqual(len(codebase.functions["f"].signature.parameters), 0)
+        self.assertEqual(len(codebase.functions["f"].signatures[0].parameters), 0)
 
     def test_parameter_correct_count(self):
         source = """
@@ -38,7 +38,7 @@ def f(p1, p2):
     pass
         """
         codebase = _source_to_unit(source)
-        self.assertEqual(len(codebase.functions["f"].signature.parameters), 2)
+        self.assertEqual(len(codebase.functions["f"].signatures[0].parameters), 2)
 
     def test_parameter_names(self):
         source = """
@@ -46,7 +46,7 @@ def f(p1, p2):
     pass
         """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions["f"].signature.parameters
+        parameters = codebase.functions["f"].signatures[0].parameters
         self.assertEqual(parameters[0].name, "p1")
         self.assertEqual(parameters[1].name, "p2")
 
@@ -56,7 +56,7 @@ def f(p1, p2, p3=True, p4=False):
     pass
         """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions["f"].signature.parameters
+        parameters = codebase.functions["f"].signatures[0].parameters
         self.assertEqual(parameters[0].default_value, None)
         self.assertEqual(parameters[1].default_value, None)
         self.assertEqual(parameters[2].default_value, True)
@@ -68,7 +68,7 @@ def f(p1, p2=None, p3=True):
     pass
 """
         codebase = _source_to_unit(source)
-        parameters = codebase.functions["f"].signature.parameters
+        parameters = codebase.functions["f"].signatures[0].parameters
         self.assertEqual(parameters[0].default_value, None)
         self.assertNotEqual(parameters[1].default_value, None)
         self.assertEqual(parameters[2].default_value, True)
@@ -162,8 +162,8 @@ def func(a, b):
         """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
 
     def test_compatible_types_methods(self):
@@ -175,8 +175,8 @@ def func(a, b):
         """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertTrue(type_of_a.is_compatible(type_of_b))
 
     def test_incompatible_types_methods(self):
@@ -188,8 +188,8 @@ def func(a, b):
         """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
     def test_compatible_types_fields(self):
@@ -201,8 +201,8 @@ def func(a, b):
         """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertTrue(type_of_b.is_compatible(type_of_a))
 
     def test_incompatible_types_fields(self):
@@ -214,8 +214,8 @@ def func(a, b):
         """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
     def test_inner_uses_of_samename_variable(self):
@@ -231,8 +231,8 @@ def func(a, b):
 """
         codebase = _source_to_unit(source)
         function = codebase.functions["func"]
-        type_of_a = function.signature.parameters[0].type
-        type_of_b = function.signature.parameters[1].type
+        type_of_a = function.signatures[0].parameters[0].type
+        type_of_b = function.signatures[0].parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
 
 if __name__ == "__main__":

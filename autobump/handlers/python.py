@@ -136,7 +136,10 @@ def _get_signature(function):
             default = default.s
         type = _get_type_of_parameter(function, arg.arg)
         parameters.append(common.Parameter(arg.arg, type, default))
-    return common.Signature(parameters)
+    # Note: we need to return a list with the signature inside
+    # because the common representation allows for overloading,
+    # which Python doesn't.
+    return [common.Signature(parameters)]
 
 
 def _container_to_unit(name, container):

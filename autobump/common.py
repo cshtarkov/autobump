@@ -70,12 +70,12 @@ class Signature(Entity):
 
 class Function(Entity):
     """Top-level function or class method."""
-    def __init__(self, name, type, signature=None):
+    def __init__(self, name, type, signatures=None):
         self.name = name
         self.type = type
-        self.signature = signature
-        if self.signature is None:
-            self.signature = Signature()
+        self.signatures = signatures
+        if self.signatures is None:
+            self.signatures = []
 
 
 class Unit(Entity):

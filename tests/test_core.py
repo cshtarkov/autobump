@@ -83,67 +83,67 @@ class TestSingleEntities(unittest.TestCase):
 
     def test_change_signature_add_parameter_nodefault(self):
         self.first["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
-                                           Parameter("b", _generic)])))
+                                [Signature([Parameter("a", _generic),
+                                            Parameter("b", _generic)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
+                                [Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
-                                           Parameter("c", _generic)])))
+                                            Parameter("c", _generic)])]))
         self.expect(Bump.major)
 
     def test_change_signature_add_parameter_default(self):
-        self.first["foo"] = (Function("foo", _generic, Signature([Parameter("a", _generic),
-                                                            Parameter("b", _generic)])))
+        self.first["foo"] = (Function("foo", _generic, [Signature([Parameter("a", _generic),
+                                                                Parameter("b", _generic)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
+                                [Signature([Parameter("a", _generic),
                                            Parameter("b", _generic),
-                                           Parameter("c", _generic, default_value=True)])))
+                                            Parameter("c", _generic, default_value=True)])]))
         self.expect(Bump.minor)
 
     def test_change_signature_remove_parameter_nodefault(self):
         self.first["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
-                                           Parameter("b", _generic)])))
+                                [Signature([Parameter("a", _generic),
+                                            Parameter("b", _generic)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic)])))
+                                    [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.major)
 
     def test_change_signature_remove_parameter_default(self):
         self.first["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
-                                           Parameter("b", _generic, default_value=True)])))
+                                [Signature([Parameter("a", _generic),
+                                            Parameter("b", _generic, default_value=True)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic)])))
+                                    [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.major)
 
     def test_change_signature_rename_parameter(self):
         self.first["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic)])))
+                                   [Signature([Parameter("a", _generic)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("b", _generic)])))
+                                    [Signature([Parameter("b", _generic)])]))
         self.expect(Bump.patch)
 
     def test_change_signature_rename_parameters(self):
         self.first["foo"] = (Function("foo", _generic,
-                                Signature([Parameter("a", _generic),
-                                           Parameter("b", _generic)])))
+                                [Signature([Parameter("a", _generic),
+                                            Parameter("b", _generic)])]))
         self.second["foo"] = (Function("foo", _generic,
-                                 Signature([Parameter("b", _generic),
-                                            Parameter("a", _generic)])))
+                                 [Signature([Parameter("b", _generic),
+                                             Parameter("a", _generic)])]))
         self.expect(Bump.patch)
 
     def test_change_signature_parameter_type_compatible(self):
         self.first["foo"] = (Function("foo", _compatWithA,
-                                Signature([Parameter("a", _generic)])))
+                                   [Signature([Parameter("a", _generic)])]))
         self.second["foo"] = (Function("foo", _a,
-                                Signature([Parameter("a", _generic)])))
+                                    [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.patch)
 
     def test_change_signature_parameter_type_incompatible(self):
         self.first["foo"] = (Function("foo", _a,
-                                Signature([Parameter("a", _generic)])))
+                                   [Signature([Parameter("a", _generic)])]))
         self.second["foo"] = (Function("foo", _incompatWithA,
-                                Signature([Parameter("a", _generic)])))
+                                    [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.major)
 
 if __name__ == "__main__":

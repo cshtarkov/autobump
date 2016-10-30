@@ -18,6 +18,8 @@ class Change(Enum):
     changed_default_value = "Changed a default value"
     entity_was_introduced = "Entity was introduced"
     entity_was_removed = "Entity was removed"
+    function_was_overloaded = "Function was overloaded"
+    overloaded_function_removed = "Overloaded function removed"
     parameter_added_to_signature = "Parameter(s) added to function signature"
     parameter_defaults_added_to_signature = "Parameter(s) with default value(s) added to function signature"
     parameter_removed_from_signature = "Parameter(s) removed from function signature"
@@ -31,6 +33,8 @@ class Change(Enum):
             Change.changed_default_value: Bump.patch,
             Change.entity_was_introduced: Bump.minor,
             Change.entity_was_removed: Bump.major,
+            Change.function_was_overloaded: Bump.minor,
+            Change.overloaded_function_removed: Bump.major,
             Change.parameter_added_to_signature: Bump.major,
             Change.parameter_defaults_added_to_signature: Bump.minor,
             Change.parameter_removed_from_signature: Bump.major,
@@ -55,12 +59,27 @@ def _compare_types(a_ent, b_ent):
     return changes
 
 
-def _compare_signature(a_ent, b_ent):
+def _compare_signatures(a_ent, b_ent):
     """Compare signatures of two entities and return a list of Changes."""
-
     changes = []
-    a_parameters = a_ent.signature.parameters
-    b_parameters = b_ent.signature.parameters
+    if len(a_ent.signatures) < len(b_ent.signatures):
+        changes.append(Change.function_was_overloaded)
+    elif len(a_ent.signatures) > len(b_ent.signatures):
+        changes.append(Change.overloaded_function_removed)
+
+    a_signatures = sorted(a_ent.signatures)
+    b_signatures = sorted(b_ent.signatures)
+    for a, b in zip(a_signatures, b_signatures):
+        changes = changes + _compare_signatures_directly(a, b)
+
+    return changes
+
+
+def _compare_signatures_directly(a_signature, b_signature):
+    """Compare two Signature objects directly and return a list of Changes."""
+    changes = []
+    a_parameters = a_signature.parameters
+    b_parameters = b_signature.parameters
 
     # Check for type compatibility
     for pi in range(min(len(a_parameters), len(b_parameters))):
@@ -119,7 +138,7 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     # (attribute required) -> (comparison function)
     comparisons = {
         "type": _compare_types,
-        "signature": _compare_signature
+        "signatures": _compare_signatures
     }
 
     for attribute, comparator in comparisons.items():

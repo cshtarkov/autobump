@@ -174,10 +174,12 @@ def _class_or_interface_to_unit(node, compilation, type_system):
                 return_type = type_system.lookup(_qualify_type("void", compilation))
             else:
                 return_type = type_system.lookup(_qualify_type(n.return_type.name, compilation))
-            # TODO: Function may be already there, just need to be overloaded.
-            functions[n.name] = common.Function(n.name,
-                                                return_type,
-                                                common.Signature(parameters))
+            if n.name in functions:
+                functions[n.name].signatures.append(common.Signature(parameters))
+            else:
+                functions[n.name] = common.Function(n.name,
+                                                    return_type,
+                                                    [common.Signature(parameters)])
         elif isinstance(n, javalang.tree.ClassDeclaration) or \
              isinstance(n, javalang.tree.InterfaceDeclaration):
             units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
