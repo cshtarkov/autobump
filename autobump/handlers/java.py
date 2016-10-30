@@ -161,13 +161,13 @@ def _class_or_interface_to_unit(node, compilation, type_system):
     Requires the 'compilation' where the node so it can be used to look up type information."""
     assert isinstance(node, javalang.tree.ClassDeclaration) or \
            isinstance(node, javalang.tree.InterfaceDeclaration)
-    fields = []
-    functions = []
-    units = []
+    fields = dict()
+    functions = dict()
+    units = dict()
     for n in [n for n in node.body if _is_public(n)]:
         if isinstance(n, javalang.tree.FieldDeclaration):
             for declarator_name in _get_declarator_names(n):
-                fields.append(common.Field(declarator_name, type_system.lookup(_qualify_type(n.type.name, compilation))))
+                fields[declarator_name] = common.Field(declarator_name, type_system.lookup(_qualify_type(n.type.name, compilation)))
         elif isinstance(n, javalang.tree.MethodDeclaration):
             parameters = [common.Parameter(p.name, type_system.lookup(_qualify_type(p.type.name, compilation))) for p in n.parameters]
             if n.return_type is None:
@@ -175,12 +175,12 @@ def _class_or_interface_to_unit(node, compilation, type_system):
             else:
                 return_type = type_system.lookup(_qualify_type(n.return_type.name, compilation))
             # TODO: Function may be already there, just need to be overloaded.
-            functions.append(common.Function(n.name,
-                                             return_type,
-                                             common.Signature(parameters)))
+            functions[n.name] = common.Function(n.name,
+                                                return_type,
+                                                common.Signature(parameters))
         elif isinstance(n, javalang.tree.ClassDeclaration) or \
              isinstance(n, javalang.tree.InterfaceDeclaration):
-            units.append(_class_or_interface_to_unit(n, compilation, type_system))
+            units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
 
     return common.Unit(node.name, fields, functions, units)
 
@@ -233,7 +233,7 @@ def _compilation_get_types(compilation):
 
 def java_codebase_to_units(location):
     """Return a list of Units representing a Java codebase in 'location'."""
-    units = []
+    units = dict()
 
     # This needs to perform two passes on all Java files.
     #
@@ -262,7 +262,8 @@ def java_codebase_to_units(location):
 
     # Second pass
     for compilation in compilations:
-        units.append(_compilation_to_unit(compilation, type_system))
+        unit = _compilation_to_unit(compilation, type_system)
+        units[unit.name] = unit
 
     return units
 
