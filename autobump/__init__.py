@@ -101,8 +101,8 @@ class _Semver(object):
         match = re.match(r"(v|ver|version)?-?(\d)\.?(\d)?\.?(\d)?", string)
         if match:
             major = int(match.group(2))
-            minor = int(match.group(3)) if match.group(3) is not None else 0
-            patch = int(match.group(4)) if match.group(4) is not None else 0
+            minor = int(match.group(3) or 0)
+            patch = int(match.group(4) or 0)
             return semver(major, minor, patch)
         else:
             raise semver.NotAVersionNumber("Cannot reliable guess version number from {}".format(string))
@@ -203,7 +203,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     logging.info("Logging enabled")
 
     # Identify VCS
-    repo = _Repository(args.repo if args.repo is not None else os.getcwd())
+    repo = _Repository(args.repo or os.getcwd())
     vcs_map = {
         _Repository.VCS.git: git.commit_to_units
     }
@@ -228,9 +228,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     logging.info("Language identified as {}".format(repo_language))
 
     # Identify revisions
-    a_revision = args.f if args.f is not None else repo.last_tag()
+    a_revision = args.f or repo.last_tag()
     logging.info("Earlier revision identified as {}".format(a_revision))
-    b_revision = args.to if args.to is not None else repo.last_commit()
+    b_revision = args.to or repo.last_commit()
     logging.info("Later revision identified as {}".format(b_revision))
 
     # Identify changelog policy
