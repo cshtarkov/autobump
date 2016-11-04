@@ -197,7 +197,8 @@ def _class_or_interface_to_unit(node, compilation, type_system):
              isinstance(n, javalang.tree.InterfaceDeclaration):
             units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
 
-    return common.Unit(node.name, fields, functions, units)
+    fqn = _qualify_type(node.name, compilation)
+    return common.Unit(fqn, fields, functions, units)
 
 
 def _source_to_compilation(filename, source):
