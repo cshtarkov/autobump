@@ -3,7 +3,7 @@ import tempfile
 import unittest
 import subprocess
 from subprocess import PIPE
-from autobump.handlers import java
+from autobump.handlers import java_ast
 from autobump.handlers import java_native
 
 
@@ -102,14 +102,19 @@ class TestJavaHandlerBase(unittest.TestCase):
         _run_javac(files)
 
         # Get two codebases for the two different handlers.
-        self.codebase = java.codebase_to_units(self.dir)
+        self.codebase_ast = java_ast.codebase_to_units(self.dir)
         self.codebase_native = java_native.codebase_to_units(self.dir)
+
+        # By default, run the java_ast handler tests.
+        # The java_native handler will need to override setUp()
+        # and reassign self.codebase.
+        self.codebase = self.codebase_ast
 
     def tearDown(self):
         self.dir_handle.cleanup()
 
 
-class TestClasses(TestJavaHandlerBase):
+class TestClassesAST(TestJavaHandlerBase):
 
     def test_class_names(self):
         self.assertTrue("packageX.ClassA" in self.codebase)
@@ -130,17 +135,19 @@ class TestClasses(TestJavaHandlerBase):
         self.assertTrue("Inner" in self.codebase["packageY.ClassC"].units)
 
 
-class TestClassesNative(TestClasses):
+class TestClassesNative(TestClassesAST):
 
     def setUp(self):
         super(TestClassesNative, self).setUp()
         self.codebase = self.codebase_native
 
+    # java_ast and java_native disagree on what inner classes should be called,
+    # so we need to override this test.
     def test_inner_class(self):
         self.assertTrue("packageY.ClassC$Inner" in self.codebase["packageY.ClassC"].units)
 
 
-class TestMethodOverloading(TestJavaHandlerBase):
+class TestMethodOverloadingAST(TestJavaHandlerBase):
 
     def test_overloading_possible(self):
         self.assertEqual(len(self.codebase["packageY.ClassC"].functions["overloaded"].signatures), 3)
@@ -154,14 +161,14 @@ class TestMethodOverloading(TestJavaHandlerBase):
         self.assertTrue(any(len(sig.parameters) == 2 and sig.parameters[1].type.name == "packageX.ClassB" for sig in function.signatures))
 
 
-class TestMethodOverloadingNative(TestMethodOverloading):
+class TestMethodOverloadingNative(TestMethodOverloadingAST):
 
     def setUp(self):
         super(TestMethodOverloadingNative, self).setUp()
         self.codebase = self.codebase_native
 
 
-class TestTypes(TestJavaHandlerBase):
+class TestTypesAST(TestJavaHandlerBase):
 
     def test_superclass_compatible_with_subclass(self):
         superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
@@ -189,7 +196,7 @@ class TestTypes(TestJavaHandlerBase):
         self.assertFalse(subclass.is_compatible(interface))
 
 
-class TestTypesNative(TestTypes):
+class TestTypesNative(TestTypesAST):
 
     def setUp(self):
         super(TestTypesNative, self).setUp()
