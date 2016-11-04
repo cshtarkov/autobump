@@ -105,6 +105,9 @@ def java_codebase_to_units(location, package=None):
         dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
         classfiles = [f for f in files if f.endswith(".class") and not any(r.match(f) for r in _excluded_files)]
         prefix = (package or "") + root[len(location):].replace(os.sep, ".")
+        # TODO: Hack.
+        if len(prefix) > 0 and prefix[0] == ".":
+            prefix = prefix[1:]
         fqns = fqns + [prefix + "." + os.path.splitext(n)[0] for n in classfiles]
 
     # Adjust location based on whether it's pointing to a package
