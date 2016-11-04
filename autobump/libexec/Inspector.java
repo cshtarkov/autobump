@@ -5,6 +5,8 @@ import java.net.MalformedURLException;
 import java.util.Queue;
 import java.util.LinkedList;
 
+import java.io.File;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -50,7 +52,7 @@ public class Inspector {
     }
 
     private static ClassLoader instantiateClassLoader(String bin) throws MalformedURLException {
-        URL url = new URL("file://" + bin);
+        URL url = new URL("file://" + bin + File.separator);
         URL[] urls = new URL[] {url};
         ClassLoader loader = new URLClassLoader(urls);
         return loader;
