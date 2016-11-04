@@ -2,8 +2,8 @@
 import os
 import logging
 import subprocess
-import xml.etree.ElementTree as ET
 from subprocess import PIPE
+from xml.etree import ElementTree
 from autobump import common
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ def java_codebase_to_units(location, package=None):
 
     # Convert the XML representation of these classes to common.Unit
     xml = _run_inspector(location, fqns)
-    root = ET.fromstring(xml)
+    root = ElementTree.fromstring(xml)
     units = dict()
     for child in root:
         # TODO: Validation of the XML shouldn't be done using assertions.
