@@ -55,6 +55,12 @@ def _run_type_compatibility_checker(location, superclass, subclass):
 
 def _run_utility(utility, args):
     """Run a Java utility program with arguments."""
+    javafile = os.path.join(libexec, utility + ".java")
+    classfile = os.path.join(libexec, utility + ".class")
+    if os.path.isfile(javafile) and not os.path.isfile(classfile):
+        # This is a valid utility, but it's not been compiled.
+        logger.error("{} has not been compiled!".format(utility))
+        exit(1)
     child = subprocess.Popen(["java"] + [utility] + args, cwd=libexec, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
