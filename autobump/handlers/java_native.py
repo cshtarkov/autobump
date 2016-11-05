@@ -139,24 +139,27 @@ def java_codebase_to_units(location, build_instruction, build_root):
     class files under 'location/build_root'."""
     # Compile the classes
     try:
-        subprocess.run(build_instruction, cwd=location, shell=True, check=True, stdout=PIPE)
+        subprocess.run(build_instruction, cwd=location, shell=True, check=True)
     except subprocess.CalledProcessError:
         logger.error("Failed to call {}".format(build_instruction))
         exit(1)
 
     # Get absolute path to build root
     build_root = os.path.join(location, build_root)
+    logger.debug("Absolute build root is {}".format(build_root))
 
     # Get a list of fully-qualified class names
     fqns = []
     for root, dirs, files in os.walk(build_root):
-        dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
-        classfiles = [f for f in files if f.endswith(".class") and not any(r.match(f) for r in _excluded_files)]
+        logger.debug("Visiting {}".format(root))
+        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
+        classfiles = [f for f in files if f.endswith(".class") and not any(r.search(f) for r in _excluded_files)]
         prefix = root[len(build_root):].replace(os.sep, ".")
         # TODO: Hack.
         if len(prefix) > 0 and prefix[0] == ".":
             prefix = prefix[1:]
         fqns = fqns + [prefix + "." + os.path.splitext(n)[0] for n in classfiles]
+    logger.debug("{} classes identified".format(len(fqns)))
 
     # Convert the XML representation of these classes to common.Unit
     xml = _run_inspector(build_root, fqns)
