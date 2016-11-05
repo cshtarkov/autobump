@@ -33,6 +33,23 @@ public class TypeCompatibilityChecker {
         abort(message, 1);
     }
 
+    /**
+     * Find a class by its name, potentially using a ClassLoader if it's not a primitive type.
+     */
+    private static Class findClass(String className, ClassLoader loader) throws ClassNotFoundException {
+        switch(className) {
+        case "boolean": return boolean.class;
+        case "byte": return byte.class;
+        case "char": return char.class;
+        case "double": return double.class;
+        case "float": return float.class;
+        case "int": return int.class;
+        case "long": return long.class;
+        case "short": return short.class;
+        default: return loader.loadClass(className);
+        }
+    }
+
     private static ClassLoader instantiateClassLoader(String bin) throws MalformedURLException {
         URL url = new URL("file://" + bin + File.separator);
         URL[] urls = new URL[] {url};
@@ -53,18 +70,10 @@ public class TypeCompatibilityChecker {
         try {
             // Constructing the ClassLoader and the subclass should never fail.
             loader = instantiateClassLoader(args[0]);
-            subclass = loader.loadClass(args[2]);
+            superclass = findClass(args[1], loader);
+            subclass = findClass(args[2], loader);
         } catch(MalformedURLException ex) {
             abort(String.format("%s is not a valid location", args[0]));
-        } catch(ClassNotFoundException ex) {
-            ex.printStackTrace();
-            abort("Class not found");
-        }
-
-        try {
-            // The superclass may have gone missing, if found only
-            // the earlier revision.
-            superclass = loader.loadClass(args[1]);
         } catch(ClassNotFoundException ex) {
             System.out.println("false");
             System.exit(0);
