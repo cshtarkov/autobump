@@ -4,6 +4,8 @@ import java.net.MalformedURLException;
 
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
 
 import java.io.File;
 
@@ -62,7 +64,12 @@ public class Inspector {
      * Given an existing document and its root element,
      * append a <class> element representation of a Class.
      */
-    private static void classToXML(Class inspected, Document doc, Element root) {
+    private static void classToXML(Class inspected, Set<String> visitedClasses, Document doc, Element root) {
+        if (visitedClasses.contains(inspected.getName())) {
+            return;
+        } else {
+            visitedClasses.add(inspected.getName());
+        }
         Element newRoot = doc.createElement("class");
         root.appendChild(newRoot);
         root = newRoot;
@@ -97,7 +104,7 @@ public class Inspector {
 
         // Inner class or method definitions
         for (Class definition : inspected.getClasses()) {
-            classToXML(definition, doc, root);
+            classToXML(definition, visitedClasses, doc, root);
         }
 
     }
@@ -111,7 +118,7 @@ public class Inspector {
         Element root = doc.createElement("introspection");
         doc.appendChild(root);
         while (!forInspection.isEmpty()) {
-            classToXML(forInspection.remove(), doc, root);
+            classToXML(forInspection.remove(), new HashSet<String>(), doc, root);
         }
         return doc;
     }
