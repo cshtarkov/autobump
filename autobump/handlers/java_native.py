@@ -93,29 +93,34 @@ def _xml_element_to_unit(elt):
     return common.Unit(elt.attrib["name"], fields, functions, units)
 
 
-def java_codebase_to_units(location, package=None):
-    """Convert a Java codebase with compiled class files at 'location' into a list of Units.
+def java_codebase_to_units(location, build_instruction, build_root):
+    """Convert a Java codebase found at 'location' into a list of units.
 
-    Specify 'package' if 'location' points to a package directory,
-    instead of a directory containing package(s)."""
+    Works by compiling it with 'build_instruction' and then inspecting the
+    class files under 'location/build_root'."""
+    # Compile the classes
+    try:
+        subprocess.run(build_instruction, cwd=location, shell=True, check=True, stdout=PIPE)
+    except subprocess.CalledProcessError:
+        logger.error("Failed to call {}".format(build_instruction))
+        exit(1)
+
+    # Get absolute path to build root
+    build_root = os.path.join(location, build_root)
 
     # Get a list of fully-qualified class names
     fqns = []
-    for root, dirs, files in os.walk(location):
+    for root, dirs, files in os.walk(build_root):
         dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
         classfiles = [f for f in files if f.endswith(".class") and not any(r.match(f) for r in _excluded_files)]
-        prefix = (package or "") + root[len(location):].replace(os.sep, ".")
+        prefix = root[len(build_root):].replace(os.sep, ".")
         # TODO: Hack.
         if len(prefix) > 0 and prefix[0] == ".":
             prefix = prefix[1:]
         fqns = fqns + [prefix + "." + os.path.splitext(n)[0] for n in classfiles]
 
-    # Adjust location based on whether it's pointing to a package
-    if package is not None:
-        location = os.path.join(location, "..")
-
     # Convert the XML representation of these classes to common.Unit
-    xml = _run_inspector(location, fqns)
+    xml = _run_inspector(build_root, fqns)
     root = ElementTree.fromstring(xml)
     units = dict()
     for child in root:

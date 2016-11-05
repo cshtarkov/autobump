@@ -7,16 +7,6 @@ from autobump.handlers import java_ast
 from autobump.handlers import java_native
 
 
-def _run_javac(sources):
-    """Helper method to run the Java compiler on a list of source files."""
-    class JavaCompilerException(Exception):
-        pass
-    child = subprocess.Popen(["javac"] + sources, stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
-        raise JavaCompilerException("Compiing a list of sources failed!")
-
-
 class TestJavaHandlerBase(unittest.TestCase):
     """Used to set up a simple Java codebase in a temporary
     location.
@@ -98,12 +88,9 @@ class TestJavaHandlerBase(unittest.TestCase):
             with open(fullpath, "w") as f:
                 f.write(source)
 
-        # Now compile everything.
-        _run_javac(files)
-
         # Get two codebases for the two different handlers.
         self.codebase_ast = java_ast.codebase_to_units(self.dir)
-        self.codebase_native = java_native.codebase_to_units(self.dir)
+        self.codebase_native = java_native.codebase_to_units(self.dir, 'javac `find -name "*.java" | xargs`', '.')
 
         # By default, run the java_ast handler tests.
         # The java_native handler will need to override setUp()
