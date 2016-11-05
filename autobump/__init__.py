@@ -272,7 +272,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     if build_required:
         # Options "--build-instruction" and "--build-root" should be passed in.
         if not args.build_instruction or not args.build_root:
-            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided.".format(args.language))
+            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided".format(args.language))
             exit(1)
         a_units = codebase_to_units(a_location, args.build_instruction, args.build_root)
         b_units = codebase_to_units(b_location, args.build_instruction, args.build_root)
