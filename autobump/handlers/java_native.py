@@ -1,5 +1,6 @@
 """Convert a Java codebase into a list of Units, using introspection utilities written in Java."""
 import os
+import re
 import logging
 import subprocess
 from subprocess import PIPE
@@ -11,6 +12,7 @@ libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
 
 # Set of files to exclude
 _excluded_files = [
+    re.compile(r"\$")
 ]
 
 _excluded_dirs = [
