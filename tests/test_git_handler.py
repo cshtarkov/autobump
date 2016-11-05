@@ -43,14 +43,16 @@ class TestGitRepoConversion(unittest.TestCase):
         self.dir_handle.cleanup()
 
     def test_empty_repository(self):
-        self.assertRaises(VersionControlException, git.commit_to_units, self.dir, "HEAD", mock_transformator)
+        self.assertRaises(VersionControlException, git.get_commit, self.dir, "HEAD")
 
     def test_current_commit(self):
         with open(os.path.join(self.dir, "file1"), "w"):
             pass
         _run_git(self.dir, ["add", "file1"])
         _run_git(self.dir, ["commit", "-a", "-m", '"first commit"'])
-        units = git.commit_to_units(self.dir, "HEAD", mock_transformator)
+        handle, location = git.get_commit(self.dir, "HEAD")
+        units = mock_transformator(location)
+        handle.cleanup()
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
 
     def test_previous_commit(self):
@@ -62,7 +64,9 @@ class TestGitRepoConversion(unittest.TestCase):
         _run_git(self.dir, ["commit", "-a", "-m", '"first commit"'])
         _run_git(self.dir, ["add", "file2"])
         _run_git(self.dir, ["commit", "-a", "-m", '"second commit"'])
-        units = git.commit_to_units(self.dir, "HEAD~1", mock_transformator)
+        handle, location = git.get_commit(self.dir, "HEAD~1")
+        units = mock_transformator(location)
+        handle.cleanup()
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
         self.assertEqual(len([u for u in units if u.name == "file2"]), 0)
 

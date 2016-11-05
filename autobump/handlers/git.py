@@ -22,17 +22,18 @@ def _checkout_commit(checkout_dir, commit):
         raise VersionControlException("Checking out commit {} at {} failed!".format(commit, checkout_dir))
 
 
-def git_commit_to_units(repo, commit, transformator):
-    """Converts a commit from a repository into a list of units.
+def git_get_commit(repo, commit):
+    """Get a directory containing a commit found in a repository.
 
-    The transformator function should be able to convert a location
-    on disk where the codebase is into a list of Units."""
+    The caller is responsible for cleaning up the directory afterwards
+    by calling cleanup() on the handle."""
     repo_path = os.path.abspath(repo)
     repo_name = os.path.basename(repo)
-    with tempfile.TemporaryDirectory() as temp_dir:
-        checkout_dir = os.path.join(temp_dir, repo_name)
-        _clone_repo(repo_path, checkout_dir)
-        _checkout_commit(checkout_dir, commit)
-        return transformator(checkout_dir)
+    temp_dir_handle = tempfile.TemporaryDirectory()
+    temp_dir = temp_dir_handle.name
+    checkout_dir = os.path.join(temp_dir, repo_name)
+    _clone_repo(repo_path, checkout_dir)
+    _checkout_commit(checkout_dir, commit)
+    return temp_dir_handle, temp_dir
 
-commit_to_units = git_commit_to_units
+get_commit = git_get_commit
