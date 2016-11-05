@@ -29,13 +29,50 @@ class _JavaNativeType(common.Type):
     def __init__(self, name):
         self.name = name
 
+    def _array_nesting(self):
+        nesting = 0
+        for nesting in range(len(self.name)):
+            if self.name[nesting] != '[':
+                break
+        return nesting
+
+    def _strip_nesting(self):
+        nesting = self._array_nesting()
+        if nesting == 0:
+            return self.name
+        encoding = self.name[nesting]
+        if encoding == "L":
+            # Encodes a class name.
+            return self.name[nesting + 1:]
+        encoding_map = {
+            "Z": "boolean",
+            "B": "byte",
+            "C": "char",
+            "D": "double",
+            "F": "float",
+            "I": "int",
+            "J": "long",
+            "S": "short"
+        }
+        return encoding_map[encoding]
+
     def is_compatible(self, other):
         assert type(self) is type(other), "Should never happen: comparing a _JavaNativeType to something else."
         assert hasattr(self, "location") and self.location is not None, "Should never happen: location should be set prior to calling is_compatible"
-        return _run_type_compatibility_checker(self.location, self.name, other.name)
+        # The two have different nesting - e.g. one is an array, the other one isn't.
+        if self._array_nesting() != other._array_nesting():
+            return False
+        # Both have the same nesting - so just compare the types.
+        return _run_type_compatibility_checker(self.location, self._strip_nesting(), other._strip_nesting())
 
     def __eq__(self, other):
         return self.name == other.name
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "<JavaNativeType {}>".format(self.name)
 
 
 class JavaUtilityException(Exception):
@@ -77,7 +114,7 @@ def _xml_element_to_unit(elt):
     units = dict()
     for child in elt:
         if child.tag == "field":
-            field = common.Field(child.attrib["name"], child.attrib["type"])
+            field = common.Field(child.attrib["name"], _JavaNativeType(child.attrib["type"]))
             fields[field.name] = field
         elif child.tag == "method":
             signature_elt = child.find("signature")
@@ -87,7 +124,7 @@ def _xml_element_to_unit(elt):
             if child.attrib["name"] in functions:
                 functions[child.attrib["name"]].signatures.append(signature)
             else:
-                function = common.Function(child.attrib["name"], child.attrib["returns"], [signature])
+                function = common.Function(child.attrib["name"], _JavaNativeType(child.attrib["returns"]), [signature])
                 functions[function.name] = function
         elif child.tag == "class":
             unit = _xml_element_to_unit(child)
