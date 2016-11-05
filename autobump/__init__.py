@@ -6,13 +6,14 @@ import sys
 import logging
 import argparse
 import subprocess
-import multiprocessing
 from subprocess import PIPE
 from enum import Enum
 from autobump import core
 from autobump import common
 from autobump.handlers import git
 from autobump.handlers import python
+from autobump.handlers import java_ast
+from autobump.handlers import java_native
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +126,17 @@ class _Semver(object):
         return str(self.major) + "." + str(self.minor) + "." + str(self.patch)
 
 
+def _patch_types_with_location(units, location):
+    """Walk all types found in a dictionary of units and set their location property."""
+    for unit in units.values():
+        for function in unit.functions.values():
+            function.type.location = location
+            for signature in function.signatures:
+                for parameter in signature.parameters:
+                    parameter.type.location = location
+        _patch_types_with_location(unit.units, location)
+
+
 def autobump():
     """Main entry point."""
     description = """
@@ -186,6 +198,12 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser.add_argument("-t", "--to",
                         type=str,
                         help="identifier of later revision, will use last commit if not specified")
+    parser.add_argument("-bi", "--build-instruction",
+                        type=str,
+                        help="what shell command to run so that the project is built")
+    parser.add_argument("-br", "--build-root",
+                        type=str,
+                        help="where the artifacts get placed after the project is built (relative to checkout location)")
 
     args = parser.parse_args()
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
@@ -205,23 +223,26 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     # Identify VCS
     repo = _Repository(args.repo or os.getcwd())
     vcs_map = {
-        _Repository.VCS.git: git.commit_to_units
+        _Repository.VCS.git: git
     }
     try:
-        commit_to_units = vcs_map[repo.vcs]
+        get_commit = vcs_map[repo.vcs].get_commit
     except KeyError:
-        def commit_to_units(repo, commit, transformator):
+        def get_commit(repo, commit):
             raise NotImplementedException("No VCS identified!")
     logging.info("VCS identified as {}".format(repo.vcs))
 
     # Identify language
     repo_language = args.language
     language_map = {
-        "py": python.codebase_to_units,
-        "python": python.codebase_to_units
+        "py": python,
+        "python": python,
+        "java_ast": java_ast,
+        "java_native": java_native
     }
     try:
-        codebase_to_units = language_map[repo_language]
+        codebase_to_units = language_map[repo_language].codebase_to_units
+        build_required = language_map[repo_language].build_required
     except KeyError:
         def codebase_to_units(location):
             raise NotImplementedException("No language identified!")
@@ -246,23 +267,24 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         exit(1)
 
     # Determine bump
-    def async_commit_to_units(args, queue):
-        queue.put(commit_to_units(*args))
-
-    a_queue = multiprocessing.Queue()
-    b_queue = multiprocessing.Queue()
-    a_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, a_revision, codebase_to_units), a_queue))
-    b_process = multiprocessing.Process(target=async_commit_to_units, args=((repo.location, b_revision, codebase_to_units), b_queue))
-    logging.debug("Starting conversion to common format of earlier revision")
-    a_process.start()
-    logging.debug("Starting conversion to common format of later revision")
-    b_process.start()
-    a_units = a_queue.get()
-    logging.debug("Conversion of earlier revision finished")
-    b_units = b_queue.get()
-    logging.debug("Conversion of later revision finished")
-    a_process.join()
-    b_process.join()
+    a_handle, a_location = get_commit(repo.location, a_revision)
+    b_handle, b_location = get_commit(repo.location, b_revision)
+    if build_required:
+        # Options "--build-instruction" and "--build-root" should be passed in.
+        if not args.build_instruction or not args.build_root:
+            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided.".format(args.language))
+            exit(1)
+        a_units = codebase_to_units(a_location, args.build_instruction, args.build_root)
+        b_units = codebase_to_units(b_location, args.build_instruction, args.build_root)
+        # Need to set the 'location' property of all types in both codebases
+        # to the location of the latter one. Comparing types may require
+        # loading compiled components.
+        b_build_location = os.path.join(b_location, args.build_root)
+        _patch_types_with_location(a_units, b_build_location)
+        _patch_types_with_location(b_units, b_build_location)
+    else:
+        a_units = codebase_to_units(a_location)
+        b_units = codebase_to_units(b_location)
 
     bump = core.compare_codebases(a_units, b_units, changelog_file)
     logging.info("Bump found to be {}".format(bump))
@@ -276,6 +298,10 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     b_version = a_version.bump(bump)
     logging.debug("Later version is {}".format(b_version))
     print(b_version)
+
+    # Clean up temporary directories
+    a_handle.cleanup()
+    b_handle.cleanup()
 
 
 def main(_):

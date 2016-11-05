@@ -34,6 +34,6 @@ def git_get_commit(repo, commit):
     checkout_dir = os.path.join(temp_dir, repo_name)
     _clone_repo(repo_path, checkout_dir)
     _checkout_commit(checkout_dir, commit)
-    return temp_dir_handle, temp_dir
+    return temp_dir_handle, checkout_dir
 
 get_commit = git_get_commit

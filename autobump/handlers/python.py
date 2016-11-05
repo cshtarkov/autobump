@@ -180,4 +180,5 @@ def python_codebase_to_units(location):
                 units[pymodule] = _module_to_unit(pymodule, ast.parse(''.join(list(f))))
     return units
 
+build_required = False
 codebase_to_units = python_codebase_to_units

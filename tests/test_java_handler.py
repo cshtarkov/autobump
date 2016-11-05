@@ -1,8 +1,6 @@
 import os
 import tempfile
 import unittest
-import subprocess
-from subprocess import PIPE
 from autobump.handlers import java_ast
 from autobump.handlers import java_native
 

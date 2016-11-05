@@ -284,4 +284,5 @@ def java_codebase_to_units(location):
 
     return units
 
+build_required = False
 codebase_to_units = java_codebase_to_units
