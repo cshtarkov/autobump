@@ -47,17 +47,27 @@ public class TypeCompatibilityChecker {
             abort("Invalid number of arguments: expected [build-location] [superclass] [subclass]");
         }
 
+        ClassLoader loader = null;
         Class superclass = null;
         Class subclass = null;
         try {
-            ClassLoader loader = instantiateClassLoader(args[0]);
-            superclass = loader.loadClass(args[1]);
+            // Constructing the ClassLoader and the subclass should never fail.
+            loader = instantiateClassLoader(args[0]);
             subclass = loader.loadClass(args[2]);
         } catch(MalformedURLException ex) {
             abort(String.format("%s is not a valid location", args[0]));
         } catch(ClassNotFoundException ex) {
             ex.printStackTrace();
             abort("Class not found");
+        }
+
+        try {
+            // The superclass may have gone missing, if found only
+            // the earlier revision.
+            superclass = loader.loadClass(args[1]);
+        } catch(ClassNotFoundException ex) {
+            System.out.println("false");
+            System.exit(0);
         }
 
         // Check type compatibility
