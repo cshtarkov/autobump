@@ -270,6 +270,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     a_handle, a_location = get_commit(repo.location, a_revision)
     b_handle, b_location = get_commit(repo.location, b_revision)
     if build_required:
+        logger.info("Handler indicated that a build is required")
         # Options "--build-instruction" and "--build-root" should be passed in.
         if not args.build_instruction or not args.build_root:
             logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided".format(args.language))
@@ -283,6 +284,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         _patch_types_with_location(a_units, b_build_location)
         _patch_types_with_location(b_units, b_build_location)
     else:
+        logger.info("Handler indicated no build is required")
+        if args.build_instruction or args.build_root:
+            logger.warn("No build is required, but build-instruction or build-root given - IGNORING")
         a_units = codebase_to_units(a_location)
         b_units = codebase_to_units(b_location)
 

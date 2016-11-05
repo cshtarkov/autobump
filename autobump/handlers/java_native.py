@@ -1,6 +1,7 @@
 """Convert a Java codebase into a list of Units, using introspection utilities written in Java."""
 import os
 import re
+import sys
 import logging
 import subprocess
 from subprocess import PIPE
@@ -138,11 +139,13 @@ def java_codebase_to_units(location, build_instruction, build_root):
     Works by compiling it with 'build_instruction' and then inspecting the
     class files under 'location/build_root'."""
     # Compile the classes
+    logger.info("Starting build process")
     try:
-        subprocess.run(build_instruction, cwd=location, shell=True, check=True)
+        subprocess.run(build_instruction, cwd=location, shell=True, check=True, stdout=sys.stderr, stderr=sys.stderr)
     except subprocess.CalledProcessError:
         logger.error("Failed to call {}".format(build_instruction))
         exit(1)
+    logger.info("Build completed")
 
     # Get absolute path to build root
     build_root = os.path.join(location, build_root)

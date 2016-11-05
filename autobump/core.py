@@ -119,6 +119,8 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     there was a major, minor, patch or no change."""
     assert a_ent.name == b_ent.name, "Shouldn't compare entities with different names."
     assert type(a_ent) is type(b_ent), "Shouldn't compare entities of different types."
+    logger.debug("Now comparing: {0}.{1}"
+                 .format(path, a_ent.name))
 
     path = (path + "." if path != "" else path) + a_ent.name
 
@@ -158,11 +160,13 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
 
             if ki not in a_inner:
                 # Handle case when a entity was added.
+                logger.debug("Not found in variant A: {}".format(b_inner[ki].name))
                 _report_change(Change.entity_was_introduced, path + "." + b_inner[ki].name)
                 continue
 
             if ki not in b_inner:
                 # Handle case when a entity was removed.
+                logger.debug("Not found in variant B: {}".format(a_inner[ki].name))
                 _report_change(Change.entity_was_removed, path + "." + a_inner[ki].name)
                 continue
 
