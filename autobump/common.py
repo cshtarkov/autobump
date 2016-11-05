@@ -52,6 +52,9 @@ class Parameter(Entity):
         self.type = type
         self.default_value = default_value
 
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 class Signature(Entity):
     """Signature of a function."""
@@ -66,6 +69,9 @@ class Signature(Entity):
     def parameter(self, param):
         self.add_parameter(param)
         return self
+
+    def __lt__(self, other):
+        return self.parameters < other.parameters
 
 
 class Function(Entity):
