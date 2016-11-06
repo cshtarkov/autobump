@@ -62,15 +62,26 @@ def _compare_types(a_ent, b_ent):
 def _compare_signatures(a_ent, b_ent):
     """Compare signatures of two entities and return a list of Changes."""
     changes = []
+    logger.debug("Comparing signatures of {} and {}".format(a_ent, b_ent))
+    if len(a_ent.signatures) == 1 and len(b_ent.signatures) == 1:
+        return _compare_signatures_directly(a_ent.signatures[0], b_ent.signatures[0])
     if len(a_ent.signatures) < len(b_ent.signatures):
+        logger.debug("Variant A has less signatures")
         changes.append(Change.function_was_overloaded)
     elif len(a_ent.signatures) > len(b_ent.signatures):
+        logger.debug("Variant B has less signatures")
         changes.append(Change.overloaded_function_removed)
 
-    a_signatures = sorted(a_ent.signatures)
-    b_signatures = sorted(b_ent.signatures)
-    for a, b in zip(a_signatures, b_signatures):
-        changes = changes + _compare_signatures_directly(a, b)
+    a_signatures = set(a_ent.signatures)
+    b_signatures = set(b_ent.signatures)
+    not_in_b = a_signatures.difference(b_signatures)
+    not_in_a = b_signatures.difference(a_signatures)
+    for signature in not_in_a:
+        logger.debug("Signature added in variant B")
+        changes.append(Change.function_was_overloaded)
+    for signature in not_in_b:
+        logger.debug("Signature missing from variant B")
+        changes.append(Change.overloaded_function_removed)
 
     return changes
 
@@ -80,6 +91,7 @@ def _compare_signatures_directly(a_signature, b_signature):
     changes = []
     a_parameters = a_signature.parameters
     b_parameters = b_signature.parameters
+    logger.debug("Comparing signatures directly")
 
     # Check for type compatibility
     for pi in range(min(len(a_parameters), len(b_parameters))):

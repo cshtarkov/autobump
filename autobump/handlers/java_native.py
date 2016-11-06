@@ -75,6 +75,9 @@ class _JavaNativeType(common.Type):
     def __repr__(self):
         return "<JavaNativeType {}>".format(self.name)
 
+    def __hash__(self):
+        return hash(self.name)
+
 
 class JavaUtilityException(Exception):
     pass

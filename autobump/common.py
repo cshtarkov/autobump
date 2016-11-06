@@ -37,6 +37,9 @@ class Type(Entity):
     def __eq__(self, other):
         return self.is_compatible(other) and self.name == other.name
 
+    def __hash__(self):
+        return hash(self.name)
+
 
 class Field(Entity):
     """Class field or constant."""
@@ -55,6 +58,9 @@ class Parameter(Entity):
     def __lt__(self, other):
         return self.name < other.name
 
+    def __hash__(self):
+        return hash((self.name, self.type))
+
 
 class Signature(Entity):
     """Signature of a function."""
@@ -72,6 +78,9 @@ class Signature(Entity):
 
     def __lt__(self, other):
         return self.parameters < other.parameters
+
+    def __hash__(self):
+        return hash(tuple(self.parameters))
 
 
 class Function(Entity):
