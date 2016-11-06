@@ -218,7 +218,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
                             format=log_format)
     else:
         logging.basicConfig(format=log_format)
-    logging.info("Logging enabled")
+    logger.info("Logging enabled")
 
     # Identify VCS
     repo = _Repository(args.repo or os.getcwd())
@@ -230,7 +230,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     except KeyError:
         logger.error("Failed to identify VCS!")
         exit(1)
-    logging.info("VCS identified as {}".format(repo.vcs))
+    logger.info("VCS identified as {}".format(repo.vcs))
 
     # Identify language
     repo_handler = args.handler
@@ -246,22 +246,22 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     except KeyError:
         logger.error("Invalid handler {} specified!".format(repo_handler))
         exit(1)
-    logging.info("Language identified as {}".format(repo_handler))
+    logger.info("Language identified as {}".format(repo_handler))
 
     # Identify revisions
     a_revision = args.f or repo.last_tag()
-    logging.info("Earlier revision identified as {}".format(a_revision))
+    logger.info("Earlier revision identified as {}".format(a_revision))
     b_revision = args.to or repo.last_commit()
-    logging.info("Later revision identified as {}".format(b_revision))
+    logger.info("Later revision identified as {}".format(b_revision))
 
     # Identify changelog policy
     changelog_file = None
     if args.changelog and not args.changelog_stdout:
         changelog_file = open(args.changelog, "w")
-        logging.info("Writing changelog to {}".format(args.changelog))
+        logger.info("Writing changelog to {}".format(args.changelog))
     elif args.changelog_stdout and not args.changelog:
         changelog_file = sys.stdout
-        logging.info("Writing changelog to stdout")
+        logger.info("Writing changelog to stdout")
     elif args.changelog and args.changelog_stdout:
         logger.error("`--changelog` and `--changelog-stdout` are mutually exclusive")
         exit(1)
@@ -291,16 +291,16 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         b_units = codebase_to_units(b_location)
 
     bump = core.compare_codebases(a_units, b_units, changelog_file)
-    logging.info("Bump found to be {}".format(bump))
+    logger.info("Bump found to be {}".format(bump))
     if changelog_file not in {None, sys.stdout}:
         changelog_file.close()
-        logging.debug("Changelog file closed")
+        logger.debug("Changelog file closed")
 
     # Determine version
     a_version = _Semver.from_string(args.from_version) if args.from_version is not None else _Semver.guess_from_string(a_revision)
-    logging.debug("Earlier version is {}".format(a_version))
+    logger.debug("Earlier version is {}".format(a_version))
     b_version = a_version.bump(bump)
-    logging.debug("Later version is {}".format(b_version))
+    logger.debug("Later version is {}".format(b_version))
     print(b_version)
 
     # Clean up temporary directories
