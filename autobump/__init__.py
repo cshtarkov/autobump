@@ -228,8 +228,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     try:
         get_commit = vcs_map[repo.vcs].get_commit
     except KeyError:
-        def get_commit(repo, commit):
-            raise NotImplementedException("No VCS identified!")
+        logger.error("Failed to identify VCS!")
+        exit(1)
     logging.info("VCS identified as {}".format(repo.vcs))
 
     # Identify language
@@ -244,8 +244,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         codebase_to_units = handler_map[repo_handler].codebase_to_units
         build_required = handler_map[repo_handler].build_required
     except KeyError:
-        def codebase_to_units(location):
-            raise NotImplementedException("No handler identified!")
+        logger.error("Invalid handler {} specified!".format(repo_handler))
+        exit(1)
     logging.info("Language identified as {}".format(repo_handler))
 
     # Identify revisions
