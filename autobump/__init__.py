@@ -171,9 +171,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     The tool will only look at Java files found in the repository.
 """.format(os.path.basename(sys.argv[0]))
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=description)
-    parser.add_argument("language",
+    parser.add_argument("handler",
                         type=str,
-                        help="repository language {python}")
+                        help="what language handler to use {python, java_ast, java_native}")
     parser.add_argument("-c", "--changelog",
                         type=str,
                         help="generate changelog and write it to a file")
@@ -233,20 +233,20 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     logging.info("VCS identified as {}".format(repo.vcs))
 
     # Identify language
-    repo_language = args.language
-    language_map = {
+    repo_handler = args.handler
+    handler_map = {
         "py": python,
         "python": python,
         "java_ast": java_ast,
         "java_native": java_native
     }
     try:
-        codebase_to_units = language_map[repo_language].codebase_to_units
-        build_required = language_map[repo_language].build_required
+        codebase_to_units = handler_map[repo_handler].codebase_to_units
+        build_required = handler_map[repo_handler].build_required
     except KeyError:
         def codebase_to_units(location):
-            raise NotImplementedException("No language identified!")
-    logging.info("Language identified as {}".format(repo_language))
+            raise NotImplementedException("No handler identified!")
+    logging.info("Language identified as {}".format(repo_handler))
 
     # Identify revisions
     a_revision = args.f or repo.last_tag()
@@ -273,7 +273,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         logger.info("Handler indicated that a build is required")
         # Options "--build-instruction" and "--build-root" should be passed in.
         if not args.build_instruction or not args.build_root:
-            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided".format(args.language))
+            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided".format(args.handler))
             exit(1)
         a_units = codebase_to_units(a_location, args.build_instruction, args.build_root)
         b_units = codebase_to_units(b_location, args.build_instruction, args.build_root)
