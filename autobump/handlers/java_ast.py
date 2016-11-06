@@ -122,6 +122,10 @@ class _JavaTypeSystem(object):
         return self.lookup(_qualify_type(type_name, compilation))
 
 
+_dummyType = _JavaType("dummy")
+_dummyType.is_compatible = lambda t: True
+
+
 def _is_public(node):
     """Determine visibility of an AST node."""
     assert isinstance(node, javalang.ast.Node)
@@ -185,11 +189,12 @@ def _class_or_interface_to_unit(node, compilation, type_system):
                 return_type = type_system.qualify_lookup("void", compilation)
             else:
                 return_type = type_system.qualify_lookup(n.return_type.name, compilation)
+            parameters = [common.Parameter("$AUTOBUMP_RETURN$", return_type)] + parameters
             if n.name in functions:
                 functions[n.name].signatures.append(common.Signature(parameters))
             else:
                 functions[n.name] = common.Function(n.name,
-                                                    return_type,
+                                                    _dummyType,
                                                     [common.Signature(parameters)])
 
         # Convert inner classes and interfaces.

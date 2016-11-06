@@ -79,6 +79,10 @@ class _JavaNativeType(common.Type):
         return hash(self.name)
 
 
+_dummyType = _JavaNativeType("dummy")
+_dummyType.is_compatible = lambda t: True
+
+
 class JavaUtilityException(Exception):
     pass
 
@@ -124,11 +128,12 @@ def _xml_element_to_unit(elt):
             signature_elt = child.find("signature")
             parameter_elts = signature_elt.findall("parameter")
             parameters = [common.Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"])) for p in parameter_elts]
+            parameters = [common.Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(child.attrib["returns"]))] + parameters
             signature = common.Signature(parameters)
             if child.attrib["name"] in functions:
                 functions[child.attrib["name"]].signatures.append(signature)
             else:
-                function = common.Function(child.attrib["name"], _JavaNativeType(child.attrib["returns"]), [signature])
+                function = common.Function(child.attrib["name"], _dummyType, [signature])
                 functions[function.name] = function
         elif child.tag == "class":
             unit = _xml_element_to_unit(child)

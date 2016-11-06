@@ -139,11 +139,11 @@ class TestMethodOverloadingAST(TestJavaHandlerBase):
 
     def test_additional_parameter(self):
         function = self.codebase["packageY.ClassC"].functions["overloaded"]
-        self.assertTrue(any(len(sig.parameters) == 2 and sig.parameters[1].type.name == "packageX.ClassA" for sig in function.signatures))
+        self.assertTrue(any(len(sig.parameters) == 3 and sig.parameters[2].type.name == "packageX.ClassA" for sig in function.signatures))
 
     def test_parameter_different_type(self):
         function = self.codebase["packageY.ClassC"].functions["overloaded"]
-        self.assertTrue(any(len(sig.parameters) == 2 and sig.parameters[1].type.name == "packageX.ClassB" for sig in function.signatures))
+        self.assertTrue(any(len(sig.parameters) == 3 and sig.parameters[2].type.name == "packageX.ClassB" for sig in function.signatures))
 
 
 class TestMethodOverloadingNative(TestMethodOverloadingAST):
@@ -156,28 +156,28 @@ class TestMethodOverloadingNative(TestMethodOverloadingAST):
 class TestTypesAST(TestJavaHandlerBase):
 
     def test_superclass_compatible_with_subclass(self):
-        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
-        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[0].type
+        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[1].type
         self.assertTrue(superclass.is_compatible(subclass))
 
     def test_subclass_not_compatible_with_superclass(self):
-        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
-        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[0].type
+        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[1].type
         self.assertFalse(subclass.is_compatible(superclass))
 
     def test_superclass_compatible_with_subclass_skip_one(self):
-        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[0].type
-        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[1].type
         self.assertTrue(superclass.is_compatible(subclass))
 
     def test_interface_compatible_with_class(self):
-        interface = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[0].type
-        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        interface = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[1].type
         self.assertTrue(interface.is_compatible(subclass))
 
     def test_class_not_compatible_with_interface(self):
-        interface = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[0].type
-        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[0].type
+        interface = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[1].type
         self.assertFalse(subclass.is_compatible(interface))
 
 
