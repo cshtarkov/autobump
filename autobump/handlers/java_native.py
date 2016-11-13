@@ -31,6 +31,9 @@ class _JavaNativeType(common.Type):
         self.name = name
 
     def _array_nesting(self):
+        """Return the amount of nesting in an array declaration.
+        E.g. int[][] is 2, int[] is 1.
+        Declaration of ordinary variables have an array nesting of 0."""
         nesting = 0
         for nesting in range(len(self.name)):
             if self.name[nesting] != '[':
@@ -38,6 +41,7 @@ class _JavaNativeType(common.Type):
         return nesting
 
     def _strip_nesting(self):
+        """Return the type of the array declaration."""
         nesting = self._array_nesting()
         if nesting == 0:
             return self.name
@@ -115,6 +119,24 @@ def _run_utility(utility, args):
     return stdout_data.decode("ascii").strip()
 
 
+def _xml_element_to_field(elt):
+    """Convert an XML <field> into a Field."""
+    assert elt.tag == "field"
+    return common.Field(elt.attrib["name"], _JavaNativeType(elt.attrib["type"]))
+
+
+def _xml_get_signature_of_method(elt):
+    """Convert all <signature>s of a <method> into a common.Signature."""
+    assert elt.tag == "method"
+    signature_elt = elt.find("signature")
+    parameter_elts = signature_elt.findall("parameter")
+    parameters = [common.Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"]))
+                  for p in parameter_elts]
+    return_type = common.Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(elt.attrib["returns"]))
+    parameters = [return_type] + parameters
+    return common.Signature(parameters)
+
+
 def _xml_element_to_unit(elt):
     """Convert an XML <class> element into a Unit."""
     functions = dict()
@@ -122,14 +144,10 @@ def _xml_element_to_unit(elt):
     units = dict()
     for child in elt:
         if child.tag == "field":
-            field = common.Field(child.attrib["name"], _JavaNativeType(child.attrib["type"]))
+            field = _xml_element_to_field(child)
             fields[field.name] = field
         elif child.tag == "method":
-            signature_elt = child.find("signature")
-            parameter_elts = signature_elt.findall("parameter")
-            parameters = [common.Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"])) for p in parameter_elts]
-            parameters = [common.Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(child.attrib["returns"]))] + parameters
-            signature = common.Signature(parameters)
+            signature = _xml_get_signature_of_method(child)
             if child.attrib["name"] in functions:
                 functions[child.attrib["name"]].signatures.append(signature)
             else:
@@ -149,7 +167,12 @@ def java_codebase_to_units(location, build_instruction, build_root):
     # Compile the classes
     logger.info("Starting build process")
     try:
-        subprocess.run(build_instruction, cwd=location, shell=True, check=True, stdout=sys.stderr, stderr=sys.stderr)
+        subprocess.run(build_instruction,
+                       cwd=location,
+                       shell=True,
+                       check=True,
+                       stdout=sys.stderr,
+                       stderr=sys.stderr)
     except subprocess.CalledProcessError:
         logger.error("Failed to call {}".format(build_instruction))
         exit(1)
@@ -166,7 +189,6 @@ def java_codebase_to_units(location, build_instruction, build_root):
         dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
         classfiles = [f for f in files if f.endswith(".class") and not any(r.search(f) for r in _excluded_files)]
         prefix = root[len(build_root):].replace(os.sep, ".")
-        # TODO: Hack.
         if len(prefix) > 0 and prefix[0] == ".":
             prefix = prefix[1:]
         fqns = fqns + [prefix + "." + os.path.splitext(n)[0] for n in classfiles]

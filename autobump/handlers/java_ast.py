@@ -6,7 +6,8 @@ from autobump import common
 
 logger = logging.getLogger(__name__)
 
-# Set of files to exclude
+_source_file_ext = ".java"
+# TODO: Add files and dirs for exclusion.
 _excluded_files = [
 ]
 
@@ -14,7 +15,6 @@ _excluded_dirs = [
 ]
 
 
-# Type System
 _primitive_types = {"void", "byte", "short", "int", "long", "float", "double", "boolean", "char"}
 
 
@@ -132,11 +132,6 @@ def _is_public(node):
     return "public" in node.modifiers
 
 
-def _get_parameters(method):
-    """Return list of parameters of a method AST node."""
-    assert isinstance(method, javalang.tree.MethodDeclaration)
-
-
 def _get_declarator_names(field):
     """Return list of declarator names of a field AST node."""
     assert isinstance(field, javalang.tree.FieldDeclaration)
@@ -165,6 +160,23 @@ def _qualify_type(name, compilation):
             return name
 
 
+def _get_parameters(method, type_system, compilation):
+    """Return a list of Parameters to a method."""
+    parameters = []
+    for p in method.parameters:
+        name = p.name
+        type = type_system.qualify_lookup(p.type.name, compilation)
+        parameters.append(common.Parameter(name, type))
+    return parameters
+
+
+def _get_return_type(method, type_system, compilation):
+    """Return the return type of a method."""
+    if method.return_type is None:
+        return type_system.qualify_lookup("void", compilation)
+    return type_system.qualify_lookup(method.return_type.name, compilation)
+
+
 def _class_or_interface_to_unit(node, compilation, type_system):
     """Convert a class or interface declaration ('node') into a Unit.
 
@@ -184,11 +196,14 @@ def _class_or_interface_to_unit(node, compilation, type_system):
 
         # Convert methods.
         elif isinstance(n, javalang.tree.MethodDeclaration):
-            parameters = [common.Parameter(p.name, type_system.qualify_lookup(p.type.name, compilation)) for p in n.parameters]
-            if n.return_type is None:
-                return_type = type_system.qualify_lookup("void", compilation)
-            else:
-                return_type = type_system.qualify_lookup(n.return_type.name, compilation)
+            parameters = _get_parameters(n, type_system, compilation)
+            return_type = _get_return_type(n, type_system, compilation)
+            # Java supports method overloading, where methods with the
+            # same name can be differentiated by their parameters and return type.
+            # To fit this into autobump's common representation, we set
+            # the first parameter of the method to be the return type.
+            # Then, we set a dummy type that is compatible with anything as the
+            # actual return type of the function.
             parameters = [common.Parameter("$AUTOBUMP_RETURN$", return_type)] + parameters
             if n.name in functions:
                 functions[n.name].signatures.append(common.Signature(parameters))
@@ -272,7 +287,7 @@ def java_codebase_to_units(location):
     compilations = []
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
-        javafiles = [f for f in files if f.endswith(".java") and not any(r.match(f) for r in _excluded_files)]
+        javafiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.match(f) for r in _excluded_files)]
         for javafile in javafiles:
             with open(os.path.join(root, javafile), "r") as f:
                 compilation = _source_to_compilation(javafile, f.read())

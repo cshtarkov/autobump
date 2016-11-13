@@ -4,8 +4,25 @@ import re
 import ast
 from autobump import common
 
+_source_file_ext = "*.py"
+_excluded_files = [
+    re.compile(r"^test_"),
+    re.compile(r"^tests.py$"),
+    re.compile(r".*_test.py$"),
+    re.compile(r"^setup.py$"),
+    re.compile(r"^__main__.py$"),
+    re.compile(r"^run-tests.py$")
+]
+_excluded_dirs = [
+    re.compile(r"^test"),
+    re.compile(r"^script"),
+    re.compile(r"^example"),
+    re.compile(r"^doc"),
+    re.compile(r"^.git$"),
+    re.compile(r"^.svn$")
+]
 
-# Type System
+
 class _PythonType(common.Type):
     pass
 
@@ -27,24 +44,6 @@ class _StructuralType(_PythonType):
 
 
 _dynamic = _Dynamic()
-
-# Set of files to exclude when importing
-_excluded_files = [
-    re.compile(r"^test_"),
-    re.compile(r"^tests.py$"),
-    re.compile(r".*_test.py$"),
-    re.compile(r"^setup.py$"),
-    re.compile(r"^__main__.py$"),
-    re.compile(r"^run-tests.py$")
-]
-_excluded_dirs = [
-    re.compile(r"^test"),
-    re.compile(r"^script"),
-    re.compile(r"^example"),
-    re.compile(r"^doc"),
-    re.compile(r"^.git$"),
-    re.compile(r"^.svn$")
-]
 
 
 def _is_public(member_name):
@@ -173,9 +172,9 @@ def python_codebase_to_units(location):
     units = dict()
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
-        pyfiles = [f for f in files if f.endswith(".py") and not any(r.match(f) for r in _excluded_files)]
+        pyfiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.match(f) for r in _excluded_files)]
         for pyfile in pyfiles:
-            pymodule = pyfile[:-3]  # Strip ".py"
+            pymodule = pyfile[:-(len(_source_file_ext))]  # Strip extension
             with open(os.path.join(root, pyfile), "r") as f:
                 units[pymodule] = _module_to_unit(pymodule, ast.parse(''.join(list(f))))
     return units
