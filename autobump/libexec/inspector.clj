@@ -94,9 +94,9 @@
   "Return two seqs representing the positional
   and optional arguments in a signature."
   [signature]
-  (let* [split (split-at (or (index-in-seq signature '&) (count signature)) signature)
+  (let* [split      (split-at (or (index-in-seq signature '&) (count signature)) signature)
          positional (first split)
-         optional (destructure-arguments (second (second split)))]
+         optional   (destructure-arguments (second (second split)))]
     (list positional optional)))
 
 (defn- describe-signature
@@ -123,8 +123,8 @@
 (defn- describe-file
   "Describe a file as a sexp using only ()."
   [file-name]
-  (let* [forms (read-source file-name)
-         fields-defs (filter public-field-def? forms)
+  (let* [forms         (read-source file-name)
+         fields-defs   (filter public-field-def? forms)
          function-defs (filter public-fn-def? forms)]
     (list 'file
           (get-ns forms)
