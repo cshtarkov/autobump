@@ -35,6 +35,9 @@ class _ClojureType(common.Type):
 class _ClojureUtilityException(Exception):
     pass
 
+class _SexpReadException(Exception):
+    pass
+
 def _run_inspector(files):
     """Runs the utility program inspector.clj with a list of files."""
     inspector = os.path.join(libexec, "inspector.clj")
@@ -77,8 +80,12 @@ def _sexp_read(s):
                 lst.append(token)
         return lst
 
+    def verify_tag(tag, lst):
+        if lst[0] != tag:
+            raise _SexpReadException("Expected {}, got {}".format(tag, lst[0]))
+
     def read_signature(lst):
-        assert lst[0] == "signature"
+        verify_tag("signature", lst)
         tag, positional, optional = lst
         parameters = [Parameter(name, _lookup_type(type_name))
                       for name, type_name
@@ -90,17 +97,17 @@ def _sexp_read(s):
         return Signature(parameters)
 
     def read_function(lst):
-        assert lst[0] == "function"
+        verify_tag("function", lst)
         tag, name, signatures = lst
         return Function(name, _lookup_type("nil"), [read_signature(s) for s in signatures])
 
     def read_field(lst):
-        assert lst[0] == "field"
+        verify_tag("field", lst)
         tag, name, type_name = lst
         return Field(name, _lookup_type(type_name))
 
     def read_file(lst):
-        assert lst[0] == "file"
+        verify_tag("file", lst)
         tag, ns, fields, functions = lst
         fields_dict = {}
         functions_dict = {}
