@@ -5,7 +5,7 @@ import string
 import logging
 import subprocess
 from subprocess import PIPE
-from autobump.common import Parameter, Signature, Field, Function, Unit
+from autobump.common import Type, Parameter, Signature, Field, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
@@ -18,7 +18,7 @@ _excluded_dirs = [
     re.compile(r"^test"),
 ]
 
-class _ClojureType(common.Type):
+class _ClojureType(Type):
     def __init__(self, name):
         self.name = name
 
@@ -55,17 +55,17 @@ def _sexp_read(s):
     """Reads in a sexp describing a Clojure codebase
     and convert it into the common representation."""
     def tokenize(s):
-        delimiters = whitespace + "()"
+        delimiters = string.whitespace + "()"
         token = ""
         for char in s:
             if char in delimiters:
                 if token != "":
                     yield token
-                token = ""
                 if char in "()":
                     yield char
-                continue
-            token = token + char
+                token = ""
+            else:
+                token = token + char
         if token != "":
             yield token
 
@@ -124,7 +124,10 @@ def _sexp_read(s):
 
     # TODO: Why [0]?
     units = dict()
-    files = sexp_to_list(tokenize(s))[0]
+    lst = sexp_to_list(tokenize(s))
+    if len(lst) > 1:
+        raise _SexpReadError("Sexp contains more than one top-level form")
+    files = lst[0]
     for f in files:
         unit = read_file(f)
         units[unit.name] = unit
