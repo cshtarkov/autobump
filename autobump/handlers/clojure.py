@@ -18,6 +18,7 @@ _excluded_dirs = [
     re.compile(r"^test"),
 ]
 
+
 class _ClojureType(Type):
     def __init__(self, name):
         self.name = name
@@ -32,11 +33,14 @@ class _ClojureType(Type):
     def __repr__(self):
         return "<ClojureType {}>".format(self.name)
 
+
 class _ClojureUtilityException(Exception):
     pass
 
+
 class _SexpReadException(Exception):
     pass
+
 
 def _run_inspector(files):
     """Runs the utility program inspector.clj with a list of files."""
@@ -47,9 +51,11 @@ def _run_inspector(files):
         raise _ClojureUtilityException(stderr_data.decode("ascii").strip())
     return stdout_data.decode("ascii").strip()
 
+
 def _lookup_type(name):
     # TODO: Properly lookup types.
     return _ClojureType(name)
+
 
 def _sexp_read(s):
     """Reads in a sexp describing a Clojure codebase
@@ -126,12 +132,13 @@ def _sexp_read(s):
     units = dict()
     lst = sexp_to_list(tokenize(s))
     if len(lst) > 1:
-        raise _SexpReadError("Sexp contains more than one top-level form")
+        raise _SexpReadException("Sexp contains more than one top-level form")
     files = lst[0]
     for f in files:
         unit = read_file(f)
         units[unit.name] = unit
     return units
+
 
 def clojure_codebase_to_units(location):
     """Returns a list of Units representing a Clojure codebase in 'location'."""
