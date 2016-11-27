@@ -45,7 +45,9 @@ class _SexpReadException(Exception):
 def _run_inspector(files):
     """Runs the utility program inspector.clj with a list of files."""
     inspector = os.path.join(libexec, "inspector.clj")
-    child = subprocess.Popen(["clojure", inspector] + files, stdout=PIPE, stderr=PIPE)
+    arglist = ["clojure", inspector] + files
+    logger.debug("Running inspector as follows: " + ' '.join(arglist))
+    child = subprocess.Popen(arglist, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
         raise _ClojureUtilityException(stderr_data.decode("ascii").strip())
