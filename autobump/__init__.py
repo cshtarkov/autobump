@@ -14,6 +14,7 @@ from autobump.handlers import git
 from autobump.handlers import python
 from autobump.handlers import java_ast
 from autobump.handlers import java_native
+from autobump.handlers import clojure
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +239,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         "py": python,
         "python": python,
         "java_ast": java_ast,
-        "java_native": java_native
+        "java_native": java_native,
+        "clojure": clojure
     }
     try:
         codebase_to_units = handler_map[repo_handler].codebase_to_units
