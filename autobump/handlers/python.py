@@ -4,7 +4,7 @@ import re
 import ast
 from autobump import common
 
-_source_file_ext = "*.py"
+_source_file_ext = ".py"
 _excluded_files = [
     re.compile(r"^test_"),
     re.compile(r"^tests.py$"),
