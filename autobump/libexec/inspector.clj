@@ -87,7 +87,7 @@
   "Return a seq of argument names from argument bindings."
   [bindings]
   (cond
-    (seq? bindings) bindings
+    (vector? bindings) bindings
     (map? bindings) (or (:keys bindings) (keys bindings))))
 
 (defn- split-arguments
