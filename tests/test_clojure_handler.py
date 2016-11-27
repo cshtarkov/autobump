@@ -24,12 +24,16 @@ class TestClojureHandlerBase(unittest.TestCase):
             (defn- private [])
             (defn no-args [])
             (defn two-args [a b])
+            (defn destructured-args-vec [[a b]])
+            (defn destructured-args-map [{a :a b :b}])
             (defn optional-args-vec [a b & [c d]])
             (defn optional-args-map [a b & {c :c d :d}])
             (defn multiple-signatures
               ([a] nil)
               ([a b] nil))
             (defn type-hinting [^String s ^Integer i ^String m])
+            (defmacro some-macro [])
+            (defmacro some-macro-arg [a])
             """),
 
             ("lib/other.clj",
@@ -85,11 +89,28 @@ class TestFunctions(TestClojureHandlerBase):
     def test_public_function(self):
         self.assertTrue("no-args" in self.functions)
 
+    def test_macro(self):
+        self.assertTrue("some-macro" in self.functions)
+
+    def test_macro_arg(self):
+        self.assertTrue("some-macro-arg" in self.functions)
+        self.assertEqual(1, len(self.functions["some-macro-arg"].signatures[0].parameters))
+
     def test_empty_signature(self):
         self.assertEqual(0, len(self.functions["no-args"].signatures[0].parameters))
 
     def test_several_arguments(self):
         self.assertEqual(2, len(self.functions["two-args"].signatures[0].parameters))
+
+    def test_destructured_args_vector(self):
+        parameters = self.functions["destructured-args-vec"].signatures[0].parameters
+        # TODO: Treat this as a single "anon-vector" or multiple variables?
+        # TODO: Check whether the destructured variables are optional?
+        self.assertEqual(1, len(parameters))
+
+    def test_destructured_args_map(self):
+        parameters = self.functions["destructured-args-map"].signatures[0].parameters
+        self.assertEqual(1, len(parameters))
 
     def test_optional_args_vector(self):
         parameters = self.functions["optional-args-vec"].signatures[0].parameters
