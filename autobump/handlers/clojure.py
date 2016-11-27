@@ -9,6 +9,8 @@ from autobump.common import Type, Parameter, Signature, Field, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
+inspector_clj = os.path.join(libexec, "inspector.clj")
+clojure_exe = os.environ["AB_CLOJURE"] if "AB_CLOJURE" in os.environ else "clojure"
 
 _source_file_ext = ".clj"
 _excluded_files = [
@@ -44,8 +46,7 @@ class _SexpReadException(Exception):
 
 def _run_inspector(files):
     """Runs the utility program inspector.clj with a list of files."""
-    inspector = os.path.join(libexec, "inspector.clj")
-    arglist = ["clojure", inspector] + files
+    arglist = [clojure_exe, inspector_clj] + files
     logger.debug("Running inspector as follows: " + ' '.join(arglist))
     child = subprocess.Popen(arglist, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
