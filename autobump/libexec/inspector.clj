@@ -51,8 +51,10 @@
 (defn- public-field-def?
   "Check whether a form is a public definition."
   [form]
-  (let [form (first form)]
-    (in? public-field-defs form)))
+  (let [decl (first form)
+        name (second form)]
+    (and (in? public-field-defs decl)
+         (not (:private (meta name))))))
 
 (defn- get-ns
   "Returns the namespace in a list of forms."

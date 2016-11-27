@@ -19,6 +19,7 @@ class TestClojureHandlerBase(unittest.TestCase):
             (ns lib.core)
 
             (def constant 3.14)
+            (def ^{:private true} private-def)
 
             (defn- private [])
             (defn no-args [])
@@ -64,6 +65,9 @@ class TestFields(TestClojureHandlerBase):
 
     def setUp(self):
         super(TestFields, self).setUp()
+
+    def test_field_private(self):
+        self.assertFalse("private-def" in self.codebase["lib.core"].fields)
 
     def test_field_visible(self):
         self.assertTrue("constant" in self.codebase["lib.core"].fields)
