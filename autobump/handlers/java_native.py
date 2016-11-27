@@ -14,7 +14,6 @@ java_exe = os.environ["AB_JAVA"] if "AB_JAVA" in os.environ else "java"
 
 # Set of files to exclude
 _excluded_files = [
-    re.compile(r"\$")
 ]
 
 _excluded_dirs = [
