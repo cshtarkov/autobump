@@ -171,8 +171,8 @@ def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
     units = dict()
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
-        pyfiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.match(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
+        pyfiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
         for pyfile in pyfiles:
             pymodule = pyfile[:-(len(_source_file_ext))]  # Strip extension
             with open(os.path.join(root, pyfile), "r") as f:

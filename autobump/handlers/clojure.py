@@ -147,8 +147,8 @@ def clojure_codebase_to_units(location):
     """Returns a list of Units representing a Clojure codebase in 'location'."""
     cljfiles = []
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if not any(r.match(d) for r in _excluded_dirs)]
-        cljfiles += [os.path.join(root, f) for f in files if f.endswith(_source_file_ext) and not any(r.match(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
+        cljfiles += [os.path.join(root, f) for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
 
     return _sexp_read(_run_inspector(cljfiles))
 
