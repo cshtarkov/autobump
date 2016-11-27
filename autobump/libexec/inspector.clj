@@ -73,17 +73,33 @@
   "Returns a list of signatures of a function definition
   form."
   [function-form]
-  (-> function-form ;; (defn myfunc ([a] nil) ([a b] nil))
-      (macroexpand) ;; (def myfunc (fn ([a] nil) ([a b] nil)))
-      (second)      ;; myfunc
-      (meta)        ;; {:arglist (quote ([a] [a b]))}
-      (:arglists)   ;; (quote ([a] [a b]))
-      (second)))    ;; ([a] [a b])
+  (let [decl (resolve (first function-form))]
+    (cond
+      (= decl #'clojure.core/defn)
+      (-> function-form ;; (defn myfunc ([a] nil) ([a b] nil))
+          (macroexpand) ;; (def myfunc (fn ([a] nil) ([a b] nil)))
+          (second)      ;; myfunc
+          (meta)        ;; {:arglist (quote ([a] [a b]))}
+          (:arglists)   ;; (quote ([a] [a b]))
+          (second))     ;; ([a] [a b])
+      (= decl #'clojure.core/defmacro)
+      (-> function-form ;; (defmacro myfunc ([a] nil) ([a b] nil))
+          (macroexpand) ;; (do (defn mm ([&form &env a] nil) ([&form &env a b] nil)) (. ...))
+          (second)      ;; (defn mm ([&form &env a] nil) ([&form &env a b] nil))
+          (signatures)))))
+
+(defn- expand-tag
+  "Given an argument, transform into a (argument type) pair."
+  [arg]
+  (cond
+    (vector? arg) '(anon-vector nil)
+    (map? arg) '(anon-map nil)
+    true (list arg (:tag (meta arg)))))
 
 (defn- expand-tags
   "Given a seq of arguments, transform each argument into a (argument type) pair."
   [args]
-  (map (fn [a] (list a (:tag (meta a)))) args))
+  (map expand-tag args))
 
 (defn- destructure-arguments
   "Return a seq of argument names from argument bindings."
