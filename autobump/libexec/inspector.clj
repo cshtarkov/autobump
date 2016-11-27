@@ -6,7 +6,7 @@
 ;;
 ;; This program is invoked by autobump's Clojure handler.
 
-(ns autobump.handlers.clojure.inspector)
+(ns autobump.handlers.clojure)
 
 (def public-fn-defs
   #{'defn
