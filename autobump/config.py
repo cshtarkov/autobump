@@ -8,6 +8,7 @@ Methods check these sources in succession and stop at the first one:
 """
 import os
 import configparser
+from copy import deepcopy
 
 defaults = {
     "git": "git",
@@ -37,6 +38,28 @@ def make_get(name):
     def _get():
         return get(name)
     return _get
+class config_overrides(object):
+
+    def __init__(self, overrides):
+        self.overrides = overrides
+
+    def __enter__(self):
+        global defaults
+        self.previous = deepcopy(defaults)
+        defaults = {**defaults, **self.overrides}
+
+    def __exit__(self, *args):
+        global defaults
+        defaults = deepcopy(self.previous)
+
+
+def with_config_override(category, name, value):
+    def wrap(f):
+        def wrapped(*args, **kwargs):
+            with config_overrides({category: {name: value}}):
+                f(*args, **kwargs)
+        return wrapped
+    return wrap
 
 
 git = make_get("git")
