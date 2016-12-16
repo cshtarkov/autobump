@@ -70,6 +70,8 @@ def reconstruct_and_verify(commit_history):
     with tempfile.TemporaryDirectory() as repo:
         # First, create an empty repository.
         call_git(repo, "init")
+        call_git(repo, "config", "user.email", "mock@autobump.com")
+        call_git(repo, "config", "user.name", "Mock")
 
         # Then, apply the first patch to get things started.
         message, version, patch = commit_history[0]
@@ -83,6 +85,7 @@ def reconstruct_and_verify(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
             git_patch(repo, message, patch)
+            # TODO: Don't hardcode language.
             proposed_version = call_autobump("python", "-r", repo)
             call_git(repo, "tag", new_version)
             if new_version != proposed_version:
