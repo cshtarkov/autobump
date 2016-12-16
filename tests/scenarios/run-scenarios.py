@@ -6,6 +6,7 @@ import imp
 import sys
 import tempfile
 import subprocess
+from subprocess import PIPE
 
 from autobump.__init__ import autobump
 
@@ -39,12 +40,15 @@ def call_autobump(*args):
     return str(version)
 
 
-def call_git(repo, *args):
+def call_git(repo, *args, silent=True):
     """Call Git in some repository with some arguments.
 
     If the exit code is not 0, an exception is raised."""
+    stdout_pipe, stderr_pipe = (PIPE, PIPE) if silent else (sys.stdout, sys.stderr)
     child = subprocess.Popen(["git"] + list(args),
-                             cwd=repo)
+                             cwd=repo,
+                             stdout=stdout_pipe,
+                             stderr=stderr_pipe)
     child.communicate()
     if child.returncode != 0:
         raise subprocess.CalledProcessError()
@@ -91,7 +95,8 @@ def reconstruct_and_verify(commit_history):
             call_git(repo, "tag", new_version)
             if new_version != proposed_version:
                 failed += 1
-                call_git(repo, "diff", previous_version, new_version)
+                print("\nVersion mismatch: expected {}, got {}. Patch:\n{}"
+                      .format(new_version, proposed_version, patch))
 
     return failed
 
