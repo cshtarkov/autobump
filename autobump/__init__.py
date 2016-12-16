@@ -309,6 +309,10 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     a_handle.cleanup()
     b_handle.cleanup()
 
+    # Return the new version if autobump is called from another Python program.
+    # Note that this does not influence the exit code.
+    return b_version
+
 
 def main(_):
     # Do not run anything if the module is just imported.
