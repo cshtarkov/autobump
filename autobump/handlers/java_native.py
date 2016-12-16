@@ -69,8 +69,11 @@ class _JavaNativeType(common.Type):
         # The two have different nesting - e.g. one is an array, the other one isn't.
         if self._array_nesting() != other._array_nesting():
             return False
-        # Both have the same nesting - so just compare the types.
-        return _run_type_compatibility_checker(self.location, self._strip_nesting(), other._strip_nesting())
+
+        if config.java_lazy_type_checking():
+            return self.name == other.name
+        else:
+            return _run_type_compatibility_checker(self.location, self._strip_nesting(), other._strip_nesting())
 
     def __eq__(self, other):
         return self.name == other.name

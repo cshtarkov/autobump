@@ -27,8 +27,10 @@ class _ClojureType(Type):
         self.name = name
 
     def is_compatible(self, other):
-        # TODO: Proper type handling.
-        return self.name == other.name
+        if config.clojure_lazy_type_checking():
+            return self.name == other.name
+        else:
+            raise NotImplemented("Non-lazy type checking")
 
     def __str__(self):
         return self.__repr__()

@@ -22,7 +22,15 @@ defaults = {
 
     "python": {
         "use_structural_typing": True
-    }
+    },
+
+    "java": {
+        "lazy_type_checking": False
+    },
+
+    "clojure": {
+        "lazy_type_checking": True
+    },
 }
 
 
@@ -83,3 +91,7 @@ clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
 
 use_structural_typing = make_get("python", "use_structural_typing")
+
+java_lazy_type_checking = make_get("java", "lazy_type_checking")
+
+clojure_lazy_type_checking = make_get("clojure", "lazy_type_checking")
