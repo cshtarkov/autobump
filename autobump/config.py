@@ -7,37 +7,53 @@ Methods check these sources in succession and stop at the first one:
 3. Defaults.
 """
 import os
+import re
 import configparser
 from copy import deepcopy
 
+CONFIG_FILE = "autobump.ini"
+falsy = re.compile(r"^([Ff](alse)?|0+)$")
 defaults = {
-    "git": "git",
-    "clojure": "clojure",
-    "java": "java",
+    "autobump": {
+        "git": "git",
+        "clojure": "clojure",
+        "java": "java"
+    },
+
+    "python": {
+        "use_structural_typing": True
+    }
 }
 
 
-def get(name):
-    """Get the value of a parameter
-    by checking environment variables, the configuration
-    file, and the defaults in succession."""
+def get(category, name):
+    """Get the value of a configuration parameter
+    by checking several sources in succession."""
+    value = None
+
     # Check environment variables.
     env_name = "AB_" + name.upper()
     if env_name in os.environ:
-        return os.environ[env_name]
+        value = os.environ[env_name]
 
     # Check configuration file.
-    config = configparser.ConfigParser()
-    config.read("autobump.ini")
-    return config.get("autobump", name, fallback=defaults[name])
+    else:
+        config = configparser.ConfigParser()
+        config.read(CONFIG_FILE)
+        value = config.get(category, name, fallback=defaults[category][name])
+
+    if falsy.match(str(value)):
+        value = False
+
+    return value
 
 
-def make_get(name):
+def make_get(category, name):
     """Return a no-arguments function that
     gets the value of a parameter."""
-    def _get():
-        return get(name)
-    return _get
+    return lambda: get(category, name)
+
+
 class config_overrides(object):
 
     def __init__(self, overrides):
@@ -62,6 +78,8 @@ def with_config_override(category, name, value):
     return wrap
 
 
-git = make_get("git")
-clojure = make_get("clojure")
-java = make_get("java")
+git = make_get("autobump", "git")
+clojure = make_get("autobump", "clojure")
+java = make_get("autobump", "java")
+
+use_structural_typing = make_get("python", "use_structural_typing")

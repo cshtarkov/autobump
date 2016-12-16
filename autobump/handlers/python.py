@@ -4,6 +4,7 @@ import re
 import ast
 
 from autobump import common
+from autobump import config
 
 _source_file_ext = ".py"
 _excluded_files = [
