@@ -34,6 +34,7 @@ class _Repository(object):
     def __init__(self, location):
         self.location = location
         try:
+            # TODO: This will not work with bare repositories.
             if os.path.isdir(os.path.join(self.location, ".git")):
                 self.vcs = self.VCS.git
             elif os.path.isdir(os.path.join(self.location, ".svn")):
