@@ -7,10 +7,10 @@ import subprocess
 from subprocess import PIPE
 from xml.etree import ElementTree
 from autobump import common
+from autobump import config
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
-java_exe = os.environ["AB_JAVA"] if "AB_JAVA" in os.environ else "java"
 
 # Set of files to exclude
 _excluded_files = [
@@ -113,7 +113,7 @@ def _run_utility(utility, args):
         # This is a valid utility, but it's not been compiled.
         logger.error("{} has not been compiled!".format(utility))
         exit(1)
-    child = subprocess.Popen([java_exe] + [utility] + args, cwd=libexec, stdout=PIPE, stderr=PIPE)
+    child = subprocess.Popen([config.java()] + [utility] + args, cwd=libexec, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
         raise JavaUtilityException(stderr_data.decode("ascii").strip())
