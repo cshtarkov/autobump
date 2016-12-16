@@ -10,21 +10,34 @@ default: all
 all: libexec lint test
 
 # Fail if there any TODOs left in the source code.
+.PHONY: todos
 todos:
-	! find . -name "*.py" -print | xargs grep -e "TODO"
+	! find . -name "*.py" -print | xargs grep -e "# TODO"
 
+.PHONY: lint
 lint:
 	find . -name "*.py" -print | xargs $(LINTER)
 
+.PHONY: libexec
 libexec: java
 
+.PHONY: java
 java: $(JAVA_CLASS_FILES)
 
 autobump/libexec/%.class: autobump/libexec/%.java
 	$(JAVAC) $<
 
-test:
+.PHONY: test
+test: unit_test acceptance_test
+
+.PHONY: unit_test
+unit_test:
 	$(PYTHON) -m unittest discover tests/
 
+.PHONY: acceptance_test
+acceptance_test:
+	PYTHONPATH=.: $(PYTHON) tests/scenarios/run-scenarios.py
+
+.PHONY: clean
 clean:
 	rm -f autobump/libexec/*.class
