@@ -3,6 +3,7 @@ import unittest
 import tempfile
 import subprocess
 from subprocess import PIPE
+
 from autobump.common import VersionControlException, Unit
 from autobump.handlers import git
 

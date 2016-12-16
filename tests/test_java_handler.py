@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+
 from autobump.handlers import java_ast
 from autobump.handlers import java_native
 

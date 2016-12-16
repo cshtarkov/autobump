@@ -1,4 +1,5 @@
 import unittest
+
 from autobump.core import Bump
 from autobump.__init__ import _Semver
 

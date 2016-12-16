@@ -6,8 +6,9 @@ import sys
 import logging
 import argparse
 import subprocess
-from subprocess import PIPE
 from enum import Enum
+from subprocess import PIPE
+
 from autobump import core
 from autobump import common
 from autobump import config

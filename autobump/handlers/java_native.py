@@ -6,6 +6,7 @@ import logging
 import subprocess
 from subprocess import PIPE
 from xml.etree import ElementTree
+
 from autobump import common
 from autobump import config
 

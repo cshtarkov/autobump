@@ -2,6 +2,7 @@
 import os
 import logging
 import javalang
+
 from autobump import common
 
 logger = logging.getLogger(__name__)

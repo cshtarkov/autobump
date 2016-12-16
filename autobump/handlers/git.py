@@ -3,6 +3,7 @@ import os
 import tempfile
 import subprocess
 from subprocess import PIPE
+
 from autobump import config
 from autobump.common import VersionControlException
 

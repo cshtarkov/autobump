@@ -5,6 +5,7 @@ import string
 import logging
 import subprocess
 from subprocess import PIPE
+
 from autobump import config
 from autobump.common import Type, Parameter, Signature, Field, Function, Unit
 

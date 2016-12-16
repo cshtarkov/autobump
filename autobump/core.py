@@ -1,6 +1,7 @@
 """Core codebase comparison logic."""
 import logging
 from enum import Enum
+
 from autobump.common import Unit
 
 logger = logging.getLogger(__name__)

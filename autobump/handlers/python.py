@@ -2,6 +2,7 @@
 import os
 import re
 import ast
+
 from autobump import common
 
 _source_file_ext = ".py"

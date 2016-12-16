@@ -6,6 +6,7 @@ import imp
 import sys
 import tempfile
 import subprocess
+
 from autobump.__init__ import autobump
 
 
