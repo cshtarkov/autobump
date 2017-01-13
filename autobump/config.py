@@ -86,7 +86,8 @@ class config_overrides(object):
         global defaults
         global cached
         self.previous = deepcopy(defaults)
-        defaults = {**defaults, **self.overrides}
+        for category in self.overrides:
+            defaults[category] = {**defaults.get(category, dict()), **self.overrides[category]}
         cached = dict()
 
     def __exit__(self, *args):
