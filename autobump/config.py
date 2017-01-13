@@ -63,7 +63,8 @@ def make_get(category, name):
 
 
 class config_overrides(object):
-
+    """Context manager that temporary overrides
+    the values of some parameters."""
     def __init__(self, overrides):
         self.overrides = overrides
 
@@ -78,6 +79,8 @@ class config_overrides(object):
 
 
 def with_config_override(category, name, value):
+    """Decorator that overrides the value of just
+    one parameter."""
     def wrap(f):
         def wrapped(*args, **kwargs):
             with config_overrides({category: {name: value}}):
