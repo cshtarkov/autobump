@@ -190,7 +190,6 @@ def java_codebase_to_units(location, build_instruction, build_root):
     # Get a list of fully-qualified class names
     fqns = []
     for root, dirs, files in os.walk(build_root):
-        logger.debug("Visiting {}".format(root))
         dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
         classfiles = [f for f in files if f.endswith(".class") and not any(r.search(f) for r in _excluded_files)]
         prefix = root[len(build_root):].replace(os.sep, ".")
