@@ -43,9 +43,6 @@ class TestGitRepoConversion(unittest.TestCase):
     def tearDown(self):
         self.dir_handle.cleanup()
 
-    def test_empty_repository(self):
-        self.assertRaises(VersionControlException, git.get_commit, self.dir, "HEAD")
-
     def test_current_commit(self):
         with open(os.path.join(self.dir, "file1"), "w"):
             pass
