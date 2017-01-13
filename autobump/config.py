@@ -35,7 +35,7 @@ defaults = {
         "lazy_type_checking": True
     },
 }
-cached = {}
+cached = dict()
 
 
 def get(category, name):
@@ -80,12 +80,16 @@ class config_overrides(object):
 
     def __enter__(self):
         global defaults
+        global cached
         self.previous = deepcopy(defaults)
         defaults = {**defaults, **self.overrides}
+        cached = dict()
 
     def __exit__(self, *args):
         global defaults
+        global cached
         defaults = deepcopy(self.previous)
+        cached = dict()
 
 
 def with_config_override(category, name, value):
