@@ -24,7 +24,7 @@ defaults = {
     },
 
     "python": {
-        "use_structural_typing": True
+        "structural_typing": True
     },
 
     "java_native": {
@@ -111,7 +111,7 @@ git = make_get("autobump", "git")
 clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
 
-use_structural_typing = make_get("python", "use_structural_typing")
+structural_typing = make_get("python", "structural_typing")
 
 java_lazy_type_checking = make_get("java_native", "lazy_type_checking")
 

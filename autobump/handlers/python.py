@@ -69,7 +69,7 @@ def _get_type_of_parameter(function, parameter):
     the set of all methods called on the parameter."""
     assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
 
-    if not config.use_structural_typing():
+    if not config.structural_typing():
         return _dynamic
 
     # TODO: Don't completely ommit 'self' in class methods,
