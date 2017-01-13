@@ -5,6 +5,7 @@ import logging
 import javalang
 
 from autobump import common
+from autobump import config
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,14 @@ class _JavaTypeSystem(object):
         Implicitly finalizes the JavaTypeSystem, if not done already."""
         if not self.finalized:
             self.finalize()
-        # TODO: Raises KeyError when this is an external type.
+        if type_name not in self.types:
+            message = "{} is an external type".format(type_name)
+            if config.java_error_on_external_types():
+                logger.error(message)
+                exit(1)
+            else:
+                logger.warning(message)
+                return _JavaType(type_name)
         return self.types[type_name]
 
     def qualify_lookup(self, type_name, compilation):
