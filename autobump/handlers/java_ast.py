@@ -1,4 +1,4 @@
-"""Convert a Java codebase into a list of Units."""
+"""Convert a Java codebase into a list of Units using the AST."""
 import os
 import re
 import logging
