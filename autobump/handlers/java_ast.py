@@ -1,5 +1,6 @@
 """Convert a Java codebase into a list of Units."""
 import os
+import re
 import logging
 import javalang
 
@@ -8,11 +9,11 @@ from autobump import common
 logger = logging.getLogger(__name__)
 
 _source_file_ext = ".java"
-# TODO: Add files and dirs for exclusion.
 _excluded_files = [
 ]
 
 _excluded_dirs = [
+    re.compile("^[Tt]ests?$")
 ]
 
 
