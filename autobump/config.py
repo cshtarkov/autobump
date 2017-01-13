@@ -35,12 +35,15 @@ defaults = {
         "lazy_type_checking": True
     },
 }
+cached = {}
 
 
 def get(category, name):
     """Get the value of a configuration parameter
     by checking several sources in succession."""
-    value = None
+    value = cached.get((category, name), None)
+    if value is not None:
+        return value
 
     # Check environment variables.
     env_name = "AB_" + name.upper()
@@ -59,6 +62,7 @@ def get(category, name):
     logger.info("{}/{} is {}"
                 .format(category, name, value))
 
+    cached[(category, name)] = value
     return value
 
 
