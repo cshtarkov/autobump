@@ -139,8 +139,7 @@ _dummyType.is_compatible = lambda t: True
 
 def _is_public(node):
     """Determine visibility of an AST node."""
-    assert isinstance(node, javalang.ast.Node)
-    return "public" in node.modifiers
+    return hasattr(node, "modifiers") and "public" in node.modifiers
 
 
 def _get_declarator_names(field):
@@ -194,7 +193,17 @@ def _class_or_interface_to_unit(node, compilation, type_system):
 
     Requires the 'compilation' where the node so it can be used to look up type information."""
     assert isinstance(node, javalang.tree.ClassDeclaration) or \
-           isinstance(node, javalang.tree.InterfaceDeclaration)
+           isinstance(node, javalang.tree.InterfaceDeclaration) or \
+           isinstance(node, javalang.tree.AnnotationDeclaration) or \
+           isinstance(node, javalang.tree.EnumDeclaration)
+
+    # TODO: Handle annotation declarations
+    if isinstance(node, javalang.tree.AnnotationDeclaration):
+        return common.Unit("annotation", {}, {}, {})
+    # TODO: Handle enum declarations
+    if isinstance(node, javalang.tree.EnumDeclaration):
+        return common.Unit("enum", {}, {}, {})
+
     fields = dict()
     functions = dict()
     units = dict()
