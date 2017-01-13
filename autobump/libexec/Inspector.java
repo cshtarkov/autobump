@@ -130,15 +130,22 @@ public class Inspector {
         if (args.length < 2) {
             abort("Invalid number of arguments: expected [build-location] [class-names...]");
         }
+
+        ClassLoader loader = null;
         try {
-            ClassLoader loader = instantiateClassLoader(args[0]);
-            for (int i = 1; i < args.length; i++) {
-                forInspection.add(loader.loadClass(args[i]));
-            }
+            loader = instantiateClassLoader(args[0]);
         } catch(MalformedURLException ex) {
             abort(String.format("%s is not a valid location", args[0]));
-        } catch(ClassNotFoundException ex) {
-            abort(String.format("Class %s not found", args[1]));
+        }
+
+        for (int i = 1; i < args.length; i++) {
+            try {
+                forInspection.add(loader.loadClass(args[i]));
+            } catch(ClassNotFoundException ex) {
+                abort(String.format("Class %s not found", args[i]));
+            } catch(NoClassDefFoundError ex) {
+                abort(String.format("Class " + args[i] + " present at compile time, but not now. Is the build root correct?"));
+            }
         }
 
         // Prepare XML machinery
