@@ -288,6 +288,23 @@ def func2(b: str):
         type_of_a = function1.signatures[0].parameters[0].type
         type_of_b = function2.signatures[0].parameters[0].type
         self.assertFalse(type_of_a.is_compatible(type_of_b))
+        self.assertFalse(type_of_b.is_compatible(type_of_a))
+
+    @with_config_override("python", "type_hinting", True)
+    def test_hinted_once(self):
+        source = """
+def func1(a: int):
+    pass
+def func2(b):
+    pass
+"""
+        codebase = _source_to_unit(source)
+        function1 = codebase.functions["func1"]
+        function2 = codebase.functions["func2"]
+        type_of_a = function1.signatures[0].parameters[0].type
+        type_of_b = function2.signatures[0].parameters[0].type
+        self.assertFalse(type_of_a.is_compatible(type_of_b))
+        self.assertFalse(type_of_b.is_compatible(type_of_a))
 
 
 if __name__ == "__main__":

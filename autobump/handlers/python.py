@@ -39,6 +39,8 @@ class _StructuralType(_PythonType):
         self.attr_set = attr_set
 
     def is_compatible(self, other):
+        if not isinstance(other, _StructuralType):
+            return False
         return self.attr_set.issubset(other.attr_set)
 
     def __str__(self):
