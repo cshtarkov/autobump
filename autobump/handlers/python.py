@@ -45,6 +45,23 @@ class _StructuralType(_PythonType):
         return str(self.attr_set)
 
 
+class _HintedType(_PythonType):
+    def __init__(self, name):
+        self.name = name
+
+    def is_compatible(self, other):
+        return self.__eq__(other)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.__str__()
+
+
 _dynamic = _Dynamic()
 
 
@@ -68,6 +85,13 @@ def _get_type_of_parameter(function, parameter):
     this walks the AST node describing the function and considers the type to be
     the set of all methods called on the parameter."""
     assert isinstance(function, ast.FunctionDef), "Tried to get usage of parameter in a non-function."
+
+    # Check if there is a type hint for this parameter
+    if config.type_hinting():
+        for arg in function.args.args:
+            if arg.arg == parameter:
+                if arg.annotation:
+                    return _HintedType(arg.annotation.id)
 
     if not config.structural_typing():
         return _dynamic
@@ -174,6 +198,15 @@ def _module_to_unit(name, module):
 
 def python_codebase_to_units(location):
     """Returns a list of Units representing a Python codebase in 'location'."""
+    if config.type_hinting():
+        # When the handler is invoked, the 'ast' module needs to start
+        # pointing to 'ast35' from 'typed_ast' if type hinting is to be used.
+        # Note that 'ast' must be changed globally, as the other functions in this
+        # module rely on it as well.
+        global ast
+        from typed_ast import ast35
+        ast = ast35
+
     units = dict()
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
