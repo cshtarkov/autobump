@@ -154,7 +154,8 @@ def _qualify_type(name, compilation):
     # TODO: Handle arrays.
     if name in _primitive_types:
         return name
-    candidates = [i for i in compilation.imports if i.path.endswith(name)]
+    candidates = [i for i in compilation.imports
+                  if i.path.endswith(name) and (i.path.find(name) == 0 or i.path[i.path.find(name) - 1] == ".")]
     assert len(candidates) <= 1, \
            "Don't know what to do: more than one candidate for qualifying {} found in {}".format(name, compilation.filename)
     if len(candidates) == 1:
