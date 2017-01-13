@@ -8,8 +8,11 @@ Methods check these sources in succession and stop at the first one:
 """
 import os
 import re
+import logging
 import configparser
 from copy import deepcopy
+
+logger = logging.getLogger(__name__)
 
 CONFIG_FILE = "autobump.ini"
 falsy = re.compile(r"^([Ff](alse)?|0+)$")
@@ -52,6 +55,9 @@ def get(category, name):
 
     if falsy.match(str(value)):
         value = False
+
+    logger.info("{}/{} is {}"
+                .format(category, name, value))
 
     return value
 
