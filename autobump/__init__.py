@@ -133,6 +133,8 @@ class _Semver(object):
 def _patch_types_with_location(units, location):
     """Walk all types found in a dictionary of units and set their location property."""
     for unit in units.values():
+        for field in unit.fields.values():
+            field.type.location = location
         for function in unit.functions.values():
             function.type.location = location
             for signature in function.signatures:
