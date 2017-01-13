@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 _source_file_ext = ".java"
 _excluded_files = [
+    re.compile("^package\-info\.java$")
 ]
 
 _excluded_dirs = [

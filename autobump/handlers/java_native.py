@@ -15,6 +15,7 @@ libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
 
 # Set of files to exclude
 _excluded_files = [
+    re.compile("^package\-info\.java$")
 ]
 
 _excluded_dirs = [
