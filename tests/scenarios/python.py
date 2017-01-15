@@ -1,3 +1,5 @@
+handler = "python"
+
 commit_history = [
 
     ("Initial commit",
