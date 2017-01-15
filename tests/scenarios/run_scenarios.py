@@ -45,13 +45,14 @@ def call_git(repo, *args, silent=True):
 
     If the exit code is not 0, an exception is raised."""
     stdout_pipe, stderr_pipe = (PIPE, PIPE) if silent else (sys.stdout, sys.stderr)
-    child = subprocess.Popen(["git"] + list(args),
+    cmd = ["git"] + list(args)
+    child = subprocess.Popen(cmd,
                              cwd=repo,
                              stdout=stdout_pipe,
                              stderr=stderr_pipe)
     child.communicate()
     if child.returncode != 0:
-        raise subprocess.CalledProcessError()
+        raise subprocess.CalledProcessError(child.returncode, cmd)
 
 
 def git_patch(repo, message, patch):
@@ -66,37 +67,43 @@ def git_patch(repo, message, patch):
     os.unlink(patch_file.name)
 
 
-def reconstruct_and_verify(commit_history):
+def reconstruct(commit_history, repo):
     """Reconstruct a repository based on its commit
-    history and check whether the version proposed by
-    autobump match the expected ones."""
+    history."""
+
+    # First, create an empty repository.
+    call_git(repo, "init")
+    call_git(repo, "config", "user.email", "mock@autobump.com")
+    call_git(repo, "config", "user.name", "Mock")
+
+    # Then, apply the first patch to get things started.
+    message, version, patch = commit_history[0]
+    git_patch(repo, message, patch)
+    call_git(repo, "tag", version)
+
+    # Commit the remaining patches.
+    for _, after in IteratorWithRunner(commit_history):
+        message, new_version, patch = after
+        git_patch(repo, message, patch)
+        call_git(repo, "tag", new_version)
+
+
+def reconstruct_and_verify(commit_history, handler):
+    """Verify that a reconstructed repository matches
+    the expected version at every commit."""
 
     failed = 0
     with tempfile.TemporaryDirectory() as repo:
-        # First, create an empty repository.
-        call_git(repo, "init")
-        call_git(repo, "config", "user.email", "mock@autobump.com")
-        call_git(repo, "config", "user.name", "Mock")
+        reconstruct(commit_history, repo)
 
-        # Then, apply the first patch to get things started.
-        message, version, patch = commit_history[0]
-        git_patch(repo, message, patch)
-        call_git(repo, "tag", version)
-
-        # Commit the remaining patches, each time tagging
-        # the commit and checking whether the proposed version
-        # matches the expected one.
         for before, after in IteratorWithRunner(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
-            git_patch(repo, message, patch)
-            # TODO: Don't hardcode language.
-            proposed_version = call_autobump("python", "-r", repo)
-            call_git(repo, "tag", new_version)
+            proposed_version = call_autobump(handler, "-r", repo, "--from", previous_version, "--to", new_version)
             if new_version != proposed_version:
                 failed += 1
-                print("\nVersion mismatch: expected {}, got {}. Patch:\n{}"
-                      .format(new_version, proposed_version, patch))
+                print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
+                      .format(new_version, proposed_version, message, patch))
 
     return failed
 
@@ -109,7 +116,7 @@ def run_scenarios():
     showing the commit history of a repository, along with what version
     is expected every commit to be.
     """
-    scenario_re = re.compile(r"^(?!run\-scenarios)(.+)\.py$")
+    scenario_re = re.compile(r"^(?!run_scenarios)(.+)\.py$")
     scenario_dir = os.path.dirname(__file__)
     if scenario_dir == "":
         scenario_dir = os.getcwd()
@@ -125,7 +132,7 @@ def run_scenarios():
             scenario = imp.load_module(scenario_name, *module)
             print("Running scenario: {}".format(scenario_name))
             total += len(scenario.commit_history) - 1
-            failed += reconstruct_and_verify(scenario.commit_history)
+            failed += reconstruct_and_verify(scenario.commit_history, scenario.handler)
         except ImportError as ex:
             errors += 1
             print("Failed to run scenario: {}".format(scenario_name))

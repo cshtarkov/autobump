@@ -36,7 +36,7 @@ unit_test:
 
 .PHONY: acceptance_test
 acceptance_test:
-	PYTHONPATH=.: $(PYTHON) tests/scenarios/run-scenarios.py
+	PYTHONPATH=.: $(PYTHON) tests/scenarios/run_scenarios.py
 
 .PHONY: clean
 clean:
