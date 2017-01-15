@@ -9,7 +9,7 @@ import subprocess
 from enum import Enum
 from subprocess import PIPE
 
-from autobump import core
+from autobump import diff
 from autobump import common
 from autobump import config
 from autobump.handlers import git
@@ -116,12 +116,12 @@ class _Semver(object):
         """Bump version using a Bump enum.
 
         Returns a new _Semver object."""
-        assert type(bump) is core.Bump, "Bump should be an Enum"
-        if bump is core.Bump.patch:
+        assert type(bump) is diff.Bump, "Bump should be an Enum"
+        if bump is diff.Bump.patch:
             return _Semver(self.major, self.minor, self.patch + 1)
-        if bump is core.Bump.minor:
+        if bump is diff.Bump.minor:
             return _Semver(self.major, self.minor + 1, 0)
-        if bump is core.Bump.major:
+        if bump is diff.Bump.major:
             return _Semver(self.major + 1, 0, 0)
         # No bump
         return _Semver(self.major, self.minor, self.patch)
@@ -299,7 +299,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
     logger.debug("Found {} units in variant A".format(len(a_units)))
     logger.debug("Found {} units in variant B".format(len(b_units)))
-    bump = core.compare_codebases(a_units, b_units, changelog_file)
+    bump = diff.compare_codebases(a_units, b_units, changelog_file)
     logger.info("Bump found to be {}".format(bump))
     if changelog_file not in {None, sys.stdout}:
         changelog_file.close()

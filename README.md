@@ -59,7 +59,7 @@ The process happens in two steps. First, a language handler (see
 `autobump/handlers/`) extracts the public API from the codebase and
 converts it to Autobump's internal representation. This is done
 twice - once for the snapshot of the last version, and once for the
-current state of the project. Then some logic (see `autobump/core.py`)
+current state of the project. Then some logic (see `autobump/diff.py`)
 runs to determine what the changes are between the two variants.
 
 Handlers can implement different techniques of extracting the API. For

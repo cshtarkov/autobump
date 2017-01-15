@@ -1,6 +1,6 @@
 import unittest
 
-from autobump.core import Bump
+from autobump.diff import Bump
 from autobump.__init__ import _Semver
 
 
