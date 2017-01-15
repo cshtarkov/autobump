@@ -15,7 +15,8 @@ _excluded_files = [
 ]
 
 _excluded_dirs = [
-    re.compile("^[Tt]ests?$")
+    re.compile("^[Tt]ests?$"),
+    re.compile("^.git$")
 ]
 
 
