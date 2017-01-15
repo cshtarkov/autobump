@@ -196,7 +196,7 @@ def java_codebase_to_units(location, build_instruction, build_root):
         prefix = root[len(build_root):].replace(os.sep, ".")
         if len(prefix) > 0 and prefix[0] == ".":
             prefix = prefix[1:]
-        fqns = fqns + [prefix + "." + os.path.splitext(n)[0] for n in classfiles]
+        fqns = fqns + [((prefix + ".") if prefix != "" else "") + os.path.splitext(n)[0] for n in classfiles]
     logger.debug("{} classes identified".format(len(fqns)))
 
     # Convert the XML representation of these classes to common.Unit
