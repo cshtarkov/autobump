@@ -14,7 +14,7 @@ index 0000000..2fb5ed5
 +public class ClassA {
 +}
 +
--- 
+--
 2.7.4
      """),
 
@@ -29,8 +29,8 @@ index 2fb5ed5..9597d26 100644
  public class ClassA {
 +    public static final double PI = 3.14;
  }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -46,8 +46,8 @@ index 9597d26..c4dddea 100644
      public static final double PI = 3.14;
 +    private static final double PHI = 1.618;
  }
- 
--- 
+
+--
 2.7.4
      """),
 
@@ -66,8 +66,8 @@ index c4dddea..93eb438 100644
 +    public void method() {
 +    }
  }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -79,15 +79,15 @@ index 93eb438..a0a7096 100644
 --- a/com/autobump/somepackage/ClassA.java
 +++ b/com/autobump/somepackage/ClassA.java
 @@ -4,5 +4,8 @@ public class ClassA {
- 
+
      public void method() {
      }
 +
 +    private void internal() {
 +    }
  }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -101,13 +101,13 @@ index a0a7096..65c70bb 100644
 @@ -2,7 +2,7 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 -    public void method() {
 +    public void method(Object a) {
      }
- 
+
      private void internal() {
--- 
+--
 2.7.4
     """),
 
@@ -121,13 +121,13 @@ index 65c70bb..3e901d0 100644
 @@ -2,7 +2,7 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 -    public void method(Object a) {
 +    public void method(Object a, Object b) {
      }
- 
+
      private void internal() {
--- 
+--
 2.7.4
     """),
 
@@ -141,14 +141,14 @@ index 3e901d0..add2916 100644
 @@ -2,6 +2,9 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 +    public void method(Object a) {
 +    }
 +
      public void method(Object a, Object b) {
      }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -162,14 +162,14 @@ index add2916..65c70bb 100644
 @@ -5,9 +5,6 @@ public class ClassA {
      public void method(Object a) {
      }
- 
+
 -    public void method(Object a, Object b) {
 -    }
 -
      private void internal() {
      }
  }
--- 
+--
 2.7.4
     """),
 
@@ -181,15 +181,15 @@ index 65c70bb..05026a8 100644
 --- a/com/autobump/somepackage/ClassA.java
 +++ b/com/autobump/somepackage/ClassA.java
 @@ -7,5 +7,8 @@ public class ClassA {
- 
+
      private void internal() {
      }
 +
 +    public class NestedClass {
 +    }
  }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -202,13 +202,13 @@ index 05026a8..a319f87 100644
 +++ b/com/autobump/somepackage/ClassA.java
 @@ -9,6 +9,7 @@ public class ClassA {
      }
- 
+
      public class NestedClass {
 +        public int amount;
      }
  }
- 
--- 
+
+--
 2.7.4
     """),
 
@@ -220,7 +220,7 @@ index a319f87..cc035cb 100644
 --- a/com/autobump/somepackage/ClassA.java
 +++ b/com/autobump/somepackage/ClassA.java
 @@ -7,9 +7,4 @@ public class ClassA {
- 
+
      private void internal() {
      }
 -
@@ -229,12 +229,12 @@ index a319f87..cc035cb 100644
 -    }
  }
 -
--- 
+--
 2.7.4
     """),
 
     ("Add another class in same package",
-     "5.1.0",
+     "6.0.0",
      """
 diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
 index cc035cb..8c8829d 100644
@@ -258,12 +258,12 @@ index 0000000..04304d2
 +    public int x;
 +    public int y;
 +}
--- 
+--
 2.7.4
     """),
 
     ("Change type of parameter",
-     "6.0.0",
+     "7.0.0",
      """
 diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
 index 8c8829d..7e89666 100644
@@ -272,18 +272,18 @@ index 8c8829d..7e89666 100644
 @@ -4,7 +4,7 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 -    public void method(Object a) {
 +    public void method(ClassB p) {
      }
- 
+
      private void internal() {
--- 
+--
 2.7.4
     """),
 
-    ("Change type of parameter to compatible type",
-     "6.0.1",
+    ("Change type of parameter to subclass",
+     "8.0.0",
      """
 diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
 index 7e89666..f86eb25 100644
@@ -292,11 +292,11 @@ index 7e89666..f86eb25 100644
 @@ -4,7 +4,7 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 -    public void method(ClassB p) {
 +    public void method(ClassB2 p) {
      }
- 
+
      private void internal() {
 diff --git a/com/autobump/somepackage/ClassB2.java b/com/autobump/somepackage/ClassB2.java
 new file mode 100644
@@ -308,12 +308,12 @@ index 0000000..832cd45
 +
 +public class ClassB2 extends ClassB {
 +}
--- 
+--
 2.7.4
     """),
 
     ("Add an interface in the same package",
-     "6.1.0",
+     "8.1.0",
      """
 diff --git a/com/autobump/somepackage/InterfaceD.java b/com/autobump/somepackage/InterfaceD.java
 new file mode 100644
@@ -325,12 +325,12 @@ index 0000000..2e7ee33
 +
 +interface InterfaceD {
 +}
--- 
+--
 2.7.4
     """),
 
     ("Change type of parameter",
-     "7.0.0",
+     "9.0.0",
      """
 diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
 index f86eb25..fb832f2 100644
@@ -339,18 +339,18 @@ index f86eb25..fb832f2 100644
 @@ -4,7 +4,7 @@ public class ClassA {
      public static final double PI = 3.14;
      private static final double PHI = 1.618;
- 
+
 -    public void method(ClassB2 p) {
 +    public void method(InterfaceD d) {
      }
- 
+
      private void internal() {
--- 
+--
 2.7.4
     """),
 
     ("Implement interface with class",
-     "7.0.1",
+     "9.0.1",
      """
 diff --git a/com/autobump/somepackage/ClassB2.java b/com/autobump/somepackage/ClassB2.java
 index 832cd45..c098144 100644
@@ -358,16 +358,16 @@ index 832cd45..c098144 100644
 +++ b/com/autobump/somepackage/ClassB2.java
 @@ -1,4 +1,4 @@
  package com.autobump.somepackage;
- 
+
 -public class ClassB2 extends ClassB {
 +public class ClassB2 extends ClassB implements InterfaceD {
  }
--- 
+--
 2.7.4
     """),
 
     ("Import class from another package",
-     "7.1.0",
+     "9.1.0",
      """
 diff --git a/com/autobump/anotherpackage/ClassE.java b/com/autobump/anotherpackage/ClassE.java
 new file mode 100644
@@ -386,25 +386,25 @@ index fb832f2..a546710 100644
 @@ -1,4 +1,5 @@
  package com.autobump.somepackage;
 +import com.autobump.anotherpackage.ClassE;
- 
+
  public class ClassA {
      public static final double PI = 3.14;
 @@ -7,6 +8,9 @@ public class ClassA {
      public void method(InterfaceD d) {
      }
- 
+
 +    public void another(ClassE e) {
 +    }
 +
      private void internal() {
      }
  }
--- 
+--
 2.7.4
     """),
 
-    ("Change type to compatible one",
-     "7.1.1",
+    ("Change type to compatible one and add new feature",
+     "9.2.0",
      """
 diff --git a/com/autobump/anotherpackage/ClassE.java b/com/autobump/anotherpackage/ClassE.java
 index 9b29eab..925f95f 100644
@@ -412,7 +412,7 @@ index 9b29eab..925f95f 100644
 +++ b/com/autobump/anotherpackage/ClassE.java
 @@ -1,4 +1,4 @@
  package com.autobump.anotherpackage;
- 
+
 -public class ClassE {
 +public class ClassE implements InterfaceE {
  }
@@ -434,19 +434,19 @@ index a546710..cd9d07e 100644
  package com.autobump.somepackage;
  import com.autobump.anotherpackage.ClassE;
 +import com.autobump.anotherpackage.InterfaceE;
- 
+
  public class ClassA {
      public static final double PI = 3.14;
 @@ -8,7 +9,7 @@ public class ClassA {
      public void method(InterfaceD d) {
      }
- 
+
 -    public void another(ClassE e) {
 +    public void another(InterfaceE e) {
      }
- 
+
      private void internal() {
--- 
+--
 2.7.4
     """),
 
