@@ -1,6 +1,7 @@
 PYTHON=python3
 LINTER=flake8
 JAVAC=javac
+AUTOBUMP_ENV=AB_ERROR_ON_EXTERNAL_TYPES=0
 
 JAVA_FILES=$(wildcard autobump/libexec/*.java)
 JAVA_CLASS_FILES=$(JAVA_FILES:.java=.class)
@@ -36,7 +37,7 @@ unit_test:
 
 .PHONY: acceptance_test
 acceptance_test:
-	PYTHONPATH=.: $(PYTHON) tests/scenarios/run_scenarios.py
+	$(AUTOBUMP_ENV) PYTHONPATH=.: $(PYTHON) tests/scenarios/run_scenarios.py
 
 .PHONY: clean
 clean:
