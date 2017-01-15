@@ -297,6 +297,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         a_units = codebase_to_units(a_location)
         b_units = codebase_to_units(b_location)
 
+    logger.debug("Found {} units in variant A".format(len(a_units)))
+    logger.debug("Found {} units in variant B".format(len(b_units)))
     bump = core.compare_codebases(a_units, b_units, changelog_file)
     logger.info("Bump found to be {}".format(bump))
     if changelog_file not in {None, sys.stdout}:
