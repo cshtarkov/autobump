@@ -450,4 +450,75 @@ index a546710..cd9d07e 100644
 2.7.4
     """),
 
+    ("New public method",
+     "9.3.0",
+     """
+diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
+index 70997ed..86e225b 100644
+--- a/com/autobump/somepackage/ClassA.java
++++ b/com/autobump/somepackage/ClassA.java
+@@ -12,6 +12,9 @@ public class ClassA {
+     public void another(InterfaceE e) {
+     }
+
++    public void third(ClassX x) {
++    }
++
+     private void internal() {
+     }
+ }
+diff --git a/com/autobump/somepackage/ClassX.java b/com/autobump/somepackage/ClassX.java
+new file mode 100644
+index 0000000..4cf81de
+--- /dev/null
++++ b/com/autobump/somepackage/ClassX.java
+@@ -0,0 +1,4 @@
++package com.autobump.somepackage;
++
++public class ClassX {
++}
+--
+2.7.4
+     """),
+
+    ("Change type of parameter to new superclass",
+     "9.4.0",
+     """
+diff --git a/com/autobump/somepackage/ClassA.java b/com/autobump/somepackage/ClassA.java
+index 86e225b..8ecb6b1 100644
+--- a/com/autobump/somepackage/ClassA.java
++++ b/com/autobump/somepackage/ClassA.java
+@@ -12,7 +12,7 @@ public class ClassA {
+     public void another(InterfaceE e) {
+     }
+
+-    public void third(ClassX x) {
++    public void third(ClassY x) {
+     }
+
+     private void internal() {
+diff --git a/com/autobump/somepackage/ClassX.java b/com/autobump/somepackage/ClassX.java
+index 4cf81de..e5c083d 100644
+--- a/com/autobump/somepackage/ClassX.java
++++ b/com/autobump/somepackage/ClassX.java
+@@ -1,4 +1,4 @@
+ package com.autobump.somepackage;
+
+-public class ClassX {
++public class ClassX extends ClassY {
+ }
+diff --git a/com/autobump/somepackage/ClassY.java b/com/autobump/somepackage/ClassY.java
+new file mode 100644
+index 0000000..10ec7e2
+--- /dev/null
++++ b/com/autobump/somepackage/ClassY.java
+@@ -0,0 +1,4 @@
++package com.autobump.somepackage;
++
++public class ClassY {
++}
+--
+2.7.4
+     """)
+
 ]
