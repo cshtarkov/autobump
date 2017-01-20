@@ -88,7 +88,7 @@ def reconstruct(commit_history, repo):
         call_git(repo, "tag", new_version)
 
 
-def reconstruct_and_verify(commit_history, handler):
+def reconstruct_and_verify(commit_history, handler, build_command, build_root):
     """Verify that a reconstructed repository matches
     the expected version at every commit."""
 
@@ -99,7 +99,12 @@ def reconstruct_and_verify(commit_history, handler):
         for before, after in IteratorWithRunner(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
-            proposed_version = call_autobump(handler, "-r", repo, "--from", previous_version, "--to", new_version)
+            proposed_version = call_autobump(handler,
+                                             "-r", repo,
+                                             "--from", previous_version,
+                                             "--to", new_version,
+                                             "--build-command", build_command,
+                                             "--build-root", build_root)
             if new_version != proposed_version:
                 failed += 1
                 print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
@@ -132,7 +137,11 @@ def run_scenarios():
             scenario = imp.load_module(scenario_name, *module)
             print("Running scenario: {}".format(scenario_name))
             total += len(scenario.commit_history) - 1
-            failed += reconstruct_and_verify(scenario.commit_history, scenario.handler)
+            commit_history = scenario.commit_history
+            handler = scenario.handler
+            build_command = getattr(scenario, "build_command", "none")
+            build_root = getattr(scenario, "build_root", "none")
+            failed += reconstruct_and_verify(commit_history, handler, build_command, build_root)
         except ImportError as ex:
             errors += 1
             print("Failed to run scenario: {}".format(scenario_name))
