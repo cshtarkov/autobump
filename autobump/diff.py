@@ -64,6 +64,9 @@ def _compare_signatures(a_ent, b_ent):
     """Compare signatures of two entities and return a list of Changes."""
     changes = []
     logger.debug("Comparing signatures of {} and {}".format(a_ent, b_ent))
+    logger.debug("Signatures of variant A: {}".format(str(a_ent.signatures)))
+    logger.debug("Signatures of variant B: {}".format(str(b_ent.signatures)))
+
     if len(a_ent.signatures) == 1 and len(b_ent.signatures) == 1:
         return _compare_signatures_directly(a_ent.signatures[0], b_ent.signatures[0])
     if len(a_ent.signatures) < len(b_ent.signatures):
