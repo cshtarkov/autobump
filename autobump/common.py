@@ -61,6 +61,12 @@ class Parameter(Entity):
     def __hash__(self):
         return hash((self.name, self.type))
 
+    def __str__(self):
+        return "<{} {}>".format(self.type, self.name)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Signature(Entity):
     """Signature of a function."""
@@ -81,6 +87,12 @@ class Signature(Entity):
 
     def __hash__(self):
         return hash(tuple(self.parameters))
+
+    def __str__(self):
+        return str(self.parameters)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class Function(Entity):
