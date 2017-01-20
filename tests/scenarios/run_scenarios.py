@@ -33,10 +33,8 @@ class IteratorWithRunner(object):
 def call_autobump(*args):
     """Call autobump as if it was called as a standalone program.
     Returns the new version number as reported by autobump."""
-    old_argv = sys.argv
     sys.argv[1:] = ["-d"] + list(args)
     version = autobump()
-    sys.argv = old_argv
     return str(version)
 
 
