@@ -178,7 +178,7 @@ def java_codebase_to_units(location, build_command, build_root):
         logger.debug("java_native/classpath set, using that as classpath")
         os.environ["CLASSPATH"] = config.classpath()
     if "CLASSPATH" not in os.environ:
-        logger.warn("No CLASSPATH set")
+        logger.warning("No CLASSPATH set")
     try:
         subprocess.run(build_command,
                        cwd=location,
