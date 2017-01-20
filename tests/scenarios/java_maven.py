@@ -1,6 +1,30 @@
+import os
+import sys
+from subprocess import Popen, PIPE
+
 handler = "java_native"
 build_command = "mvn compile"
 build_root = "target/classes"
+
+# TODO: Think of better names
+def before_advice(repo):
+    cmd = ["mvn", "dependency:build-classpath", "-Dmdep.outputFile=classpath.txt"]
+    child = Popen(cmd,
+                  cwd=repo,
+                  stdout=PIPE,
+                  stderr=PIPE)
+    child.communicate()
+    if child.returncode != 0:
+        # TODO: what now?
+        print("Failed to get classpath from Maven!", file=sys.stderr)
+        exit(1)
+    with open(os.path.join(repo, "classpath.txt")) as classpathf:
+        classpath = classpathf.read()
+    # If we set the classpath to exactly what Maven told us, then
+    # Autobump's own utilities won't work. That's why we need to add the
+    # current directory to the end as well.
+    os.environ["CLASSPATH"] = classpath + ":.:"
+    print("Classpath set to: {}".format(classpath), file=sys.stderr)
 
 commit_history = [
 
