@@ -29,7 +29,8 @@ defaults = {
     },
 
     "java_native": {
-        "lazy_type_checking": False
+        "lazy_type_checking": False,
+        "classpath": ""
     },
 
     "java_ast": {
@@ -117,6 +118,7 @@ structural_typing = make_get("python", "structural_typing")
 type_hinting = make_get("python", "type_hinting")
 
 java_lazy_type_checking = make_get("java_native", "lazy_type_checking")
+classpath = make_get("java_native", "classpath")
 
 java_error_on_external_types = make_get("java_ast", "error_on_external_types")
 
