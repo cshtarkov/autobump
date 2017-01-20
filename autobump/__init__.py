@@ -204,7 +204,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser.add_argument("-t", "--to",
                         type=str,
                         help="identifier of later revision, will use last commit if not specified")
-    parser.add_argument("-bi", "--build-instruction",
+    parser.add_argument("-bc", "--build-command",
                         type=str,
                         help="what shell command to run so that the project is built")
     parser.add_argument("-br", "--build-root",
@@ -278,12 +278,12 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     b_handle, b_location = get_commit(repo.location, b_revision)
     if build_required:
         logger.info("Handler indicated that a build is required")
-        # Options "--build-instruction" and "--build-root" should be passed in.
-        if not args.build_instruction or not args.build_root:
-            logger.error("The {} handler requires that the project is built, but no build instruction or build root were provided".format(args.handler))
+        # Options "--build-command" and "--build-root" should be passed in.
+        if not args.build_command or not args.build_root:
+            logger.error("The {} handler requires that the project is built, but no build command or build root were provided".format(args.handler))
             exit(1)
-        a_units = codebase_to_units(a_location, args.build_instruction, args.build_root)
-        b_units = codebase_to_units(b_location, args.build_instruction, args.build_root)
+        a_units = codebase_to_units(a_location, args.build_command, args.build_root)
+        b_units = codebase_to_units(b_location, args.build_command, args.build_root)
         # Need to set the 'location' property of all types in both codebases
         # to the location of the latter one. Comparing types may require
         # loading compiled components.
@@ -292,8 +292,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         _patch_types_with_location(b_units, b_build_location)
     else:
         logger.info("Handler indicated no build is required")
-        if args.build_instruction or args.build_root:
-            logger.warn("No build is required, but build-instruction or build-root given - IGNORING")
+        if args.build_command or args.build_root:
+            logger.warn("No build is required, but build-command or build-root given - IGNORING")
         a_units = codebase_to_units(a_location)
         b_units = codebase_to_units(b_location)
 

@@ -165,22 +165,22 @@ def _xml_element_to_unit(elt):
     return common.Unit(elt.attrib["name"], fields, functions, units)
 
 
-def java_codebase_to_units(location, build_instruction, build_root):
+def java_codebase_to_units(location, build_command, build_root):
     """Convert a Java codebase found at 'location' into a list of units.
 
-    Works by compiling it with 'build_instruction' and then inspecting the
+    Works by compiling it with 'build_command' and then inspecting the
     class files under 'location/build_root'."""
     # Compile the classes
     logger.info("Starting build process")
     try:
-        subprocess.run(build_instruction,
+        subprocess.run(build_command,
                        cwd=location,
                        shell=True,
                        check=True,
                        stdout=sys.stderr,
                        stderr=sys.stderr)
     except subprocess.CalledProcessError:
-        logger.error("Failed to call {}".format(build_instruction))
+        logger.error("Failed to call {}".format(build_command))
         exit(1)
     logger.info("Build completed")
 
