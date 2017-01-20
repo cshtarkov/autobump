@@ -86,7 +86,7 @@ def reconstruct(commit_history, repo):
         call_git(repo, "tag", new_version)
 
 
-def reconstruct_and_verify(commit_history, handler, build_command, build_root):
+def reconstruct_and_verify(commit_history, handler, build_command, build_root, before_advice, after_advice):
     """Verify that a reconstructed repository matches
     the expected version at every commit."""
 
@@ -97,12 +97,16 @@ def reconstruct_and_verify(commit_history, handler, build_command, build_root):
         for before, after in IteratorWithRunner(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
+            # TODO: The before advice needs to be called AFTER
+            # the tag is checked out but BEFORE the handler runs.
+            before_advice(repo)
             proposed_version = call_autobump(handler,
                                              "-r", repo,
                                              "--from", previous_version,
                                              "--to", new_version,
                                              "--build-command", build_command,
                                              "--build-root", build_root)
+            after_advice(repo)
             if new_version != proposed_version:
                 failed += 1
                 print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
@@ -139,7 +143,14 @@ def run_scenarios():
             handler = scenario.handler
             build_command = getattr(scenario, "build_command", "none")
             build_root = getattr(scenario, "build_root", "none")
-            failed += reconstruct_and_verify(commit_history, handler, build_command, build_root)
+            before_advice = getattr(scenario, "before_advice", lambda r: None)
+            after_advice = getattr(scenario, "after_advice", lambda r: None)
+            failed += reconstruct_and_verify(commit_history,
+                                             handler,
+                                             build_command,
+                                             build_root,
+                                             before_advice,
+                                             after_advice)
         except ImportError as ex:
             errors += 1
             print("Failed to run scenario: {}".format(scenario_name))
