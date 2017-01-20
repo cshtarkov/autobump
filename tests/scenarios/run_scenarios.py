@@ -117,7 +117,8 @@ def reconstruct_and_verify(commit_history, handler, build_command, build_root, b
 
 def run_scenarios():
     """Find all scenario files in the same directory
-    as this file and try to run them.
+    as this file and try to run them. If there are command line arguments,
+    run those instead.
 
     A scenario file is a Python source file which contains a single list
     showing the commit history of a repository, along with what version
@@ -127,7 +128,10 @@ def run_scenarios():
     scenario_dir = os.path.dirname(__file__)
     if scenario_dir == "":
         scenario_dir = os.getcwd()
-    scenario_files = [s for s in os.listdir(scenario_dir) if scenario_re.search(s)]
+    if len(sys.argv) <= 1:
+        scenario_files = [s for s in os.listdir(scenario_dir) if scenario_re.search(s)]
+    else:
+        scenario_files = sys.argv[1:]
 
     total = 0
     failed = 0
