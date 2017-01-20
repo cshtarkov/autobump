@@ -6,6 +6,7 @@ handler = "java_native"
 build_command = "mvn compile"
 build_root = "target/classes"
 
+
 # TODO: Think of better names
 def before_advice(repo):
     cmd = ["mvn", "dependency:build-classpath", "-Dmdep.outputFile=classpath.txt"]
