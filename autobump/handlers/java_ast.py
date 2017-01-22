@@ -4,8 +4,8 @@ import re
 import logging
 import javalang
 
-from autobump import common
 from autobump import config
+from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ _excluded_dirs = [
 _primitive_types = {"void", "byte", "short", "int", "long", "float", "double", "boolean", "char"}
 
 
-class _JavaType(common.Type):
+class _JavaType(Type):
 
     def __init__(self, name):
         self.name = name
@@ -61,7 +61,7 @@ class _JavaTypeSystem(object):
     Use 'add_qualified_type' to add fully-qualified type names to the system,
     e.g. "java.util.List".
 
-    When done, use 'finalize' to resolve all types and build common.Type
+    When done, use 'finalize' to resolve all types and build Type
     objects. Type objects can be looked up by using 'lookup'."""
 
     def __init__(self):
@@ -74,7 +74,7 @@ class _JavaTypeSystem(object):
         self.types[type_name] = type_node_and_compilation
 
     def finalize(self):
-        """Replace all Type AST nodes with common.Type objects."""
+        """Replace all Type AST nodes with Type objects."""
         self.type_objects = {}
         for type_name in self.types.keys():
             node, compilation = self.types[type_name]
@@ -112,7 +112,7 @@ class _JavaTypeSystem(object):
         self.finalized = True
 
     def lookup(self, type_name):
-        """Lookup a fully-qualified type name and get a common.Type object.
+        """Lookup a fully-qualified type name and get a Type object.
 
         Implicitly finalizes the JavaTypeSystem, if not done already."""
         if not self.finalized:
@@ -128,7 +128,7 @@ class _JavaTypeSystem(object):
         return self.types[type_name]
 
     def qualify_lookup(self, type_name, compilation):
-        """Qualify and lookup a type name and get a common.Type object.
+        """Qualify and lookup a type name and get a Type object.
 
         Implicitly finalizes the JavaTypeSystem, if not done already."""
         return self.lookup(_qualify_type(type_name, compilation))
@@ -178,7 +178,7 @@ def _get_parameters(method, type_system, compilation):
     for p in method.parameters:
         name = p.name
         type = type_system.qualify_lookup(p.type.name, compilation)
-        parameters.append(common.Parameter(name, type))
+        parameters.append(Parameter(name, type))
     return parameters
 
 
@@ -200,10 +200,10 @@ def _class_or_interface_to_unit(node, compilation, type_system):
 
     # TODO: Handle annotation declarations
     if isinstance(node, javalang.tree.AnnotationDeclaration):
-        return common.Unit("annotation", {}, {}, {})
+        return Unit("annotation", {}, {}, {})
     # TODO: Handle enum declarations
     if isinstance(node, javalang.tree.EnumDeclaration):
-        return common.Unit("enum", {}, {}, {})
+        return Unit("enum", {}, {}, {})
 
     fields = dict()
     functions = dict()
@@ -214,7 +214,7 @@ def _class_or_interface_to_unit(node, compilation, type_system):
         if isinstance(n, javalang.tree.FieldDeclaration):
             for declarator_name in _get_declarator_names(n):
                 type_object = type_system.qualify_lookup(n.type.name, compilation)
-                fields[declarator_name] = common.Field(declarator_name, type_object)
+                fields[declarator_name] = Field(declarator_name, type_object)
 
         # Convert methods.
         elif isinstance(n, javalang.tree.MethodDeclaration):
@@ -226,13 +226,13 @@ def _class_or_interface_to_unit(node, compilation, type_system):
             # the first parameter of the method to be the return type.
             # Then, we set a dummy type that is compatible with anything as the
             # actual return type of the function.
-            parameters = [common.Parameter("$AUTOBUMP_RETURN$", return_type)] + parameters
+            parameters = [Parameter("$AUTOBUMP_RETURN$", return_type)] + parameters
             if n.name in functions:
-                functions[n.name].signatures.append(common.Signature(parameters))
+                functions[n.name].signatures.append(Signature(parameters))
             else:
-                functions[n.name] = common.Function(n.name,
+                functions[n.name] = Function(n.name,
                                                     _dummyType,
-                                                    [common.Signature(parameters)])
+                                                    [Signature(parameters)])
 
         # Convert inner classes and interfaces.
         elif isinstance(n, javalang.tree.ClassDeclaration) or \
@@ -240,7 +240,7 @@ def _class_or_interface_to_unit(node, compilation, type_system):
             units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
 
     fqn = _qualify_type(node.name, compilation)
-    return common.Unit(fqn, fields, functions, units)
+    return Unit(fqn, fields, functions, units)
 
 
 def _source_to_compilation(filename, source):

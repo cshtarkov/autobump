@@ -7,8 +7,8 @@ import subprocess
 from subprocess import PIPE
 from xml.etree import ElementTree
 
-from autobump import common
 from autobump import config
+from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
@@ -24,7 +24,7 @@ _excluded_dirs = [
 
 
 # Type system
-class _JavaNativeType(common.Type):
+class _JavaNativeType(Type):
     """Representation of a Java type.
 
     When checking for compatibility with another type,
@@ -128,19 +128,19 @@ def _run_utility(utility, args):
 def _xml_element_to_field(elt):
     """Convert an XML <field> into a Field."""
     assert elt.tag == "field"
-    return common.Field(elt.attrib["name"], _JavaNativeType(elt.attrib["type"]))
+    return Field(elt.attrib["name"], _JavaNativeType(elt.attrib["type"]))
 
 
 def _xml_get_signature_of_method(elt):
-    """Convert all <signature>s of a <method> into a common.Signature."""
+    """Convert all <signature>s of a <method> into a Signature."""
     assert elt.tag == "method"
     signature_elt = elt.find("signature")
     parameter_elts = signature_elt.findall("parameter")
-    parameters = [common.Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"]))
+    parameters = [Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"]))
                   for p in parameter_elts]
-    return_type = common.Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(elt.attrib["returns"]))
+    return_type = Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(elt.attrib["returns"]))
     parameters = [return_type] + parameters
-    return common.Signature(parameters)
+    return Signature(parameters)
 
 
 def _xml_element_to_unit(elt):
@@ -157,12 +157,12 @@ def _xml_element_to_unit(elt):
             if child.attrib["name"] in functions:
                 functions[child.attrib["name"]].signatures.append(signature)
             else:
-                function = common.Function(child.attrib["name"], _dummyType, [signature])
+                function = Function(child.attrib["name"], _dummyType, [signature])
                 functions[function.name] = function
         elif child.tag == "class":
             unit = _xml_element_to_unit(child)
             units[unit.name] = unit
-    return common.Unit(elt.attrib["name"], fields, functions, units)
+    return Unit(elt.attrib["name"], fields, functions, units)
 
 
 def java_codebase_to_units(location, build_command, build_root):
@@ -206,7 +206,7 @@ def java_codebase_to_units(location, build_command, build_root):
         fqns = fqns + [((prefix + ".") if prefix != "" else "") + os.path.splitext(n)[0] for n in classfiles]
     logger.debug("{} classes identified".format(len(fqns)))
 
-    # Convert the XML representation of these classes to common.Unit
+    # Convert the XML representation of these classes to Unit
     xml = _run_inspector(build_root, fqns)
     root = ElementTree.fromstring(xml)
     units = dict()

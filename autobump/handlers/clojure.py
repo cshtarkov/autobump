@@ -7,7 +7,7 @@ import subprocess
 from subprocess import PIPE
 
 from autobump import config
-from autobump.common import Type, Parameter, Signature, Field, Function, Unit
+from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")

@@ -3,7 +3,7 @@ import logging
 import functools
 from enum import Enum
 
-from autobump.common import Unit
+from autobump.capir import Unit
 
 logger = logging.getLogger(__name__)
 

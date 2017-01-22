@@ -7,8 +7,8 @@ import codecs
 import logging
 import traceback
 
-from autobump import common
 from autobump import config
+from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ _excluded_dirs = [
 ]
 
 
-class _PythonType(common.Type):
+class _PythonType(Type):
     pass
 
 
@@ -175,11 +175,11 @@ def _get_signature(function):
         elif isinstance(default, ast.Str):
             default = default.s
         type = _get_type_of_parameter(function, arg.arg)
-        parameters.append(common.Parameter(arg.arg, type, default))
+        parameters.append(Parameter(arg.arg, type, default))
     # Note: we need to return a list with the signature inside
     # because the common representation allows for overloading,
     # which Python doesn't.
-    return [common.Signature(parameters)]
+    return [Signature(parameters)]
 
 
 def _container_to_unit(name, container):
@@ -195,12 +195,12 @@ def _container_to_unit(name, container):
         if isinstance(node, ast.ClassDef):
             units[node.name] = _container_to_unit(node.name, node)
         elif isinstance(node, ast.FunctionDef):
-            functions[node.name] = common.Function(node.name, _dynamic, _get_signature(node))
+            functions[node.name] = Function(node.name, _dynamic, _get_signature(node))
         elif isinstance(node, ast.Assign):
             # TODO: Handle other forms of assignment.
             for target in [t for t in node.targets if isinstance(t, ast.Name) and _is_public(t.id)]:
-                fields[target.id] = common.Field(target.id, _dynamic)
-    return common.Unit(name, fields, functions, units)
+                fields[target.id] = Field(target.id, _dynamic)
+    return Unit(name, fields, functions, units)
 
 
 def _module_to_unit(name, module):

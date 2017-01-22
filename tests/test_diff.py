@@ -1,7 +1,7 @@
 import unittest
 
 from autobump.diff import Bump, compare_codebases
-from autobump.common import Type, Field, Parameter, Signature, Function
+from autobump.capir import Type, Field, Parameter, Signature, Function
 
 
 # Mock Type System
