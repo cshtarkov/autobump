@@ -312,6 +312,187 @@ index 6455580..548a1fe 100644
 -    public void m(ImmutableMultiset s) {}
 +    public void m(Multiset s) {}
  }
+     """),
+
+    ("Add new package",
+     "6.2.0",
+     """
+diff --git a/src/main/java/com/autobump/anotherpackage/ClassC.java b/src/main/java/com/autobump/anotherpackage/ClassC.java
+new file mode 100644
+index 0000000..5473f84
+--- /dev/null
++++ b/src/main/java/com/autobump/anotherpackage/ClassC.java
+@@ -0,0 +1,4 @@
++package com.autobump.anotherpackage;
++
++public class ClassC {
++}
+diff --git a/src/main/java/com/autobump/anotherpackage/InterfaceD.java b/src/main/java/com/autobump/anotherpackage/InterfaceD.java
+new file mode 100644
+index 0000000..b7e5412
+--- /dev/null
++++ b/src/main/java/com/autobump/anotherpackage/InterfaceD.java
+@@ -0,0 +1,4 @@
++package com.autobump.anotherpackage;
++
++public interface InterfaceD {
++}
+     """),
+
+    ("Implement interface",
+     "6.2.1",
+     """
+diff --git a/src/main/java/com/autobump/anotherpackage/ClassC.java b/src/main/java/com/autobump/anotherpackage/ClassC.java
+index 5473f84..54ab335 100644
+--- a/src/main/java/com/autobump/anotherpackage/ClassC.java
++++ b/src/main/java/com/autobump/anotherpackage/ClassC.java
+@@ -1,4 +1,4 @@
+ package com.autobump.anotherpackage;
+
+-public class ClassC {
++public class ClassC implements InterfaceD {
+ }
+     """),
+
+    ("Add method with wildcard import",
+     "6.3.0",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassA.java b/src/main/java/com/autobump/somepackage/ClassA.java
+index 4b3b119..a112e69 100644
+--- a/src/main/java/com/autobump/somepackage/ClassA.java
++++ b/src/main/java/com/autobump/somepackage/ClassA.java
+@@ -1,4 +1,5 @@
+ package com.autobump.somepackage;
++import com.autobump.anotherpackage.*;
+
+ public class ClassA {
+     public static int somefield;
+@@ -6,5 +7,7 @@ public class ClassA {
+     private void privatemethod() {}
+     public int publicmethod(String a, int b) {return 0;}
+
++    public void dosmth(ClassC p) {}
++
+     public void m(ClassB p) {}
+ }
+     """),
+
+    ("Change type of parameter to interface",
+     "6.3.1",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassA.java b/src/main/java/com/autobump/somepackage/ClassA.java
+index a112e69..7613064 100644
+--- a/src/main/java/com/autobump/somepackage/ClassA.java
++++ b/src/main/java/com/autobump/somepackage/ClassA.java
+@@ -7,7 +7,7 @@ public class ClassA {
+     private void privatemethod() {}
+     public int publicmethod(String a, int b) {return 0;}
+
+-    public void dosmth(ClassC p) {}
++    public void dosmth(InterfaceD p) {}
+
+     public void m(ClassB p) {}
+ }
+     """),
+
+    ("Overload method",
+     "6.4.0",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassA.java b/src/main/java/com/autobump/somepackage/ClassA.java
+index 7613064..576a499 100644
+--- a/src/main/java/com/autobump/somepackage/ClassA.java
++++ b/src/main/java/com/autobump/somepackage/ClassA.java
+@@ -8,6 +8,7 @@ public class ClassA {
+     public int publicmethod(String a, int b) {return 0;}
+
+     public void dosmth(InterfaceD p) {}
++    public void dosmth(ClassC p) {}
+
+     public void m(ClassB p) {}
+ }
+     """),
+
+    ("Change return type of method",
+     "7.0.0",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassA.java b/src/main/java/com/autobump/somepackage/ClassA.java
+index 576a499..fb737fe 100644
+--- a/src/main/java/com/autobump/somepackage/ClassA.java
++++ b/src/main/java/com/autobump/somepackage/ClassA.java
+@@ -8,7 +8,7 @@ public class ClassA {
+     public int publicmethod(String a, int b) {return 0;}
+
+     public void dosmth(InterfaceD p) {}
+-    public void dosmth(ClassC p) {}
++    public int dosmth(ClassC p) {return 0;}
+
+     public void m(ClassB p) {}
+ }
+     """),
+
+    ("Change type of parameter to interface",
+     "7.1.0",
+     """
+diff --git a/src/main/java/com/autobump/anotherpackage/ClassC.java b/src/main/java/com/autobump/anotherpackage/ClassC.java
+index 54ab335..b524110 100644
+--- a/src/main/java/com/autobump/anotherpackage/ClassC.java
++++ b/src/main/java/com/autobump/anotherpackage/ClassC.java
+@@ -1,4 +1,4 @@
+ package com.autobump.anotherpackage;
+
+-public class ClassC implements InterfaceD {
++public class ClassC implements InterfaceD, InterfaceE {
+ }
+diff --git a/src/main/java/com/autobump/anotherpackage/InterfaceE.java b/src/main/java/com/autobump/anotherpackage/InterfaceE.java
+new file mode 100644
+index 0000000..f9d3d60
+--- /dev/null
++++ b/src/main/java/com/autobump/anotherpackage/InterfaceE.java
+@@ -0,0 +1,4 @@
++package com.autobump.anotherpackage;
++
++public interface InterfaceE {
++}
+diff --git a/src/main/java/com/autobump/somepackage/ClassA.java b/src/main/java/com/autobump/somepackage/ClassA.java
+index fb737fe..a6cb81b 100644
+--- a/src/main/java/com/autobump/somepackage/ClassA.java
++++ b/src/main/java/com/autobump/somepackage/ClassA.java
+@@ -8,7 +8,7 @@ public class ClassA {
+     public int publicmethod(String a, int b) {return 0;}
+
+     public void dosmth(InterfaceD p) {}
+-    public int dosmth(ClassC p) {return 0;}
++    public int dosmth(InterfaceE p) {return 0;}
+
+     public void m(ClassB p) {}
+ }
+     """),
+
+    ("Change type of parameter to type of same name",
+     "8.0.0",
+     """
+diff --git a/src/main/java/com/autobump/anotherpackage/Multiset.java b/src/main/java/com/autobump/anotherpackage/Multiset.java
+new file mode 100644
+index 0000000..a5fc7c2
+--- /dev/null
++++ b/src/main/java/com/autobump/anotherpackage/Multiset.java
+@@ -0,0 +1,4 @@
++package com.autobump.anotherpackage;
++
++public class Multiset {
++}
+diff --git a/src/main/java/com/autobump/somepackage/ClassB.java b/src/main/java/com/autobump/somepackage/ClassB.java
+index 548a1fe..a0b34dc 100644
+--- a/src/main/java/com/autobump/somepackage/ClassB.java
++++ b/src/main/java/com/autobump/somepackage/ClassB.java
+@@ -1,6 +1,5 @@
+ package com.autobump.somepackage;
+-import com.google.common.collect.Multiset;
+-import com.google.common.collect.ImmutableMultiset;
++import com.autobump.anotherpackage.Multiset;
+
+ public class ClassB extends ClassA {
+     public void m(Multiset s) {}
      """)
 
 ]
