@@ -1,5 +1,6 @@
 """Core codebase comparison logic."""
 import logging
+import functools
 from enum import Enum
 
 from autobump.common import Unit
@@ -7,11 +8,17 @@ from autobump.common import Unit
 logger = logging.getLogger(__name__)
 
 
+@functools.total_ordering
 class Bump(Enum):
     none = 0
     patch = 1
     minor = 2
     major = 3
+
+    def __lt__(self, other):
+        if type(self) is type(other):
+            return self.value < other.value
+        raise NotImplemented()
 
 
 class Change(Enum):
@@ -63,9 +70,8 @@ def _compare_types(a_ent, b_ent):
 def _compare_signatures(a_ent, b_ent):
     """Compare signatures of two entities and return a list of Changes."""
     changes = []
-    logger.debug("Comparing signatures of {} and {}".format(a_ent, b_ent))
-    logger.debug("Signatures of variant A: {}".format(str(a_ent.signatures)))
-    logger.debug("Signatures of variant B: {}".format(str(b_ent.signatures)))
+    logger.debug("Comparing signatures of {} and {}:\n\tVariant A: {}\n\tVariant B: {}"
+                 .format(a_ent, b_ent, str(a_ent.signatures), str(b_ent.signatures)))
 
     if len(a_ent.signatures) == 1 and len(b_ent.signatures) == 1:
         return _compare_signatures_directly(a_ent.signatures[0], b_ent.signatures[0])
@@ -80,6 +86,19 @@ def _compare_signatures(a_ent, b_ent):
     b_signatures = set(b_ent.signatures)
     not_in_b = a_signatures.difference(b_signatures)
     not_in_a = b_signatures.difference(a_signatures)
+    compat_signatures = set()
+    for a_sig in not_in_b:
+        for b_sig in not_in_a:
+            changes = _compare_signatures_directly(a_sig, b_sig)
+            changes = [c for c in changes if Change.get_bump(c) > Bump.patch]
+            if len(changes) == 0:
+                compat_signatures.add(a_sig)
+                compat_signatures.add(b_sig)
+    if len(compat_signatures) > 0:
+        logger.debug("There were some different, but compatible signatures:\n\t{}"
+                     .format(str(compat_signatures)))
+    not_in_a = not_in_a.difference(compat_signatures)
+    not_in_b = not_in_b.difference(compat_signatures)
     for signature in not_in_a:
         logger.debug("Signature added in variant B")
         changes.append(Change.function_was_overloaded)

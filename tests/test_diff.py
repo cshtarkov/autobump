@@ -147,5 +147,30 @@ class TestSingleEntities(unittest.TestCase):
                                     [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.major)
 
+    def test_multiple_signatures_compat(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)]),
+                                    Signature([Parameter("a", _a), Parameter("b", _generic)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _a)]),
+                                     Signature([Parameter("a", _compatWithA), Parameter("b", _generic)])]))
+        self.expect(Bump.patch)
+
+    def test_multiple_signatures_new_one(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _a)]),
+                                     Signature([Parameter("a", _a), Parameter("b", _generic)])]))
+        self.expect(Bump.minor)
+
+    def test_multiple_signatures_remove_one(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)]),
+                                    Signature([Parameter("a", _a), Parameter("b", _generic)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _a)])]))
+        self.expect(Bump.major)
+
 if __name__ == "__main__":
     unittest.main()
