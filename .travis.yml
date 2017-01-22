@@ -3,6 +3,11 @@ language: python
 python:
  - "3.5"
 
+install:
+ - pip install coverage
+ - pip install codecov
+ - pip install -r requirements.txt
+
 addons:
  apt:
   packages:
@@ -14,4 +19,7 @@ before_script:
  - echo 'java -jar clojure-1.8.0.jar $@' >> clojure.sh
  - chmod +x clojure.sh
 
-script: AB_JAVA="/usr/lib/jvm/java-8-oracle/jre/bin/java" AB_CLOJURE="./clojure.sh" make libexec test
+script: AB_JAVA="/usr/lib/jvm/java-8-oracle/jre/bin/java" AB_CLOJURE="./clojure.sh" make PYTHON=~/virtualenv/python3.5/bin/python libexec .coverage
+
+after_success:
+ - codecov

@@ -1,0 +1,7 @@
+[run]
+omit =
+    */javalang*
+    */six*
+    */typed_ast*
+    *tests/*
+    *site.py
