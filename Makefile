@@ -1,7 +1,7 @@
 PYTHON=python3
 LINTER=flake8
 JAVAC=javac
-COVERAGE=$(shell which coverage3)
+COVERAGE=coverage3
 UNIT_TEST_COV_FILE=.coverage.unit
 ACCEPTANCE_TEST_COV_FILE=.coverage.acceptance
 AUTOBUMP_ENV=AB_ERROR_ON_EXTERNAL_TYPES=0
@@ -35,23 +35,23 @@ autobump/libexec/%.class: autobump/libexec/%.java
 test: unit_test acceptance_test
 
 .coverage: $(UNIT_TEST_COV_FILE) $(ACCEPTANCE_TEST_COV_FILE)
-	$(PYTHON) $(COVERAGE) combine $(UNIT_TEST_COV_FILE) $(ACCEPTANCE_TEST_COV_FILE)
+	$(COVERAGE) combine $(UNIT_TEST_COV_FILE) $(ACCEPTANCE_TEST_COV_FILE)
 
 .PHONY: unit_test
 unit_test:
 	$(PYTHON) -m unittest discover tests/
 
 $(UNIT_TEST_COV_FILE):
-	COVERAGE_FILE=$(UNIT_TEST_COV_FILE) $(PYTHON) $(COVERAGE) run -m unittest discover tests/
+	COVERAGE_FILE=$(UNIT_TEST_COV_FILE) $(COVERAGE) run -m unittest discover tests/
 
 .PHONY: acceptance_test
 acceptance_test:
 	$(AUTOBUMP_ENV) PYTHONPATH=.: $(PYTHON) tests/scenarios/run_scenarios.py
 
 $(ACCEPTANCE_TEST_COV_FILE):
-	COVERAGE_FILE=$(ACCEPTANCE_TEST_COV_FILE) $(AUTOBUMP_ENV) PYTHONPATH=.: $(PYTHON) $(COVERAGE) run tests/scenarios/run_scenarios.py
+	COVERAGE_FILE=$(ACCEPTANCE_TEST_COV_FILE) $(AUTOBUMP_ENV) PYTHONPATH=.: $(COVERAGE) run tests/scenarios/run_scenarios.py
 
 .PHONY: clean
 clean:
 	rm -f autobump/libexec/*.class
-	$(PYTHON) $(COVERAGE) erase
+	$(COVERAGE) erase
