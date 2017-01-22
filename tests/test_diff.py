@@ -172,5 +172,40 @@ class TestSingleEntities(unittest.TestCase):
                                     [Signature([Parameter("a", _a)])]))
         self.expect(Bump.major)
 
+    def test_multiple_signatures_one_compat_one_not(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)]),
+                                    Signature([Parameter("a", _a), Parameter("b", _generic)]),
+                                    Signature([Parameter("a", _a),
+                                               Parameter("b", _generic),
+                                               Parameter("c", _generic)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _a)]),
+                                     Signature([Parameter("a", _compatWithA), Parameter("b", _generic)]),
+                                     Signature([Parameter("a", _incompatWithA),
+                                                Parameter("b", _generic),
+                                                Parameter("c", _generic)])]))
+        self.expect(Bump.major)
+
+    def test_multiple_signatures_one_compat_one_new(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)]),
+                                    Signature([Parameter("a", _a), Parameter("b", _generic)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _a)]),
+                                     Signature([Parameter("a", _compatWithA), Parameter("b", _generic)]),
+                                     Signature([Parameter("a", _generic),
+                                                Parameter("b", _generic),
+                                                Parameter("c", _generic)])]))
+        self.expect(Bump.minor)
+
+    def test_multiple_signatures_one_compat_one_removed(self):
+        self.first["foo"] = (Function("foo", _generic,
+                                   [Signature([Parameter("a", _a)]),
+                                    Signature([Parameter("a", _a), Parameter("b", _generic)])]))
+        self.second["foo"] = (Function("foo", _generic,
+                                    [Signature([Parameter("a", _compatWithA)])]))
+        self.expect(Bump.major)
+
 if __name__ == "__main__":
     unittest.main()
