@@ -66,7 +66,7 @@ def get(category, name):
         value = False
 
     logger.info("{}/{} is {}"
-                .format(category, name, value))
+                .format(category, name, (value if value != "" else "not set")))
 
     cached[(category, name)] = value
     return value
@@ -110,16 +110,28 @@ def with_config_override(category, name, value):
     return wrap
 
 
+# autobump
 git = make_get("autobump", "git")
 clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
 
+# python
 structural_typing = make_get("python", "structural_typing")
 type_hinting = make_get("python", "type_hinting")
 
+# java_native
 java_lazy_type_checking = make_get("java_native", "lazy_type_checking")
-classpath = make_get("java_native", "classpath")
 
+
+def classpath():
+    # The classpath is special, because we need to append
+    # the working directory so that Autobump's utilities like
+    # the Inspector and TypeCompatibilityChecker work.
+    value = get("java_native", "classpath")
+    return (value + ":.:") if value != "" else ""
+
+# java_ast
 java_error_on_external_types = make_get("java_ast", "error_on_external_types")
 
+# clojure
 clojure_lazy_type_checking = make_get("clojure", "lazy_type_checking")
