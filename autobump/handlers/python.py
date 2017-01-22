@@ -2,9 +2,14 @@
 import os
 import re
 import ast
+import sys
+import codecs
+import logging
 
 from autobump import common
 from autobump import config
+
+logger = logging.getLogger(__name__)
 
 _source_file_ext = ".py"
 _excluded_files = [
@@ -215,8 +220,21 @@ def python_codebase_to_units(location):
         pyfiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
         for pyfile in pyfiles:
             pymodule = pyfile[:-(len(_source_file_ext))]  # Strip extension
-            with open(os.path.join(root, pyfile), "r") as f:
-                units[pymodule] = _module_to_unit(pymodule, ast.parse(''.join(list(f))))
+            with codecs.open(os.path.join(root, pyfile),
+                             "r",
+                             encoding="utf-8",
+                             errors="replace") as f:
+                try:
+                    units[pymodule] = _module_to_unit(pymodule, ast.parse(f.read()))
+                except Exception as ex:
+                    print(ex, file=sys.stderr)
+                    msg = "Failed to parse file {}".format(os.path.join(root, pyfile))
+                    if config.python_omit_on_error():
+                        logger.warning(msg)
+                    else:
+                        logger.error(msg)
+                        exit(1)
+
     return units
 
 build_required = False

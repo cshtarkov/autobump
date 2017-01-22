@@ -25,6 +25,7 @@ defaults = {
     },
 
     "python": {
+        "omit_on_error": False,
         "structural_typing": True,
         "type_hinting": True
     },
@@ -118,6 +119,7 @@ clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
 
 # python
+python_omit_on_error = make_get("python", "omit_on_error")
 structural_typing = make_get("python", "structural_typing")
 type_hinting = make_get("python", "type_hinting")
 
