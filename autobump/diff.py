@@ -89,9 +89,9 @@ def _compare_signatures(a_ent, b_ent):
     compat_signatures = set()
     for a_sig in not_in_b:
         for b_sig in not_in_a:
-            changes = _compare_signatures_directly(a_sig, b_sig)
-            changes = [c for c in changes if Change.get_bump(c) > Bump.patch]
-            if len(changes) == 0:
+            sig_changes = _compare_signatures_directly(a_sig, b_sig)
+            sig_changes = [c for c in sig_changes if Change.get_bump(c) > Bump.patch]
+            if len(sig_changes) == 0:
                 compat_signatures.add(a_sig)
                 compat_signatures.add(b_sig)
     if len(compat_signatures) > 0:
