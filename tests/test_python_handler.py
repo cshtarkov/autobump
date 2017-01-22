@@ -1,7 +1,7 @@
 import ast
 import unittest
 
-from autobump.config import with_config_override
+from autobump.config import config_override
 from autobump.handlers import python
 
 
@@ -156,7 +156,7 @@ class c(object):
 class TestTypeOfParameters(unittest.TestCase):
     """Test how types of parameters are determined."""
 
-    @with_config_override("python", "structural_typing", False)
+    @config_override("python", "structural_typing", False)
     def test_no_structural_typing(self):
         source = """
 def func(a, b):
@@ -172,7 +172,7 @@ def func(a, b):
         # enabled everything is considered equal.
         self.assertEqual(type_of_a, type_of_b)
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_same_type(self):
         source = """
 def func(a, b):
@@ -185,7 +185,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_compatible_types_methods(self):
         source = """
 def func(a, b):
@@ -199,7 +199,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertTrue(type_of_a.is_compatible(type_of_b))
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_incompatible_types_methods(self):
         source = """
 def func(a, b):
@@ -213,7 +213,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_compatible_types_fields(self):
         source = """
 def func(a, b):
@@ -227,7 +227,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertTrue(type_of_b.is_compatible(type_of_a))
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_incompatible_types_fields(self):
         source = """
 def func(a, b):
@@ -241,7 +241,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
-    @with_config_override("python", "structural_typing", True)
+    @config_override("python", "structural_typing", True)
     def test_inner_uses_of_samename_variable(self):
         source = """
 def func(a, b):
@@ -259,7 +259,7 @@ def func(a, b):
         type_of_b = function.signatures[0].parameters[1].type
         self.assertEqual(type_of_a, type_of_b)
 
-    @with_config_override("python", "type_hinting", True)
+    @config_override("python", "type_hinting", True)
     def test_same_type_hint(self):
         source = """
 def func1(a: int):
@@ -274,7 +274,7 @@ def func2(b: int):
         type_of_b = function2.signatures[0].parameters[0].type
         self.assertEqual(type_of_a, type_of_b)
 
-    @with_config_override("python", "type_hinting", True)
+    @config_override("python", "type_hinting", True)
     def test_different_type_hint(self):
         source = """
 def func1(a: int):
@@ -290,7 +290,7 @@ def func2(b: str):
         self.assertFalse(type_of_a.is_compatible(type_of_b))
         self.assertFalse(type_of_b.is_compatible(type_of_a))
 
-    @with_config_override("python", "type_hinting", True)
+    @config_override("python", "type_hinting", True)
     def test_hinted_once(self):
         source = """
 def func1(a: int):

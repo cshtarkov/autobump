@@ -114,7 +114,7 @@ class config_overrides(object):
         cached = dict()
 
 
-def with_config_override(category, name, value):
+def config_override(category, name, value):
     """Decorator that overrides the value of just
     one parameter."""
     def wrap(f):
