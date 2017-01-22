@@ -1,6 +1,6 @@
 # autobump
 
-[![Build Status](https://travis-ci.org/cshtarkov/autobump.svg?branch=master)](https://travis-ci.org/cshtarkov/autobump)
+[![Build Status](https://travis-ci.org/cshtarkov/autobump.svg?branch=master)](https://travis-ci.org/cshtarkov/autobump) [![codecov](https://codecov.io/gh/cshtarkov/autobump/branch/master/graph/badge.svg)](https://codecov.io/gh/cshtarkov/autobump)
 
 **Autobump** is a Python 3 command-line tool that automatically
 determines what the next version of your project should be according
