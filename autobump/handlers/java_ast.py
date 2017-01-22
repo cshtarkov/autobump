@@ -1,6 +1,5 @@
 """Convert a Java codebase into a list of Units using the AST."""
 import os
-import re
 import logging
 import javalang
 
@@ -9,18 +8,8 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 
-_source_file_ext = ".java"
-_excluded_files = [
-    re.compile("^package\-info\.java$")
-]
-
-_excluded_dirs = [
-    re.compile("^[Tt]ests?$"),
-    re.compile("^.git$")
-]
-
-
 _primitive_types = {"void", "byte", "short", "int", "long", "float", "double", "boolean", "char"}
+_source_file_ext = ".java"
 
 
 class _JavaType(Type):
@@ -308,8 +297,8 @@ def java_codebase_to_units(location):
     type_system = _JavaTypeSystem()
     compilations = []
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
-        javafiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not config.dir_ignored(d)]
+        javafiles = [f for f in files if f.endswith(_source_file_ext) and not config.file_ignored(f)]
         for javafile in javafiles:
             with open(os.path.join(root, javafile), "r") as f:
                 compilation = _source_to_compilation(javafile, f.read())

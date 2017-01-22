@@ -1,6 +1,5 @@
 """Convert a Clojure codebase into a list of Units."""
 import os
-import re
 import string
 import logging
 import subprocess
@@ -12,14 +11,7 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
 inspector_clj = os.path.join(libexec, "inspector.clj")
-
 _source_file_ext = ".clj"
-_excluded_files = [
-    re.compile(r"^project.clj$"),
-]
-_excluded_dirs = [
-    re.compile(r"^test"),
-]
 
 
 class _ClojureType(Type):
@@ -150,8 +142,10 @@ def clojure_codebase_to_units(location):
     """Returns a list of Units representing a Clojure codebase in 'location'."""
     cljfiles = []
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
-        cljfiles += [os.path.join(root, f) for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not config.dir_ignored(d)]
+        cljfiles += [os.path.join(root, f)
+                     for f in files
+                     if f.endswith(_source_file_ext) and not config.file_ignored(f)]
 
     return _sexp_read(_run_inspector(cljfiles))
 

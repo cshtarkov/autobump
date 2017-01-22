@@ -1,6 +1,5 @@
 """Convert a Java codebase into a list of Units, using introspection utilities written in Java."""
 import os
-import re
 import sys
 import logging
 import subprocess
@@ -12,15 +11,6 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
-
-# Set of files to exclude
-_excluded_files = [
-    re.compile("^package\-info\.java$")
-]
-
-_excluded_dirs = [
-    re.compile("^[Tt]ests?$")
-]
 
 
 # Type system
@@ -198,8 +188,8 @@ def java_codebase_to_units(location, build_command, build_root):
     # Get a list of fully-qualified class names
     fqns = []
     for root, dirs, files in os.walk(build_root):
-        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
-        classfiles = [f for f in files if f.endswith(".class") and not any(r.search(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not config.dir_ignored(d)]
+        classfiles = [f for f in files if f.endswith(".class") and not config.file_ignored(f)]
         prefix = root[len(build_root):].replace(os.sep, ".")
         if len(prefix) > 0 and prefix[0] == ".":
             prefix = prefix[1:]

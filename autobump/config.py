@@ -24,6 +24,19 @@ defaults = {
         "java": "java"
     },
 
+    "ignore": {
+        "files": [],
+        "files_re": [r"^[Tt]est"],
+        "dirs": [],
+        "dirs_re": [r"^[Tt]est",
+                    r"^[Tt]ool",
+                    r"^[Dd]oc",
+                    r"^[Ss]cript",
+                    r"^[Ee]xample",
+                    r"^.git$",
+                    r"^.hg$"]
+    },
+
     "python": {
         "omit_on_error": False,
         "structural_typing": True,
@@ -117,6 +130,35 @@ git = make_get("autobump", "git")
 hg = make_get("autobump", "hg")
 clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
+
+
+# ignore
+def ignored(what, name):
+    """Check whether something should be ignored."""
+    # TODO: this really suffers from the lack of caching
+    ignored_lit = get("ignore", what)
+    ignored_re = get("ignore", what + "_re")
+    if isinstance(ignored_lit, str):
+        ignored_lit = ignored_lit.splitlines()
+    if isinstance(ignored_re, str):
+        ignored_re = [r for r in get("ignore", what + "_re").splitlines()]
+    if name in ignored_lit:
+        return True
+    for patt in ignored_re:
+        if re.search(patt, name):
+            return True
+    return False
+
+
+def file_ignored(name):
+    """Check whether a file should be ignored."""
+    return ignored("files", name)
+
+
+def dir_ignored(name):
+    """Check whether a directory should be ignored."""
+    return ignored("dirs", name)
+
 
 # python
 python_omit_on_error = make_get("python", "omit_on_error")

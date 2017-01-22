@@ -1,6 +1,5 @@
 """Convert a Python codebase into a list of Units."""
 import os
-import re
 import ast
 import sys
 import codecs
@@ -13,22 +12,6 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 logger = logging.getLogger(__name__)
 
 _source_file_ext = ".py"
-_excluded_files = [
-    re.compile(r"^test_"),
-    re.compile(r"^tests.py$"),
-    re.compile(r".*_test.py$"),
-    re.compile(r"^setup.py$"),
-    re.compile(r"^__main__.py$"),
-    re.compile(r"^run-tests.py$")
-]
-_excluded_dirs = [
-    re.compile(r"^test"),
-    re.compile(r"^script"),
-    re.compile(r"^example"),
-    re.compile(r"^doc"),
-    re.compile(r"^.git$"),
-    re.compile(r"^.svn$")
-]
 
 
 class _PythonType(Type):
@@ -221,8 +204,8 @@ def python_codebase_to_units(location):
 
     units = dict()
     for root, dirs, files in os.walk(location):
-        dirs[:] = [d for d in dirs if not any(r.search(d) for r in _excluded_dirs)]
-        pyfiles = [f for f in files if f.endswith(_source_file_ext) and not any(r.search(f) for r in _excluded_files)]
+        dirs[:] = [d for d in dirs if not config.dir_ignored(d)]
+        pyfiles = [f for f in files if f.endswith(_source_file_ext) and not config.file_ignored(f)]
         for pyfile in pyfiles:
             pymodule = pyfile[:-(len(_source_file_ext))]  # Strip extension
             with codecs.open(os.path.join(root, pyfile),
