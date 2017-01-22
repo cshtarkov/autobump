@@ -51,8 +51,8 @@ class TestSingleEntities(unittest.TestCase):
         self.expect(Bump.major)
 
     def test_change_type_of_field_compatible(self):
-        self.first["foo"] = (Field("foo", _compatWithA))
-        self.second["foo"] = (Field("foo", _a))
+        self.first["foo"] = (Field("foo", _a))
+        self.second["foo"] = (Field("foo", _compatWithA))
         self.expect(Bump.patch)
 
     def test_change_type_of_field_incompatible(self):
@@ -71,8 +71,8 @@ class TestSingleEntities(unittest.TestCase):
         self.expect(Bump.major)
 
     def test_change_type_of_visible_function_compatible(self):
-        self.first["foo"] = (Function("foo", _compatWithA))
-        self.second["foo"] = (Function("foo", _a))
+        self.first["foo"] = (Function("foo", _a))
+        self.second["foo"] = (Function("foo", _compatWithA))
         self.expect(Bump.patch)
 
     def test_change_type_of_visible_function_incompatible(self):
@@ -134,9 +134,9 @@ class TestSingleEntities(unittest.TestCase):
         self.expect(Bump.patch)
 
     def test_change_signature_parameter_type_compatible(self):
-        self.first["foo"] = (Function("foo", _compatWithA,
+        self.first["foo"] = (Function("foo", _a,
                                    [Signature([Parameter("a", _generic)])]))
-        self.second["foo"] = (Function("foo", _a,
+        self.second["foo"] = (Function("foo", _compatWithA,
                                     [Signature([Parameter("a", _generic)])]))
         self.expect(Bump.patch)
 

@@ -31,8 +31,8 @@ class Type(Entity):
         self.name = str(uuid.uuid4())
 
     def is_compatible(self, other):
-        """Checks whether 'other' can substitute 'self'."""
-        return isinstance(other, type(self))
+        """Checks whether 'self' can substitute 'other'."""
+        return isinstance(self, type(other))
 
     def __eq__(self, other):
         return self.is_compatible(other) and self.name == other.name
