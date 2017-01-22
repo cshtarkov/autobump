@@ -14,4 +14,4 @@ before_script:
  - echo 'java -jar clojure-1.8.0.jar $@' >> clojure.sh
  - chmod +x clojure.sh
 
-script: AB_CLOJURE="./clojure.sh" make libexec test
+script: AB_JAVA="/usr/lib/jvm/java-8-oracle/jre/bin/java" AB_CLOJURE="./clojure.sh" make libexec test
