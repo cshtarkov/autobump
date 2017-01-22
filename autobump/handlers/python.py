@@ -5,6 +5,7 @@ import ast
 import sys
 import codecs
 import logging
+import traceback
 
 from autobump import common
 from autobump import config
@@ -35,7 +36,11 @@ class _PythonType(common.Type):
 
 
 class _Dynamic(_PythonType):
-    pass
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "dynamic"
 
 
 class _StructuralType(_PythonType):
@@ -226,8 +231,8 @@ def python_codebase_to_units(location):
                              errors="replace") as f:
                 try:
                     units[pymodule] = _module_to_unit(pymodule, ast.parse(f.read()))
-                except Exception as ex:
-                    print(ex, file=sys.stderr)
+                except Exception:
+                    print(traceback.format_exc(), file=sys.stderr)
                     msg = "Failed to parse file {}".format(os.path.join(root, pyfile))
                     if config.python_omit_on_error():
                         logger.warning(msg)
