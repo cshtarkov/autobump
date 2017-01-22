@@ -1,13 +1,13 @@
 """Tool for automatically suggesting the next version of a project according
 to semantic versioning."""
-import re
 import os
 import sys
+import enum
 import logging
 import argparse
-from enum import Enum
 
 from autobump import diff
+from autobump.common import Semver
 from autobump.handlers import hg
 from autobump.handlers import git
 from autobump.handlers import python
@@ -18,13 +18,9 @@ from autobump.handlers import clojure
 logger = logging.getLogger(__name__)
 
 
-class NotImplementedException(Exception):
-    pass
-
-
 class _Repository(object):
     """Represents a repository at a location."""
-    class VCS(Enum):
+    class VCS(enum.Enum):
         none = 0
         git = 1
         hg = 2
@@ -60,76 +56,14 @@ class _Repository(object):
         if self.handler is not None:
             return self.handler.last_tag(self.location)
         else:
-            raise NotImplementedException("Cannot get last tag for repository type {}".format(self.vcs))
+            raise NotImplemented("Cannot get last tag for repository type {}".format(self.vcs))
 
     def last_commit(self):
         """Return identifier of most recently made commit."""
         if self.handler is not None:
             return self.handler.last_commit(self.location)
         else:
-            raise NotImplementedException("Cannot get last tag for repository type {}".format(self.vcs))
-
-
-class _Semver(object):
-    """Minimal representation of a semantic version."""
-
-    class NotAVersionNumber(Exception):
-        pass
-
-    def __init__(self, major, minor, patch):
-        assert type(major) is int
-        assert type(minor) is int
-        assert type(patch) is int
-        self.major, self.minor, self.patch = major, minor, patch
-
-    @classmethod
-    def from_string(semver, version):
-        major, minor, patch = [int(c) for c in version.split(".")]
-        return semver(major, minor, patch)
-
-    @classmethod
-    def from_tuple(semver, version):
-        major, minor, patch = version
-        return semver(major, minor, patch)
-
-    @classmethod
-    def guess_from_string(semver, string):
-        """Guess a version number from a tag name.
-
-        Example recognized patterns:
-        "1.2.3" -> "1.2.3"
-        "1.2" -> "1.2.0"
-        "1" -> "1.0.0"
-        "v1.2.3" -> "1.2.3"
-        "v1.2" -> "1.2.0"
-        "v1" -> "1.0.0"
-        """
-        logger.warning("Guessing version from string {}".format(string))
-        match = re.match(r"(v|ver|version)?-?(\d)\.?(\d)?\.?(\d)?", string)
-        if match:
-            major = int(match.group(2))
-            minor = int(match.group(3) or 0)
-            patch = int(match.group(4) or 0)
-            return semver(major, minor, patch)
-        else:
-            raise semver.NotAVersionNumber("Cannot reliable guess version number from {}".format(string))
-
-    def bump(self, bump):
-        """Bump version using a Bump enum.
-
-        Returns a new _Semver object."""
-        assert type(bump) is diff.Bump, "Bump should be an Enum"
-        if bump is diff.Bump.patch:
-            return _Semver(self.major, self.minor, self.patch + 1)
-        if bump is diff.Bump.minor:
-            return _Semver(self.major, self.minor + 1, 0)
-        if bump is diff.Bump.major:
-            return _Semver(self.major + 1, 0, 0)
-        # No bump
-        return _Semver(self.major, self.minor, self.patch)
-
-    def __str__(self):
-        return str(self.major) + "." + str(self.minor) + "." + str(self.patch)
+            raise NotImplemented("Cannot get last tag for repository type {}".format(self.vcs))
 
 
 def _patch_types_with_location(units, location):
@@ -303,7 +237,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         logger.debug("Changelog file closed")
 
     # Determine version
-    a_version = _Semver.from_string(args.from_version) if args.from_version is not None else _Semver.guess_from_string(a_revision)
+    a_version = Semver.from_string(args.from_version) if args.from_version is not None else Semver.guess_from_string(a_revision)
     logger.debug("Earlier version is {}".format(a_version))
     b_version = a_version.bump(bump)
     logger.debug("Later version is {}".format(b_version))

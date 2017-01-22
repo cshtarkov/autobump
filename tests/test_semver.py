@@ -1,29 +1,29 @@
 import unittest
 
 from autobump.diff import Bump
-from autobump.__init__ import _Semver
+from autobump.common import Semver
 
 
 class TestSemver(unittest.TestCase):
     """Test representation of a semantic version."""
 
     def test_create(self):
-        ver = _Semver(5, 3, 2)
+        ver = Semver(5, 3, 2)
         self.assertEqual(ver.major, 5)
         self.assertEqual(ver.minor, 3)
         self.assertEqual(ver.patch, 2)
 
     def test_create_invalid(self):
-        self.assertRaises(AssertionError, _Semver, "a", 3, 2)
+        self.assertRaises(AssertionError, Semver, "a", 3, 2)
 
     def test_create_from_string(self):
-        ver = _Semver.from_string("5.3.2")
+        ver = Semver.from_string("5.3.2")
         self.assertEqual(ver.major, 5)
         self.assertEqual(ver.minor, 3)
         self.assertEqual(ver.patch, 2)
 
     def test_create_from_tuple(self):
-        ver = _Semver.from_tuple((5, 3, 2))
+        ver = Semver.from_tuple((5, 3, 2))
         self.assertEqual(ver.major, 5)
         self.assertEqual(ver.minor, 3)
         self.assertEqual(ver.patch, 2)
@@ -39,13 +39,13 @@ class TestSemver(unittest.TestCase):
             "9.0": "9.0.0"
         }
         for string, version in guesses.items():
-            self.assertEqual(str(_Semver.guess_from_string(string)), version)
+            self.assertEqual(str(Semver.guess_from_string(string)), version)
 
     def test_guess_from_string_invalid(self):
-        self.assertRaises(_Semver.NotAVersionNumber, _Semver.guess_from_string, "not a version")
+        self.assertRaises(Semver.NotAVersionNumber, Semver.guess_from_string, "not a version")
 
     def test_bump(self):
-        a = _Semver(2, 1, 0)
+        a = Semver(2, 1, 0)
         b = a.bump(Bump.major)
         self.assertEqual(b.major, 3)
         b = a.bump(Bump.minor)
