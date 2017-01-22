@@ -5,13 +5,10 @@ import os
 import sys
 import logging
 import argparse
-import subprocess
 from enum import Enum
-from subprocess import PIPE
 
 from autobump import diff
-from autobump import common
-from autobump import config
+from autobump.handlers import hg
 from autobump.handlers import git
 from autobump.handlers import python
 from autobump.handlers import java_ast
@@ -30,7 +27,7 @@ class _Repository(object):
     class VCS(Enum):
         none = 0
         git = 1
-        svn = 2
+        hg = 2
 
     def __init__(self, location):
         self.location = location
@@ -38,34 +35,39 @@ class _Repository(object):
             # TODO: This will not work with bare repositories.
             if os.path.isdir(os.path.join(self.location, ".git")):
                 self.vcs = self.VCS.git
-            elif os.path.isdir(os.path.join(self.location, ".svn")):
-                self.vcs = self.VCS.svn
+            elif os.path.isdir(os.path.join(self.location, ".hg")):
+                self.vcs = self.VCS.hg
             else:
                 self.vcs = self.VCS.none
         except IOError:
             self.vcs = self.VCS.none
+        self.handler = self._match_handler(self.vcs)
+
+    def _match_handler(self, vcs):
+        """Return the handler reponsible for the VCS of this type."""
+        handlers = {
+            self.VCS.git: git,
+            self.VCS.hg: hg
+        }
+        return handlers.get(vcs, None)
+
+    def get_commit(self, commit):
+        assert self.handler is not None
+        return self.handler.get_commit(self.location, commit)
 
     def last_tag(self):
         """Return name of most recently made tag."""
-        if self.vcs is self.VCS.git:
-            child = subprocess.Popen([config.git(), "describe", "--tags", "--abbrev=0"], cwd=self.location, stdout=PIPE, stderr=PIPE)
-            stdout_data, stderr_data = child.communicate()
-            if child.returncode != 0:
-                raise common.VersionControlException("Failed to get last tag of Git repository {}".format(self.location))
-            return stdout_data.decode("ascii").strip()
+        if self.handler is not None:
+            return self.handler.last_tag(self.location)
         else:
             raise NotImplementedException("Cannot get last tag for repository type {}".format(self.vcs))
 
     def last_commit(self):
         """Return identifier of most recently made commit."""
-        if self.vcs is self.VCS.git:
-            child = subprocess.Popen([config.git(), "log", "-1", "--oneline"], cwd=self.location, stdout=PIPE, stderr=PIPE)
-            stdout_data, stderr_data = child.communicate()
-            if child.returncode != 0:
-                raise common.VersionControlException("Failed to get last commit of Git repository {}".format(self.location))
-            return stdout_data.decode("ascii").strip().split()[0]
+        if self.handler is not None:
+            return self.handler.last_commit(self.location)
         else:
-            raise NotImplementedException("Cannot get last commit for repository type {}".format(self.vcs))
+            raise NotImplementedException("Cannot get last tag for repository type {}".format(self.vcs))
 
 
 class _Semver(object):
@@ -228,12 +230,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
     # Identify VCS
     repo = _Repository(args.repo or os.getcwd())
-    vcs_map = {
-        _Repository.VCS.git: git
-    }
-    try:
-        get_commit = vcs_map[repo.vcs].get_commit
-    except KeyError:
+    if repo.vcs is None:
         logger.error("Failed to identify VCS!")
         exit(1)
     logger.info("VCS identified as {}".format(repo.vcs))
@@ -274,8 +271,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         exit(1)
 
     # Determine bump
-    a_handle, a_location = get_commit(repo.location, a_revision)
-    b_handle, b_location = get_commit(repo.location, b_revision)
+    a_handle, a_location = repo.get_commit(a_revision)
+    b_handle, b_location = repo.get_commit(b_revision)
     if build_required:
         logger.info("Handler indicated that a build is required")
         # Options "--build-command" and "--build-root" should be passed in.

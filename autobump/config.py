@@ -19,6 +19,7 @@ falsy = re.compile(r"^([Ff](alse)?|0+)$")
 defaults = {
     "autobump": {
         "git": "git",
+        "hg": "hg",
         "clojure": "clojure",
         "java": "java"
     },
@@ -112,6 +113,7 @@ def with_config_override(category, name, value):
 
 # autobump
 git = make_get("autobump", "git")
+hg = make_get("autobump", "hg")
 clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
 
