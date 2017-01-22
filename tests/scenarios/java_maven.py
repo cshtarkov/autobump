@@ -5,9 +5,9 @@ from subprocess import Popen, PIPE
 handler = "java_native"
 build_command = "mvn compile"
 build_root = "target/classes"
+previous_classpath = os.environ.get("CLASSPATH", None)
 
 
-# TODO: Think of better names
 def before_advice(repo):
     cmd = ["mvn", "dependency:build-classpath", "-Dmdep.outputFile=classpath.txt"]
     child = Popen(cmd,
@@ -25,7 +25,11 @@ def before_advice(repo):
     # Autobump's own utilities won't work. That's why we need to add the
     # current directory to the end as well.
     os.environ["CLASSPATH"] = classpath + ":.:"
-    print("Classpath set to: {}".format(classpath), file=sys.stderr)
+
+
+def after_advice(_):
+    if previous_classpath is not None:
+        os.environ["CLASSPATH"] = previous_classpath
 
 commit_history = [
 

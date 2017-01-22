@@ -94,23 +94,21 @@ def reconstruct_and_verify(commit_history, handler, build_command, build_root, b
     with tempfile.TemporaryDirectory() as repo:
         reconstruct(commit_history, repo)
 
+        before_advice(repo)
         for before, after in IteratorWithRunner(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
-            # TODO: The before advice needs to be called AFTER
-            # the tag is checked out but BEFORE the handler runs.
-            before_advice(repo)
             proposed_version = call_autobump(handler,
                                              "-r", repo,
                                              "--from", previous_version,
                                              "--to", new_version,
                                              "--build-command", build_command,
                                              "--build-root", build_root)
-            after_advice(repo)
             if new_version != proposed_version:
                 failed += 1
                 print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
                       .format(new_version, proposed_version, message, patch))
+        after_advice(repo)
 
     return failed
 
