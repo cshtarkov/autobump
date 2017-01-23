@@ -54,4 +54,5 @@ $(ACCEPTANCE_TEST_COV_FILE):
 .PHONY: clean
 clean:
 	rm -f autobump/libexec/*.class
+	rm -f $(UNIT_TEST_COV_FILE) $(ACCEPTANCE_TEST_COV_FILE)
 	$(COVERAGE) erase
