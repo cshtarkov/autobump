@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 
+from autobump.config import config_overrides
 from autobump.handlers import clojure
 
 
@@ -54,7 +55,8 @@ class TestClojureHandlerBase(unittest.TestCase):
                 with open(fullpath, "w") as f:
                     f.write(source)
 
-            cls.codebase = clojure.codebase_to_units(dir)
+            with config_overrides({"clojure": {"classpath": dir + ":"}}):
+                cls.codebase = clojure.codebase_to_units(dir)
 
     def setUp(self):
         self.codebase = self.__class__.codebase
