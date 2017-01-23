@@ -10,7 +10,7 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
-inspector_clj = os.path.join(libexec, "inspector.clj")
+inspector_clj = os.path.join(libexec, "evalinspector.clj")
 _source_file_ext = ".clj"
 
 
