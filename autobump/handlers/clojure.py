@@ -41,11 +41,12 @@ class _SexpReadException(Exception):
     pass
 
 
-def _run_inspector(files):
-    """Runs the utility program inspector.clj with a list of files."""
+def _run_inspector(files, repo):
+    """Runs the utility program inspector.clj with a list of files, with
+    the working directory set to 'repo'."""
     arglist = [config.clojure(), inspector_clj] + files
     logger.debug("Running inspector as follows: " + ' '.join(arglist))
-    child = subprocess.Popen(arglist, stdout=PIPE, stderr=PIPE)
+    child = subprocess.Popen(arglist, cwd=repo, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
         raise _ClojureUtilityException(stderr_data.decode("ascii").strip())
@@ -149,7 +150,7 @@ def clojure_codebase_to_units(location):
                      for f in files
                      if f.endswith(_source_file_ext) and not config.file_ignored(f)]
 
-    return _sexp_read(_run_inspector(cljfiles))
+    return _sexp_read(_run_inspector(cljfiles, location))
 
 build_required = False
 codebase_to_units = clojure_codebase_to_units
