@@ -5,6 +5,7 @@ previous_clojure = config.clojure()
 
 
 def setUp(repo):
+    # CLASSPATH here is irrelevant, it will get ignored by lein-exec.
     config.set("autobump", "clojure", "./leinexec.sh")
 
 
