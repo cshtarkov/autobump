@@ -65,12 +65,6 @@ def _is_public(member_name):
     return not (member_name.startswith("_") and member_name != "__init__")
 
 
-def _is_builtin(member_name):
-    """Return True if this is a built-in member."""
-    # TODO: This may not always be the case.
-    return member_name.startswith("__")
-
-
 def _get_type_of_parameter(function, parameter):
     """Return the type of a parameter used in a function AST node.
 
