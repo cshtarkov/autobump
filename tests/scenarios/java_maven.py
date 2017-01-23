@@ -493,6 +493,58 @@ index 548a1fe..a0b34dc 100644
 
  public class ClassB extends ClassA {
      public void m(Multiset s) {}
-     """)
+     """),
+
+    ("Change type of parameter to array",
+     "9.0.0",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassB.java b/src/main/java/com/autobump/somepackage/ClassB.java
+index a0b34dc..3ecfad1 100644
+--- a/src/main/java/com/autobump/somepackage/ClassB.java
++++ b/src/main/java/com/autobump/somepackage/ClassB.java
+@@ -1,6 +1,6 @@
+ package com.autobump.somepackage;
+-import com.autobump.anotherpackage.Multiset;
++import com.google.common.collect.ImmutableMultiset;
+
+ public class ClassB extends ClassA {
+-    public void m(Multiset s) {}
++    public void m(ImmutableMultiset[] s) {}
+ }
+     """),
+
+    ("Change type of array to compatible type",
+     "9.0.1",
+     """
+diff --git a/src/main/java/com/autobump/somepackage/ClassB.java b/src/main/java/com/autobump/somepackage/ClassB.java
+index 3ecfad1..da11155 100644
+--- a/src/main/java/com/autobump/somepackage/ClassB.java
++++ b/src/main/java/com/autobump/somepackage/ClassB.java
+@@ -1,6 +1,6 @@
+ package com.autobump.somepackage;
+-import com.google.common.collect.ImmutableMultiset;
++import com.google.common.collect.Multiset;
+
+ public class ClassB extends ClassA {
+-    public void m(ImmutableMultiset[] s) {}
++    public void m(Multiset[] s) {}
+ }
+     """),
+
+   ("Change type of array to base type",
+    "10.0.0",
+    """
+diff --git a/src/main/java/com/autobump/somepackage/ClassB.java b/src/main/java/com/autobump/somepackage/ClassB.java
+index da11155..4e0ae94 100644
+--- a/src/main/java/com/autobump/somepackage/ClassB.java
++++ b/src/main/java/com/autobump/somepackage/ClassB.java
+@@ -2,5 +2,5 @@ package com.autobump.somepackage;
+ import com.google.common.collect.Multiset;
+
+ public class ClassB extends ClassA {
+-    public void m(Multiset[] s) {}
++    public void m(Multiset s) {}
+ }
+    """)
 
 ]
