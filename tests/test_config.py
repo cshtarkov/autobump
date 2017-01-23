@@ -33,6 +33,20 @@ class TestPermaOverride(unittest.TestCase):
         self.assertEqual(config.get("autobump", "git"), "other")
 
 
+class TestOverride(unittest.TestCase):
+    """Test overriding values."""
+
+    def test_override_with_context(self):
+        with config.config_overrides({"clojure": {"classpath": "/opt:"}}):
+            self.assertEqual(config.get("clojure", "classpath"), "/opt:")
+
+    def test_override_with_decorator(self):
+        @config_override("autobump", "hg", "nondefault")
+        def inside():
+            return config.get("autobump", "hg")
+        self.assertEqual(inside(), "nondefault")
+
+
 class TestIgnored(unittest.TestCase):
     """Test whether files and directories get ignored."""
 
