@@ -122,7 +122,7 @@ def config_override(category, name, value):
     def wrap(f):
         def wrapped(*args, **kwargs):
             with config_overrides({category: {name: value}}):
-                f(*args, **kwargs)
+                return f(*args, **kwargs)
         return wrapped
     return wrap
 
