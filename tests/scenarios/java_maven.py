@@ -531,9 +531,9 @@ index 3ecfad1..da11155 100644
  }
      """),
 
-   ("Change type of array to base type",
-    "10.0.0",
-    """
+    ("Change type of array to base type",
+     "10.0.0",
+     """
 diff --git a/src/main/java/com/autobump/somepackage/ClassB.java b/src/main/java/com/autobump/somepackage/ClassB.java
 index da11155..4e0ae94 100644
 --- a/src/main/java/com/autobump/somepackage/ClassB.java
@@ -545,6 +545,6 @@ index da11155..4e0ae94 100644
 -    public void m(Multiset[] s) {}
 +    public void m(Multiset s) {}
  }
-    """)
+     """)
 
 ]

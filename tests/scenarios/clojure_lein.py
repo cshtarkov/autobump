@@ -75,9 +75,9 @@ index 3225696..67b7af3 100644
 +(defn- identity [x] x)
      """),
 
-   ("Add signature to public function",
-    "1.2.0",
-    """
+    ("Add signature to public function",
+     "1.2.0",
+     """
 diff --git a/src/clojure_lein/core.clj b/src/clojure_lein/core.clj
 index 67b7af3..3e377b5 100644
 --- a/src/clojure_lein/core.clj
@@ -95,7 +95,7 @@ index 67b7af3..3e377b5 100644
 +   (+ x y z)))
 
  (defn- identity [x] x)
-    """),
+     """),
 
     ("Remove signature from public function",
      "2.0.0",
