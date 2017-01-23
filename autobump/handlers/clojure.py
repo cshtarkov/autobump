@@ -143,6 +143,18 @@ def _sexp_read(s):
 
 def clojure_codebase_to_units(location):
     """Returns a list of Units representing a Clojure codebase in 'location'."""
+    # Resolve classpath
+    if "CLASSPATH" in os.environ:
+        logger.debug("CLASSPATH variable set (it's not guaranteed Clojure will it)")
+    if config.clojure_classpath() != "":
+        logger.debug("clojure/classpath set, setting that as CLASSPATH (it's not guaranteed Clojure will use it")
+        os.environ["CLASSPATH"] = config.clojure_classpath()
+    if "CLASSPATH" not in os.environ:
+        logger.warning("No CLASSPATH set")
+    else:
+        logger.info("CLASSPATH is:\n\t{}".format(os.environ["CLASSPATH"]))
+
+    # Inspect .clj files
     cljfiles = []
     for root, dirs, files in os.walk(location):
         dirs[:] = [d for d in dirs if not config.dir_ignored(d)]
