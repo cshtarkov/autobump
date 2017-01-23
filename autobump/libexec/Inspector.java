@@ -60,6 +60,29 @@ public class Inspector {
         return loader;
     }
 
+    private static String typeBasename(Class type) {
+        if (type.isArray()) {
+            return typeBasename(type.getComponentType());
+        } else {
+            return type.getName();
+        }
+    }
+
+    private static int typeDimension(Class type) {
+        if (type.isArray()) {
+            return 1 + typeDimension(type.getComponentType());
+        } else {
+            return 0;
+        }
+    }
+
+    private static Element typeToXML(Class type, Document doc) {
+        Element e = doc.createElement("type");
+        e.setAttribute("name", typeBasename(type));
+        e.setAttribute("dimension", String.valueOf(typeDimension(type)));
+        return e;
+    }
+
     /**
      * Given an existing document and its root element,
      * append a <class> element representation of a Class.
@@ -79,7 +102,7 @@ public class Inspector {
         for (Field field : inspected.getFields()) {
             Element fieldNode = doc.createElement("field");
             fieldNode.setAttribute("name", field.getName());
-            fieldNode.setAttribute("type", field.getType().getName());
+            fieldNode.appendChild(typeToXML(field.getType(), doc));
             root.appendChild(fieldNode);
         }
 
@@ -87,7 +110,7 @@ public class Inspector {
         for (Method method : inspected.getMethods()) {
             Element methodNode = doc.createElement("method");
             methodNode.setAttribute("name", method.getName());
-            methodNode.setAttribute("returns", method.getReturnType().getName());
+            methodNode.appendChild(typeToXML(method.getReturnType(), doc));
 
             // Method signature
             Element signatureNode = doc.createElement("signature");
@@ -95,7 +118,7 @@ public class Inspector {
             for (int i = 0; i < types.length; i++) {
                 Element parameterNode = doc.createElement("parameter");
                 parameterNode.setAttribute("name", "arg" + String.valueOf(i));
-                parameterNode.setAttribute("type", types[i].getName());
+                parameterNode.appendChild(typeToXML(types[i], doc));
                 signatureNode.appendChild(parameterNode);
             }
             methodNode.appendChild(signatureNode);

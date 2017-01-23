@@ -20,63 +20,32 @@ class _JavaNativeType(Type):
     When checking for compatibility with another type,
     an external utility will be invoked to perform introspection
     and find out if Java considers two types to be compatible."""
-    def __init__(self, name):
+    def __init__(self, name, dimension=0):
         self.name = name
-
-    def _array_nesting(self):
-        """Return the amount of nesting in an array declaration.
-        E.g. int[][] is 2, int[] is 1.
-        Declaration of ordinary variables have an array nesting of 0."""
-        nesting = 0
-        for nesting in range(len(self.name)):
-            if self.name[nesting] != '[':
-                break
-        return nesting
-
-    def _strip_nesting(self):
-        """Return the type of the array declaration."""
-        nesting = self._array_nesting()
-        if nesting == 0:
-            return self.name
-        encoding = self.name[nesting]
-        if encoding == "L":
-            # Encodes a class name.
-            return self.name[nesting + 1:]
-        encoding_map = {
-            "Z": "boolean",
-            "B": "byte",
-            "C": "char",
-            "D": "double",
-            "F": "float",
-            "I": "int",
-            "J": "long",
-            "S": "short"
-        }
-        return encoding_map[encoding]
+        self.dimension = dimension
 
     def is_compatible(self, other):
         assert type(self) is type(other), "Should never happen: comparing a _JavaNativeType to something else."
         assert hasattr(self, "location") and self.location is not None, "Should never happen: location should be set prior to calling is_compatible"
-        # The two have different nesting - e.g. one is an array, the other one isn't.
-        if self._array_nesting() != other._array_nesting():
+        if self.dimension != other.dimension:
             return False
 
         if config.java_lazy_type_checking():
-            return self.name == other.name
+            return self.name == other.name and self.dimension == other.dimension
         else:
-            return _run_type_compatibility_checker(self.location, self._strip_nesting(), other._strip_nesting())
+            return _run_type_compatibility_checker(self.location, self.name, other.name)
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.is_compatible(other) and other.is_compatible(self)
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "<JavaNativeType {}>".format(self.name)
+        return "<JavaNativeType {} {}>".format(self.dimension, self.name)
 
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.dimension, self.name))
 
 
 _dummyType = _JavaNativeType("dummy")
@@ -114,11 +83,14 @@ def _run_utility(utility, args):
         raise JavaUtilityException(stderr_data.decode("ascii").strip())
     return stdout_data.decode("ascii").strip()
 
+def _xml_element_to_type(elt):
+    assert elt.tag == "type"
+    return _JavaNativeType(elt.attrib["name"], int(elt.attrib["dimension"]))
 
 def _xml_element_to_field(elt):
     """Convert an XML <field> into a Field."""
     assert elt.tag == "field"
-    return Field(elt.attrib["name"], _JavaNativeType(elt.attrib["type"]))
+    return Field(elt.attrib["name"], _xml_element_to_type(elt.find("type")))
 
 
 def _xml_get_signature_of_method(elt):
@@ -126,9 +98,9 @@ def _xml_get_signature_of_method(elt):
     assert elt.tag == "method"
     signature_elt = elt.find("signature")
     parameter_elts = signature_elt.findall("parameter")
-    parameters = [Parameter(p.attrib["name"], _JavaNativeType(p.attrib["type"]))
+    parameters = [Parameter(p.attrib["name"], _xml_element_to_type(p.find("type")))
                   for p in parameter_elts]
-    return_type = Parameter("$AUTOBUMP_RETURN$", _JavaNativeType(elt.attrib["returns"]))
+    return_type = Parameter("$AUTOBUMP_RETURN$", _xml_element_to_type(elt.find("type")))
     parameters = [return_type] + parameters
     return Signature(parameters)
 
