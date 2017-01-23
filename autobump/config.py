@@ -102,18 +102,15 @@ class config_overrides(object):
         self.overrides = overrides
 
     def __enter__(self):
-        global defaults
         global cached
-        self.previous = deepcopy(defaults)
+        self.previous = deepcopy(cached)
         for category in self.overrides:
-            defaults[category] = {**defaults.get(category, dict()), **self.overrides[category]}
-        cached = dict()
+            for name in self.overrides[category]:
+                set(category, name, self.overrides[category][name])
 
     def __exit__(self, *args):
-        global defaults
         global cached
-        defaults = deepcopy(self.previous)
-        cached = dict()
+        cached = deepcopy(self.previous)
 
 
 def config_override(category, name, value):
