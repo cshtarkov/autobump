@@ -38,6 +38,7 @@ public class TypeCompatibilityChecker {
      */
     private static Class findClass(String className, ClassLoader loader) throws ClassNotFoundException {
         switch(className) {
+        case "void": return void.class;
         case "boolean": return boolean.class;
         case "byte": return byte.class;
         case "char": return char.class;
