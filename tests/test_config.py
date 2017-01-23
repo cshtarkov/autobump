@@ -15,6 +15,24 @@ class TestGetValues(unittest.TestCase):
         self.assertEqual(config.get("autobump", "git"), "nondefault")
 
 
+class TestPermaOverride(unittest.TestCase):
+    """Test permanently overriding values."""
+
+    @config_override("autobump", "git", "git")
+    def test_override_cached(self):
+        config.set("autobump", "git", "nondefault")
+        self.assertEqual(config.get("autobump", "git"), "nondefault")
+
+    def test_override_noncached(self):
+        config.set("autobump", "clojure", "nondefault")
+        self.assertEqual(config.get("autobump", "clojure"), "nondefault")
+
+    @config_override("autobump", "git", "nondefault")
+    def test_permaoverride_already_overriden(self):
+        config.set("autobump", "git", "other")
+        self.assertEqual(config.get("autobump", "git"), "other")
+
+
 class TestIgnored(unittest.TestCase):
     """Test whether files and directories get ignored."""
 

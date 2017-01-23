@@ -125,6 +125,12 @@ def config_override(category, name, value):
     return wrap
 
 
+def set(category, name, value):
+    """Permanently override the value of an option."""
+    global cached
+    cached[(category, name)] = value
+
+
 # autobump
 git = make_get("autobump", "git")
 hg = make_get("autobump", "hg")
