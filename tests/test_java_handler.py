@@ -13,7 +13,8 @@ class TestJavaHandlerBase(unittest.TestCase):
     Does not contain any actual tests. Test cases
     are meant to inherit from this class so that they
     all have a non-trivial fixture."""
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
 
         sources = [
             ("packageX/ClassA.java",
@@ -76,28 +77,33 @@ class TestJavaHandlerBase(unittest.TestCase):
             """)
         ]
 
-        self.dir_handle = tempfile.TemporaryDirectory()
-        self.dir = self.dir_handle.name
+        cls.dir_handle = tempfile.TemporaryDirectory()
+        cls.dir = cls.dir_handle.name
         # Write the above class definitions to source files.
         files = []
         for filename, source in sources:
-            fullpath = os.path.join(self.dir, filename)
+            fullpath = os.path.join(cls.dir, filename)
             files.append(fullpath)
             os.makedirs(os.path.dirname(fullpath), exist_ok=True)
             with open(fullpath, "w") as f:
                 f.write(source)
 
         # Get two codebases for the two different handlers.
-        self.codebase_ast = java_ast.codebase_to_units(self.dir)
-        self.codebase_native = java_native.codebase_to_units(self.dir, 'javac `find -name "*.java" | xargs`', '.')
+        cls.codebase_ast = java_ast.codebase_to_units(cls.dir)
+        cls.codebase_native = java_native.codebase_to_units(cls.dir, 'javac `find -name "*.java" | xargs`', '.')
 
         # By default, run the java_ast handler tests.
         # The java_native handler will need to override setUp()
-        # and reassign self.codebase.
-        self.codebase = self.codebase_ast
+        # and reassign cls.codebase.
+        cls.codebase = cls.codebase_ast
 
-    def tearDown(self):
-        self.dir_handle.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        cls.dir_handle.cleanup()
+
+    def setUp(self):
+        self.codebase = self.__class__.codebase
+        self.codebase_ast = self.__class__.codebase_ast
 
 
 class TestClassesAST(TestJavaHandlerBase):

@@ -12,7 +12,8 @@ class TestClojureHandlerBase(unittest.TestCase):
     Does not contain any actual tests. Test cases
     are meant to inherit from this class so that they
     all have a non-trivial fixture."""
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
 
         sources = [
             ("lib/core.clj",
@@ -53,7 +54,10 @@ class TestClojureHandlerBase(unittest.TestCase):
                 with open(fullpath, "w") as f:
                     f.write(source)
 
-            self.codebase = clojure.codebase_to_units(dir)
+            cls.codebase = clojure.codebase_to_units(dir)
+
+    def setUp(self):
+        self.codebase = self.__class__.codebase
 
 
 class TestUnits(TestClojureHandlerBase):
