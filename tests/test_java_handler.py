@@ -73,8 +73,11 @@ class TestJavaHandlerBase(unittest.TestCase):
                 public static void acceptsIfaceD(InterfaceD p) {}
                 public static void acceptsClassA(ClassA p) {}
                 public static void acceptsClassC(ClassC p) {}
+                public static void acceptsArrayClassC(ClassC[] p) {}
+                public static void acceptsArrayClassA(ClassA[] p) {}
             }
             """)
+
         ]
 
         cls.dir_handle = tempfile.TemporaryDirectory()
@@ -162,14 +165,30 @@ class TestMethodOverloadingNative(TestMethodOverloadingAST):
 
 class TestTypesAST(TestJavaHandlerBase):
 
+    def test_type_and_array_of_type_are_different(self):
+        t = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
+        arrayT = self.codebase["packageY.ClassD"].functions["acceptsArrayClassA"].signatures[0].parameters[1].type
+        self.assertFalse(t.is_compatible(arrayT))
+        self.assertFalse(arrayT.is_compatible(t))
+
     def test_superclass_compatible_with_subclass(self):
         superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
         subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[1].type
         self.assertTrue(superclass.is_compatible(subclass))
 
+    def test_superclass_array_compatible_with_subclass(self):
+        superclass = self.codebase["packageY.ClassD"].functions["acceptsArrayClassA"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsArrayClassC"].signatures[0].parameters[1].type
+        self.assertTrue(superclass.is_compatible(subclass))
+
     def test_subclass_not_compatible_with_superclass(self):
         superclass = self.codebase["packageY.ClassD"].functions["acceptsClassA"].signatures[0].parameters[1].type
         subclass = self.codebase["packageY.ClassD"].functions["acceptsClassC"].signatures[0].parameters[1].type
+        self.assertFalse(subclass.is_compatible(superclass))
+
+    def test_subclass_array_not_compatible_with_superclass(self):
+        superclass = self.codebase["packageY.ClassD"].functions["acceptsArrayClassA"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsArrayClassC"].signatures[0].parameters[1].type
         self.assertFalse(subclass.is_compatible(superclass))
 
     def test_superclass_compatible_with_subclass_skip_one(self):
