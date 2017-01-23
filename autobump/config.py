@@ -26,7 +26,8 @@ defaults = {
 
     "ignore": {
         "files": [],
-        "files_re": [r"^[Tt]est"],
+        "files_re": [r"^[Tt]est",
+                     r"^project"],
         "dirs": [],
         "dirs_re": [r"^[Tt]est",
                     r"^[Tt]ool",
