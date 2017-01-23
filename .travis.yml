@@ -14,12 +14,29 @@ addons:
    - oracle-java8-installer
 
 before_script:
- - wget http://central.maven.org/maven2/org/clojure/clojure/1.8.0/clojure-1.8.0.jar
- - echo '#!/bin/bash' > clojure.sh
- - echo 'java -jar clojure-1.8.0.jar $@' >> clojure.sh
- - chmod +x clojure.sh
+ - wget -O /home/travis/clojure.jar http://central.maven.org/maven2/org/clojure/clojure/1.8.0/clojure-1.8.0.jar
+ - echo '#!/bin/bash' > /home/travis/clojure.sh
+ - echo 'if [ "x$CLASSPATH" = "x" ] ; then' >> /home/travis/clojure.sh
+ - echo '	extra_classpath=""' >> /home/travis/clojure.sh
+ - echo 'else' >> /home/travis/clojure.sh
+ - echo '	extra_classpath=":$CLASSPATH"' >> /home/travis/clojure.sh
+ - echo 'fi' >> /home/travis/clojure.sh
+ - echo 'while true ; do' >> /home/travis/clojure.sh
+ - echo '	case "$1" in' >> /home/travis/clojure.sh
+ - echo '		-cp | -classpath)' >> /home/travis/clojure.sh
+ - echo '			extra_classpath=":$2"' >> /home/travis/clojure.sh
+ - echo '			shift 2 ;;' >> /home/travis/clojure.sh
+ - echo '		--)' >> /home/travis/clojure.sh
+ - echo '			shift' >> /home/travis/clojure.sh
+ - echo '			break ;;' >> /home/travis/clojure.sh
+ - echo '		*)' >> /home/travis/clojure.sh
+ - echo '			break ;;' >> /home/travis/clojure.sh
+ - echo '	esac' >> /home/travis/clojure.sh
+ - echo 'done' >> /home/travis/clojure.sh
+ - echo 'exec java -cp /home/travis/clojure.jar"$extra_classpath" clojure.main "$@"' >> /home/travis/clojure.sh
+ - chmod +x /home/travis/clojure.sh
 
-script: AB_JAVA="/usr/lib/jvm/java-8-oracle/jre/bin/java" AB_CLOJURE="./clojure.sh" make libexec .coverage
+script: AB_JAVA="/usr/lib/jvm/java-8-oracle/jre/bin/java" AB_CLOJURE="/home/travis/clojure.sh" make libexec .coverage
 
 after_success:
  - codecov
