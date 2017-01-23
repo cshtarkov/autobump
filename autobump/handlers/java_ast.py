@@ -1,5 +1,6 @@
 """Convert a Java codebase into a list of Units using the AST."""
 import os
+import copy
 import logging
 import javalang
 
@@ -14,14 +15,18 @@ _source_file_ext = ".java"
 
 class _JavaType(Type):
 
-    def __init__(self, name):
+    def __init__(self, name, dimension=0):
         self.name = name
+        self.dimension = dimension
         self.children = set()
 
     def is_compatible(self, other):
         # Check if it's the same type
         if self == other:
             return True
+        # Check if it's the same dimension.
+        if self.dimension != other.dimension:
+            return False
         # Check if it's a direct descendant.
         if len({jt for jt in self.children if jt.name == other.name}) == 1:
             return True
@@ -32,16 +37,16 @@ class _JavaType(Type):
         return False
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == other.name and self.dimension == other.dimension
 
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.dimension, self.name))
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return "<JavaType {}, children: {}>".format(self.name, self.children)
+        return "<JavaType {} {}, children: {}>".format(self.dimension, self.name, self.children)
 
 
 class _JavaTypeSystem(object):
@@ -60,6 +65,7 @@ class _JavaTypeSystem(object):
     def add_qualified_type(self, type_name, type_node_and_compilation):
         """Add a fully qualified 'type_name' with its AST node and compilation unit."""
         assert type(type_node_and_compilation) is tuple
+        # Add the type as it is
         self.types[type_name] = type_node_and_compilation
 
     def finalize(self):
@@ -73,7 +79,7 @@ class _JavaTypeSystem(object):
 
             # Check 'extends' for this type
             if hasattr(node, "extends") and node.extends is not None:
-                extends = _qualify_type(node.extends.name, compilation)
+                extends = _qualify_type(node.extends, compilation)
                 if extends in self.type_objects:
                     self.type_objects[extends].children.add(type_object)
                 else:
@@ -83,7 +89,7 @@ class _JavaTypeSystem(object):
 
             # Check 'implements' for this type
             if hasattr(node, "implements") and node.implements is not None:
-                implements = [_qualify_type(r.name, compilation) for r in node.implements]
+                implements = [_qualify_type(r, compilation) for r in node.implements]
                 for interface in implements:
                     if interface in self.type_objects:
                         self.type_objects[interface].children.add(type_object)
@@ -106,25 +112,46 @@ class _JavaTypeSystem(object):
         Implicitly finalizes the JavaTypeSystem, if not done already."""
         if not self.finalized:
             self.finalize()
-        if type_name not in self.types:
-            message = "{} is an external type".format(type_name)
+
+        dimension = _array_dimension(type_name)
+        type_wo_dimension = _strip_array_dimension(type_name)
+        if type_wo_dimension not in self.types:
+            message = "{} is an external type".format(type_wo_dimension)
             if config.java_error_on_external_types():
                 logger.error(message)
                 exit(1)
             else:
                 logger.warning(message)
                 return _JavaType(type_name)
-        return self.types[type_name]
 
-    def qualify_lookup(self, type_name, compilation):
+        type_object = copy.deepcopy(self.types[type_wo_dimension])
+        type_object.dimension = dimension
+        return type_object
+
+    def qualify_lookup(self, type, compilation):
         """Qualify and lookup a type name and get a Type object.
 
         Implicitly finalizes the JavaTypeSystem, if not done already."""
-        return self.lookup(_qualify_type(type_name, compilation))
+        return self.lookup(_qualify_type(type, compilation))
 
 
 _dummyType = _JavaType("dummy")
 _dummyType.is_compatible = lambda t: True
+
+
+def _array_dimension(name):
+    for dimension in range(len(name)):
+        if name[dimension] != '[':
+            break
+    return dimension
+
+
+def _prefix_array_dimension(name, dimension):
+    return "[" * dimension + name
+
+
+def _strip_array_dimension(name):
+    return name[_array_dimension(name):]
 
 
 def _is_public(node):
@@ -138,27 +165,28 @@ def _get_declarator_names(field):
     return [d.name for d in field.declarators]
 
 
-def _qualify_type(name, compilation):
+def _qualify_type(type, compilation):
     """Return the fully-qualified name of a type reference in a compilation unit."""
-    # TODO: Handle arrays.
+    name = type.name
+    dimension = len(getattr(type, "dimensions", []))
     if name in _primitive_types:
-        return name
+        return _prefix_array_dimension(name, dimension)
     candidates = [i for i in compilation.imports
                   if i.path.endswith(name) and (i.path.find(name) == 0 or i.path[i.path.find(name) - 1] == ".")]
     assert len(candidates) <= 1, \
            "Don't know what to do: more than one candidate for qualifying {} found in {}".format(name, compilation.filename)
     if len(candidates) == 1:
         # Import statement exactly matched - must be this definition.
-        return candidates[0].path
+        return _prefix_array_dimension(candidates[0].path, dimension)
     else:
         # No import statement matched - should be in this package.
         # TODO: Handle wildcard imports somehow.
         assert name.find(".") == -1, \
                "Should never happen: no import statement found, yet {} is relative!".format(name)
         if compilation.package is not None:
-            return compilation.package.name + "." + name
+            return _prefix_array_dimension(compilation.package.name + "." + name, dimension)
         else:
-            return name
+            return _prefix_array_dimension(name, dimension)
 
 
 def _get_parameters(method, type_system, compilation):
@@ -166,7 +194,7 @@ def _get_parameters(method, type_system, compilation):
     parameters = []
     for p in method.parameters:
         name = p.name
-        type = type_system.qualify_lookup(p.type.name, compilation)
+        type = type_system.qualify_lookup(p.type, compilation)
         parameters.append(Parameter(name, type))
     return parameters
 
@@ -174,8 +202,9 @@ def _get_parameters(method, type_system, compilation):
 def _get_return_type(method, type_system, compilation):
     """Return the return type of a method."""
     if method.return_type is None:
-        return type_system.qualify_lookup("void", compilation)
-    return type_system.qualify_lookup(method.return_type.name, compilation)
+        void = javalang.tree.Type(name="void", dimensions=[])
+        return type_system.qualify_lookup(void, compilation)
+    return type_system.qualify_lookup(method.return_type, compilation)
 
 
 def _class_or_interface_to_unit(node, compilation, type_system):
@@ -202,7 +231,7 @@ def _class_or_interface_to_unit(node, compilation, type_system):
         # Convert fields.
         if isinstance(n, javalang.tree.FieldDeclaration):
             for declarator_name in _get_declarator_names(n):
-                type_object = type_system.qualify_lookup(n.type.name, compilation)
+                type_object = type_system.qualify_lookup(n.type, compilation)
                 fields[declarator_name] = Field(declarator_name, type_object)
 
         # Convert methods.
@@ -228,7 +257,7 @@ def _class_or_interface_to_unit(node, compilation, type_system):
              isinstance(n, javalang.tree.InterfaceDeclaration):
             units[n.name] = _class_or_interface_to_unit(n, compilation, type_system)
 
-    fqn = _qualify_type(node.name, compilation)
+    fqn = _qualify_type(node, compilation)
     return Unit(fqn, fields, functions, units)
 
 
