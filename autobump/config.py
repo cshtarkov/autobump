@@ -174,7 +174,7 @@ type_hinting = make_get("python", "type_hinting")
 java_lazy_type_checking = make_get("java_native", "lazy_type_checking")
 
 
-def classpath():
+def java_classpath():
     # The classpath is special, because we need to append
     # the working directory so that Autobump's utilities like
     # the Inspector and TypeCompatibilityChecker work.
