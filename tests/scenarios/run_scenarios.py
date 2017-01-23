@@ -86,7 +86,7 @@ def reconstruct(commit_history, repo):
         call_git(repo, "tag", new_version)
 
 
-def reconstruct_and_verify(commit_history, handler, build_command, build_root, before_advice, after_advice):
+def reconstruct_and_verify(commit_history, handler, build_command, build_root, setUp, tearDown):
     """Verify that a reconstructed repository matches
     the expected version at every commit."""
 
@@ -94,7 +94,7 @@ def reconstruct_and_verify(commit_history, handler, build_command, build_root, b
     with tempfile.TemporaryDirectory() as repo:
         reconstruct(commit_history, repo)
 
-        before_advice(repo)
+        setUp(repo)
         for before, after in IteratorWithRunner(commit_history):
             _, previous_version, _ = before
             message, new_version, patch = after
@@ -108,7 +108,7 @@ def reconstruct_and_verify(commit_history, handler, build_command, build_root, b
                 failed += 1
                 print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
                       .format(new_version, proposed_version, message, patch))
-        after_advice(repo)
+        tearDown(repo)
 
     return failed
 
@@ -145,14 +145,14 @@ def run_scenarios():
             handler = scenario.handler
             build_command = getattr(scenario, "build_command", "none")
             build_root = getattr(scenario, "build_root", "none")
-            before_advice = getattr(scenario, "before_advice", lambda r: None)
-            after_advice = getattr(scenario, "after_advice", lambda r: None)
+            setUp = getattr(scenario, "setUp", lambda r: None)
+            tearDown = getattr(scenario, "tearDown", lambda r: None)
             failed += reconstruct_and_verify(commit_history,
                                              handler,
                                              build_command,
                                              build_root,
-                                             before_advice,
-                                             after_advice)
+                                             setUp,
+                                             tearDown)
         except ImportError as ex:
             errors += 1
             print("Failed to run scenario: {}".format(scenario_name))

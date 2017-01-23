@@ -8,7 +8,7 @@ build_root = "target/classes"
 previous_classpath = os.environ.get("CLASSPATH", None)
 
 
-def before_advice(repo):
+def setUp(repo):
     cmd = ["mvn", "dependency:build-classpath", "-Dmdep.outputFile=classpath.txt"]
     child = Popen(cmd,
                   cwd=repo,
@@ -27,7 +27,7 @@ def before_advice(repo):
     os.environ["CLASSPATH"] = classpath + ":.:"
 
 
-def after_advice(_):
+def tearDown(_):
     if previous_classpath is not None:
         os.environ["CLASSPATH"] = previous_classpath
 
