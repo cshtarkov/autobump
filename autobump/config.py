@@ -54,7 +54,8 @@ defaults = {
     },
 
     "clojure": {
-        "lazy_type_checking": True
+        "lazy_type_checking": True,
+        "classpath": ""
     },
 }
 cached = dict()
@@ -188,3 +189,4 @@ java_error_on_external_types = make_get("java_ast", "error_on_external_types")
 
 # clojure
 clojure_lazy_type_checking = make_get("clojure", "lazy_type_checking")
+clojure_classpath = make_get("clojure", "classpath")
