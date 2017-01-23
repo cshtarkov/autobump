@@ -42,7 +42,7 @@ index 0000000..6c722bf
 +++ b/leinexec.sh
 @@ -0,0 +1,2 @@
 +#!/bin/bash
-+lein deps && lein exec $@
++lein deps && lein exec -p $@
      """),
 
     ("Add public function",
