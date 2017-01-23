@@ -83,9 +83,11 @@ def _run_utility(utility, args):
         raise JavaUtilityException(stderr_data.decode("ascii").strip())
     return stdout_data.decode("ascii").strip()
 
+
 def _xml_element_to_type(elt):
     assert elt.tag == "type"
     return _JavaNativeType(elt.attrib["name"], int(elt.attrib["dimension"]))
+
 
 def _xml_element_to_field(elt):
     """Convert an XML <field> into a Field."""
