@@ -135,11 +135,6 @@
         name
         (type value)))
 
-(defmacro preserve-ns
-  `(let [old-ns *ns*]
-     ~@body
-     (ns old-ns)))
-
 (defn- safe-eval-file
   "Safely evaluate forms in a file and returns its namespace."
   [file-name]
