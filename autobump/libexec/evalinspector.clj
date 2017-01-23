@@ -148,12 +148,10 @@
     (map safe-eval forms)
     namespace))
 
-(defn- describe-file
+(defn- describe-ns
   "Describe a file as a sexp using only ()."
-  [file-name]
-  (let* [forms (read-source file-name)
-         namespace (get-ns forms)
-         vars (map
+  [namespace]
+  (let* [vars (map
                (fn [s]
                  (let [resolved (ns-resolve namespace s)]
                    {:name s
@@ -170,7 +168,7 @@
 (defn describe-files
   "Describe a seq of files using only ()."
   [files]
-  (map describe-file (filter not-this-file files)))
+  (map describe-ns (map safe-eval-file (filter not-this-file files))))
 
 (defn main
   "Main entry point of the program."
