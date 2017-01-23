@@ -1,3 +1,4 @@
+from os import environ
 from autobump import config
 
 handler = "clojure"
@@ -16,7 +17,7 @@ def tearDown(repo):
 commit_history = [
     ("Initial commit",
      "1.0.0",
-     """,
+     """
 diff --git a/project.clj b/project.clj
 new file mode 100644
 index 0000000..cb3b805
@@ -43,8 +44,8 @@ index 0000000..6c722bf
 +++ b/leinexec.sh
 @@ -0,0 +1,2 @@
 +#!/bin/bash
-+lein deps && lein exec -p $@
-     """),
++{lein_executable} deps && {lein_executable} exec -p $@
+     """.format(lein_executable="/home/travis/lein" if "TRAVIS" in environ else "lein")),
 
     ("Add public function",
      "1.1.0",

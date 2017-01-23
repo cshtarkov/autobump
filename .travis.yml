@@ -14,6 +14,9 @@ addons:
    - oracle-java8-installer
 
 before_script:
+ - wget -O /home/travis/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+ - chmod +x /home/travis/lein
+ - /home/travis/lein
  - wget -O /home/travis/clojure.jar http://central.maven.org/maven2/org/clojure/clojure/1.8.0/clojure-1.8.0.jar
  - echo '#!/bin/bash' > /home/travis/clojure.sh
  - echo 'if [ "x$CLASSPATH" = "x" ] ; then' >> /home/travis/clojure.sh
