@@ -42,14 +42,14 @@ unit_test:
 	$(PYTHON) -m unittest discover tests/
 
 $(UNIT_TEST_COV_FILE):
-	COVERAGE_FILE=$(UNIT_TEST_COV_FILE) $(COVERAGE) run -m unittest discover tests/
+	COVERAGE_FILE=$(UNIT_TEST_COV_FILE) $(COVERAGE) run --branch -m unittest discover tests/
 
 .PHONY: acceptance_test
 acceptance_test:
 	$(AUTOBUMP_ENV) PYTHONPATH=.: $(PYTHON) tests/scenarios/run_scenarios.py
 
 $(ACCEPTANCE_TEST_COV_FILE):
-	COVERAGE_FILE=$(ACCEPTANCE_TEST_COV_FILE) $(AUTOBUMP_ENV) PYTHONPATH=.: $(COVERAGE) run tests/scenarios/run_scenarios.py
+	COVERAGE_FILE=$(ACCEPTANCE_TEST_COV_FILE) $(AUTOBUMP_ENV) PYTHONPATH=.: $(COVERAGE) run --branch tests/scenarios/run_scenarios.py
 
 .PHONY: clean
 clean:
