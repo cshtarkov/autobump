@@ -21,6 +21,7 @@ def setUp(repo):
         exit(1)
     with open(os.path.join(repo, "classpath.txt")) as classpathf:
         classpath = classpathf.read()
+    # TODO: maybe set java/classpath instead?
     # If we set the classpath to exactly what Maven told us, then
     # Autobump's own utilities won't work. That's why we need to add the
     # current directory to the end as well.
