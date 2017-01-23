@@ -19,6 +19,8 @@ class _ClojureType(Type):
         self.name = name
 
     def is_compatible(self, other):
+        if self.name == "nil":
+            return True
         if config.clojure_lazy_type_checking():
             return self.name == other.name
         else:
