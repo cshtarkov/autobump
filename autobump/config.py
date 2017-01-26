@@ -24,6 +24,13 @@ defaults = {
         "java": "java"
     },
 
+    "only_consider": {
+        "files": [],
+        "dirs": [],
+        "entities": []
+        # TODO: files_re, dirs_re, entities_re?
+    },
+
     "ignore": {
         "files": [],
         "files_re": [r"^[Tt]est",
@@ -35,7 +42,10 @@ defaults = {
                     r"^[Ss]cript",
                     r"^[Ee]xample",
                     r"^.git$",
-                    r"^.hg$"]
+                    r"^.hg$"],
+        "entities": [],
+        "entities_re": []
+        # TODO: entities_re?
     },
 
     "python": {
@@ -140,13 +150,19 @@ java = make_get("autobump", "java")
 # ignore
 def ignored(what, name):
     """Check whether something should be ignored."""
-    # TODO: this really suffers from the lack of caching
+    only_consider_lit = get("only_consider", what)
     ignored_lit = get("ignore", what)
     ignored_re = get("ignore", what + "_re")
+    if isinstance(only_consider_lit, str):
+        only_consider_lit = only_consider_lit.splitlines()
     if isinstance(ignored_lit, str):
         ignored_lit = ignored_lit.splitlines()
     if isinstance(ignored_re, str):
         ignored_re = [r for r in get("ignore", what + "_re").splitlines()]
+
+    if len(only_consider_lit) > 0:
+        return not name in only_consider_lit
+
     if name in ignored_lit:
         return True
     for patt in ignored_re:
@@ -163,6 +179,12 @@ def file_ignored(name):
 def dir_ignored(name):
     """Check whether a directory should be ignored."""
     return ignored("dirs", name)
+
+
+def entity_ignored(name):
+    """Check whether an entity should be ignored."""
+    # TODO: Handle absolute/relative names.
+    return ignored("entities", name)
 
 
 # python

@@ -81,5 +81,26 @@ class TestIgnored(unittest.TestCase):
         self.assertFalse(config.dir_ignored("dirname_other"))
 
 
+class TestOnlyConsider(unittest.TestCase):
+    """Test whitelists."""
+
+    @config_override("only_consider", "files", "special.txt")
+    def test_only_file(self):
+        self.assertFalse(config.file_ignored("special.txt"))
+        self.assertTrue(config.file_ignored("somethingelse.txt"))
+
+    @config_override("only_consider", "dirs", "special")
+    def test_only_dir(self):
+        self.assertFalse(config.dir_ignored("special"))
+        self.assertTrue(config.dir_ignored("somethingelse"))
+
+    @config_override("only_consider", "entities", "Entity")
+    def test_only_entity(self):
+        self.assertFalse(config.entity_ignored("Entity"))
+        self.assertTrue(config.entity_ignored("AnotherOne"))
+
+    # TODO: add support for relative/absolute entity names
+
+
 if __name__ == "__main__":
     unittest.main()

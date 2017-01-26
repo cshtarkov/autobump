@@ -3,6 +3,7 @@ import logging
 import functools
 from enum import Enum
 
+from autobump import config
 from autobump.capir import Unit
 
 logger = logging.getLogger(__name__)
@@ -156,6 +157,11 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     assert type(a_ent) is type(b_ent), "Shouldn't compare entities of different types."
     logger.debug("Now comparing: {0}.{1}"
                  .format(path, a_ent.name))
+
+    # TODO: Work with absolute/relative names, don't hardcode "codebase"
+    if config.entity_ignored(a_ent.name) and a_ent.name != "codebase":
+        logger.debug("Ignoring because of configuration")
+        return Bump.patch
 
     path = (path + "." if path != "" else path) + a_ent.name
 
