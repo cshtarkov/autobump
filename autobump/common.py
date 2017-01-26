@@ -23,6 +23,15 @@ class Semver(object):
         assert type(patch) is int
         self.major, self.minor, self.patch = major, minor, patch
 
+    def __eq__(self, other):
+        assert isinstance(other, type(self))
+        return self.major == other.major and \
+               self.minor == other.minor and \
+               self.patch == other.patch
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @classmethod
     def from_string(semver, version):
         major, minor, patch = [int(c) for c in version.split(".")]

@@ -40,15 +40,19 @@ def git_get_commit(repo, commit):
     return temp_dir_handle, checkout_dir
 
 
-def git_last_tag(repo):
-    child = subprocess.Popen([config.git(), "describe", "--tags", "--abbrev=0"],
+def git_all_tags(repo):
+    child = subprocess.Popen([config.git(), "tag", "--sort", "version:refname"],
                              cwd=repo,
                              stdout=PIPE,
                              stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
         raise common.VersionControlException("Failed to get last tag of Git repository {}".format(repo))
-    return stdout_data.decode("ascii").strip()
+    return stdout_data.decode("ascii").strip().split()
+
+
+def git_last_tag(repo):
+    return git_all_tags[-1]
 
 
 def git_last_commit(repo):
@@ -63,5 +67,6 @@ def git_last_commit(repo):
 
 
 get_commit = git_get_commit
+all_tags = git_all_tags
 last_tag = git_last_tag
 last_commit = git_last_commit

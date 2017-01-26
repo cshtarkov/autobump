@@ -21,9 +21,8 @@ logger = logging.getLogger(__name__)
 class _Repository(object):
     """Represents a repository at a location."""
     class VCS(enum.Enum):
-        none = 0
-        git = 1
-        hg = 2
+        git = 0
+        hg = 1
 
     def __init__(self, location):
         self.location = location
@@ -34,13 +33,13 @@ class _Repository(object):
             elif os.path.isdir(os.path.join(self.location, ".hg")):
                 self.vcs = self.VCS.hg
             else:
-                self.vcs = self.VCS.none
+                self.vcs = None
         except IOError:
-            self.vcs = self.VCS.none
+            logger.error("IO error occured while trying to get VCS")
         self.handler = self._match_handler(self.vcs)
 
     def _match_handler(self, vcs):
-        """Return the handler reponsible for the VCS of this type."""
+        """Return the handler responsible for the VCS of this type."""
         handlers = {
             self.VCS.git: git,
             self.VCS.hg: hg
@@ -50,6 +49,13 @@ class _Repository(object):
     def get_commit(self, commit):
         assert self.handler is not None
         return self.handler.get_commit(self.location, commit)
+
+    def all_tags(self):
+        """Return a list of all tags in chronological order."""
+        if self.handler is not None:
+            return self.handler.all_tags(self.location)
+        else:
+            raise NotImplemented("Cannot get all tags for repository type {}".format(self.vcs))
 
     def last_tag(self):
         """Return name of most recently made tag."""
@@ -79,7 +85,7 @@ def _patch_types_with_location(units, location):
         _patch_types_with_location(unit.units, location)
 
 
-def autobump():
+def autobump(**kwargs):
     """Main entry point."""
     description = """
 Determine change of semantic version of code in a repository.
@@ -146,8 +152,12 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser.add_argument("-br", "--build-root",
                         type=str,
                         help="where the artifacts get placed after the project is built (relative to checkout location)")
+    parser.add_argument("-e", "--evaluate",
+                        action="store_true",
+                        help="run in evaluation mode, measure quality of tags")
 
-    args = parser.parse_args()
+    # Parse command-line arguments only if not passed to the function.
+    args = kwargs.get("args", parser.parse_args())
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
 
     # Set appropriate log level
@@ -165,7 +175,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     # Identify VCS
     repo = _Repository(args.repo or os.getcwd())
     if repo.vcs is None:
-        logger.error("Failed to identify VCS!")
+        logger.error("Failed to identify VCS! Are you running Autobump in the root of the repository?")
         exit(1)
     logger.info("VCS identified as {}".format(repo.vcs))
 
@@ -185,6 +195,43 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         logger.error("Invalid handler {} specified!".format(repo_handler))
         exit(1)
     logger.info("Language identified as {}".format(repo_handler))
+
+    # Check for evaluation mode
+    # TODO: move this, and maybe other things, to another function
+    # this is getting ridiculous
+    if args.evaluate:
+        if not args.f or not args.to:
+            logger.error("Evaluation mode requires supplying a range")
+            exit(1)
+        args.evaluate = False
+        first_revision = args.f
+        last_revision = args.to
+        logger.info("Running in evaluation mode between {} and {}"
+                    .format(args.f, args.to))
+        all_revisions = repo.all_tags()
+        if first_revision not in all_revisions or last_revision not in all_revisions:
+            logger.error("Invalid range, one or more tags not found!")
+            exit(1)
+        mismatched = []
+        for rev_i in range(all_revisions.index(first_revision),
+                           all_revisions.index(last_revision) - 1):
+            a_revision = all_revisions[rev_i]
+            b_revision = all_revisions[rev_i + 1]
+            logger.debug("Evaluating revisions {}...{}"
+                         .format(a_revision, b_revision))
+            setattr(args, "from", a_revision)
+            args.to = b_revision
+            b_version_expected = Semver.guess_from_string(b_revision)
+            b_version_actual = autobump(args=args)
+            if b_version_expected != b_version_actual:
+                logger.debug("Version found differs from name of tag:\n\tReported: {}\n\tFrom tag: {}"
+                             .format(b_version_actual, b_version_expected))
+                mismatched.append((a_revision, b_revision, b_version_actual))
+        for a_revision, b_revision, actual in mismatched:
+            print("{a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
+                  .format(a_revision=a_revision, b_revision=b_revision, actual=actual))
+        exit(0)
+
 
     # Identify revisions
     a_revision = args.f or repo.last_tag()
