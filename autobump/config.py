@@ -21,7 +21,8 @@ defaults = {
         "git": "git",
         "hg": "hg",
         "clojure": "clojure",
-        "java": "java"
+        "java": "java",
+        "javac": "javac"
     },
 
     "only_consider": {
@@ -129,10 +130,13 @@ def set(category, name, value):
 
 
 # autobump
+# TODO: move these to respective handlers
+# or rename this to "executables"
 git = make_get("autobump", "git")
 hg = make_get("autobump", "hg")
 clojure = make_get("autobump", "clojure")
 java = make_get("autobump", "java")
+javac = make_get("autobump", "javac")
 
 
 # ignore

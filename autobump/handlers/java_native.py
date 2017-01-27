@@ -1,7 +1,9 @@
 """Convert a Java codebase into a list of Units, using introspection utilities written in Java."""
 import os
 import sys
+import shutil
 import logging
+import tempfile
 import subprocess
 from subprocess import PIPE
 from xml.etree import ElementTree
@@ -69,15 +71,32 @@ def _run_type_compatibility_checker(location, superclass, subclass):
     return output == "true"
 
 
-def _run_utility(utility, args):
+def _compile_and_run_utility(utility, args):
+    """Compile a utility somewhere in a temporary directory
+    so it can be used this time, and then run it."""
+    filename = utility + ".java"
+    with tempfile.TemporaryDirectory() as dir:
+        shutil.copy(os.path.join(libexec, filename), dir)
+        child = subprocess.Popen([config.javac()] + [filename],
+                                 cwd=dir,
+                                 stdout=PIPE,
+                                 stderr=PIPE)
+        _, stderr_data = child.communicate()
+        if child.returncode != 0:
+            logger.error("Failed to compile {}! Please compile manually.".format(utility))
+            exit(1)
+            # TODO: Tempdir leaks?
+        return _run_utility(utility, args, basedir=dir)
+
+
+def _run_utility(utility, args, basedir=libexec):
     """Run a Java utility program with arguments."""
-    javafile = os.path.join(libexec, utility + ".java")
-    classfile = os.path.join(libexec, utility + ".class")
+    javafile = os.path.join(basedir, utility + ".java")
+    classfile = os.path.join(basedir, utility + ".class")
     if os.path.isfile(javafile) and not os.path.isfile(classfile):
-        # This is a valid utility, but it's not been compiled.
-        logger.error("{} has not been compiled!".format(utility))
-        exit(1)
-    child = subprocess.Popen([config.java()] + [utility] + args, cwd=libexec, stdout=PIPE, stderr=PIPE)
+        logger.warning("{} has not been compiled! Trying to compile in a temporary directory.".format(utility))
+        return _compile_and_run_utility(utility, args)
+    child = subprocess.Popen([config.java()] + [utility] + args, cwd=basedir, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
         raise JavaUtilityException(stderr_data.decode("ascii").strip())
