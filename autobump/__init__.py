@@ -121,7 +121,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=description)
     parser.add_argument("handler",
                         type=str,
-                        help="what language handler to use {python, java_ast, java_native}")
+                        help="what language handler to use {python, java_ast, java_native, clojure}")
     parser.add_argument("-c", "--changelog",
                         type=str,
                         help="generate changelog and write it to a file")
