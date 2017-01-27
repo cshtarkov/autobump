@@ -53,6 +53,12 @@ class Change(Enum):
         return bump_map.get(change)
 
 
+def _join_path(path, name):
+    """Join a prefix path and an entity name
+    to form a new path."""
+    return (path + "." if path != "" else "") + name
+
+
 def _compare_types(a_ent, b_ent):
     """Compare types of two entities and return a list of Changes."""
     changes = []
@@ -158,12 +164,11 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     logger.debug("Now comparing: {0}.{1}"
                  .format(path, a_ent.name))
 
-    # TODO: Work with absolute/relative names, don't hardcode "codebase"
-    if config.entity_ignored(a_ent.name) and a_ent.name != "codebase":
+    path = _join_path(path, a_ent.name)
+
+    if config.entity_ignored(path) and a_ent.name != "":
         logger.debug("Ignoring because of configuration")
         return Bump.patch
-
-    path = (path + "." if path != "" else path) + a_ent.name
 
     highestBump = Bump.patch  # Biggest bump encountered so far.
 
@@ -202,13 +207,13 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
             if ki not in a_inner:
                 # Handle case when a entity was added.
                 logger.debug("Not found in variant A: {}".format(b_inner[ki].name))
-                _report_change(Change.entity_was_introduced, path + "." + b_inner[ki].name)
+                _report_change(Change.entity_was_introduced, _join_path(path, b_inner[ki].name))
                 continue
 
             if ki not in b_inner:
                 # Handle case when a entity was removed.
                 logger.debug("Not found in variant B: {}".format(a_inner[ki].name))
-                _report_change(Change.entity_was_removed, path + "." + a_inner[ki].name)
+                _report_change(Change.entity_was_removed, _join_path(path, a_inner[ki].name))
                 continue
 
             # Handle general case when a entity may have changed.
@@ -223,6 +228,6 @@ def compare_codebases(a_units, b_units, changelog_file):
     Return a Bump enum based on whether
     there was a major, minor, patch or no change."""
     # Represent both codebases as a single unit, and compare that.
-    a_unit = Unit("codebase", dict(), dict(), a_units)
-    b_unit = Unit("codebase", dict(), dict(), b_units)
+    a_unit = Unit("", dict(), dict(), a_units)
+    b_unit = Unit("", dict(), dict(), b_units)
     return _compare_entities(a_unit, b_unit, changelog_file)

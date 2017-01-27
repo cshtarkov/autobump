@@ -163,7 +163,6 @@ def dir_ignored(name):
 
 def entity_ignored(name):
     """Check whether an entity should be ignored."""
-    # TODO: Handle absolute/relative names.
     return ignored("entities", name)
 
 

@@ -59,12 +59,6 @@ class TestIgnored(unittest.TestCase):
         self.assertTrue(config.file_ignored("filename1"))
         self.assertTrue(config.file_ignored("filename2"))
 
-    @config_override("ignore", "files_re", "^filenames?$")
-    def test_ignore_file_regex(self):
-        self.assertTrue(config.file_ignored("filename"))
-        self.assertTrue(config.file_ignored("filenames"))
-        self.assertFalse(config.file_ignored("filename_other"))
-
     @config_override("ignore", "dirs", "dirname\n")
     def test_ignore_dir(self):
         self.assertTrue(config.dir_ignored("dirname"))
@@ -74,12 +68,14 @@ class TestIgnored(unittest.TestCase):
         self.assertTrue(config.dir_ignored("dirname1"))
         self.assertTrue(config.dir_ignored("dirname2"))
 
-    @config_override("ignore", "dirs_re", "^dirnames?$")
-    def test_ignore_dir_regex(self):
-        self.assertTrue(config.dir_ignored("dirname"))
-        self.assertTrue(config.dir_ignored("dirnames"))
-        self.assertFalse(config.dir_ignored("dirname_other"))
+    @config_override("ignore", "entities", "entityname\n")
+    def test_ignore_entity(self):
+        self.assertTrue(config.entity_ignored("entityname"))
 
+    @config_override("ignore", "entities", "entityname1\nentityname2\n")
+    def test_ignore_multiple_entities(self):
+        self.assertTrue(config.entity_ignored("entityname1"))
+        self.assertTrue(config.entity_ignored("entityname2"))
 
 class TestOnlyConsider(unittest.TestCase):
     """Test whitelists."""
@@ -98,8 +94,6 @@ class TestOnlyConsider(unittest.TestCase):
     def test_only_entity(self):
         self.assertFalse(config.entity_ignored("Entity"))
         self.assertTrue(config.entity_ignored("AnotherOne"))
-
-    # TODO: add support for relative/absolute entity names
 
 
 if __name__ == "__main__":
