@@ -31,8 +31,8 @@ defaults = {
     },
 
     "ignore": {
-        "files": [],
-        "dirs": [".git", ".hg"],
+        "files": ["project.clj", "setup.py", "setupegg.py"],
+        "dirs": [".git", ".hg", "test", "tests", "doc", "docs"],
         "entities": [],
     },
 
