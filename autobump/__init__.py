@@ -232,7 +232,6 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
                   .format(a_revision=a_revision, b_revision=b_revision, actual=actual))
         exit(0)
 
-
     # Identify revisions
     try:
         a_revision = args.f or repo.last_tag()

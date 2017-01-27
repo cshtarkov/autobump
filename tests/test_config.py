@@ -77,6 +77,7 @@ class TestIgnored(unittest.TestCase):
         self.assertTrue(config.entity_ignored("entityname1"))
         self.assertTrue(config.entity_ignored("entityname2"))
 
+
 class TestOnlyConsider(unittest.TestCase):
     """Test whitelists."""
 

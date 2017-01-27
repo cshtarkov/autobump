@@ -150,7 +150,7 @@ def ignored(what, name):
         ignored_lit = ignored_lit.splitlines()
 
     if len(only_consider_lit) > 0:
-        return not name in only_consider_lit
+        return name not in only_consider_lit
 
     return name in ignored_lit
 
