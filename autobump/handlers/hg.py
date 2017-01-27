@@ -51,6 +51,10 @@ def hg_last_tag(repo):
     return stdout_data.decode("ascii").strip()
 
 
+def hg_all_tags(repo):
+    raise NotImplemented
+
+
 def hg_last_commit(repo):
     child = subprocess.Popen([config.hg(), "log", "-r", "tip", "--template", "{rev}"],
                              cwd=repo,
@@ -63,5 +67,6 @@ def hg_last_commit(repo):
 
 
 get_commit = hg_get_commit
+all_tags = hg_all_tags
 last_tag = hg_last_tag
 last_commit = hg_last_commit

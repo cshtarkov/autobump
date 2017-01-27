@@ -52,7 +52,11 @@ def git_all_tags(repo):
 
 
 def git_last_tag(repo):
-    return git_all_tags[-1]
+    # TODO: handle missing last tag
+    all_tags = git_all_tags(repo)
+    if len(all_tags) == 0:
+        raise VersionControlException("No last tag")
+    return all_tags[-1]
 
 
 def git_last_commit(repo):
