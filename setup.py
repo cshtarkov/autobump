@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="autobump",
-      version="0.1.1",
+      version="0.1.2",
       description="Automatic semantic versioning of projects",
       url="https://github.com/cshtarkov/autobump",
       author="Christian Shtarkov",

@@ -291,14 +291,13 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     logger.debug("Earlier version is {}".format(a_version))
     b_version = a_version.bump(bump)
     logger.debug("Later version is {}".format(b_version))
-    print(b_version)
 
     # Clean up temporary directories
     a_handle.cleanup()
     b_handle.cleanup()
 
     # Return the new version if autobump is called from another Python program.
-    # Note that this does not influence the exit code.
+    # If called from an entry point as specified in setup.py, this is printed.
     return b_version
 
 
