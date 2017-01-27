@@ -7,7 +7,7 @@ import logging
 import argparse
 
 from autobump import diff
-from autobump.common import Semver
+from autobump.common import Semver, VersionControlException
 from autobump.handlers import hg
 from autobump.handlers import git
 from autobump.handlers import python
@@ -234,10 +234,14 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
 
     # Identify revisions
-    a_revision = args.f or repo.last_tag()
-    logger.info("Earlier revision identified as {}".format(a_revision))
-    b_revision = args.to or repo.last_commit()
-    logger.info("Later revision identified as {}".format(b_revision))
+    try:
+        a_revision = args.f or repo.last_tag()
+        logger.info("Earlier revision identified as {}".format(a_revision))
+        b_revision = args.to or repo.last_commit()
+        logger.info("Later revision identified as {}".format(b_revision))
+    except VersionControlException:
+        logger.error("Failed to automatically determine comparison range.")
+        exit(1)
 
     # Identify changelog policy
     changelog_file = None
