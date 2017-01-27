@@ -1,4 +1,5 @@
 PYTHON=python3
+PIP=pip3
 LINTER=flake8
 JAVAC=javac
 COVERAGE=coverage3
@@ -50,6 +51,15 @@ acceptance_test:
 
 $(ACCEPTANCE_TEST_COV_FILE):
 	COVERAGE_FILE=$(ACCEPTANCE_TEST_COV_FILE) $(AUTOBUMP_ENV) PYTHONPATH=.: $(COVERAGE) run --branch tests/scenarios/run_scenarios.py
+
+.PHONY: dist
+dist:
+	rm -f autobump/libexec/*.class
+	$(PYTHON) setup.py sdist
+
+.PHONY: install
+install: dist
+	$(PIP) install dist/autobump*.tar.gz --upgrade
 
 .PHONY: clean
 clean:
