@@ -28,24 +28,12 @@ defaults = {
         "files": [],
         "dirs": [],
         "entities": []
-        # TODO: files_re, dirs_re, entities_re?
     },
 
     "ignore": {
         "files": [],
-        "files_re": [r"^[Tt]est",
-                     r"^project"],
-        "dirs": [],
-        "dirs_re": [r"^[Tt]est",
-                    r"^[Tt]ool",
-                    r"^[Dd]oc",
-                    r"^[Ss]cript",
-                    r"^[Ee]xample",
-                    r"^.git$",
-                    r"^.hg$"],
+        "dirs": [".git", ".hg"],
         "entities": [],
-        "entities_re": []
-        # TODO: entities_re?
     },
 
     "python": {
@@ -152,23 +140,15 @@ def ignored(what, name):
     """Check whether something should be ignored."""
     only_consider_lit = get("only_consider", what)
     ignored_lit = get("ignore", what)
-    ignored_re = get("ignore", what + "_re")
     if isinstance(only_consider_lit, str):
         only_consider_lit = only_consider_lit.splitlines()
     if isinstance(ignored_lit, str):
         ignored_lit = ignored_lit.splitlines()
-    if isinstance(ignored_re, str):
-        ignored_re = [r for r in get("ignore", what + "_re").splitlines()]
 
     if len(only_consider_lit) > 0:
         return not name in only_consider_lit
 
-    if name in ignored_lit:
-        return True
-    for patt in ignored_re:
-        if re.search(patt, name):
-            return True
-    return False
+    return name in ignored_lit
 
 
 def file_ignored(name):
