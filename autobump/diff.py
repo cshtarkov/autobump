@@ -19,7 +19,7 @@ class Bump(Enum):
     def __lt__(self, other):
         if type(self) is type(other):
             return self.value < other.value
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class Change(Enum):

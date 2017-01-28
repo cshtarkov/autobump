@@ -24,7 +24,7 @@ class _ClojureType(Type):
         if config.clojure_lazy_type_checking():
             return self.name == other.name
         else:
-            raise NotImplemented("Non-lazy type checking")
+            raise NotImplementedError("Non-lazy type checking")
 
     def __str__(self):
         return self.__repr__()

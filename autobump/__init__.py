@@ -55,21 +55,21 @@ class _Repository(object):
         if self.handler is not None:
             return self.handler.all_tags(self.location)
         else:
-            raise NotImplemented("Cannot get all tags for repository type {}".format(self.vcs))
+            raise NotImplementedError("Cannot get all tags for repository type {}".format(self.vcs))
 
     def last_tag(self):
         """Return name of most recently made tag."""
         if self.handler is not None:
             return self.handler.last_tag(self.location)
         else:
-            raise NotImplemented("Cannot get last tag for repository type {}".format(self.vcs))
+            raise NotImplementedError("Cannot get last tag for repository type {}".format(self.vcs))
 
     def last_commit(self):
         """Return identifier of most recently made commit."""
         if self.handler is not None:
             return self.handler.last_commit(self.location)
         else:
-            raise NotImplemented("Cannot get last tag for repository type {}".format(self.vcs))
+            raise NotImplementedError("Cannot get last tag for repository type {}".format(self.vcs))
 
 
 def _patch_types_with_location(units, location):
