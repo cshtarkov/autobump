@@ -51,9 +51,6 @@ class Parameter(Entity):
         self.type = type
         self.default_value = default_value
 
-    def __lt__(self, other):
-        return self.name < other.name
-
     def __hash__(self):
         return hash((self.name, self.type))
 
@@ -70,16 +67,6 @@ class Signature(Entity):
         if parameters is None:
             parameters = []
         self.parameters = parameters
-
-    def add_parameter(self, param):
-        self.parameters.append(param)
-
-    def parameter(self, param):
-        self.add_parameter(param)
-        return self
-
-    def __lt__(self, other):
-        return self.parameters < other.parameters
 
     def __hash__(self):
         return hash(tuple(self.parameters))
