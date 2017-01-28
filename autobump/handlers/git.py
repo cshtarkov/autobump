@@ -1,28 +1,25 @@
 """Implement source control handling for Git."""
 import os
 import tempfile
-import subprocess
-from subprocess import PIPE
 
-from autobump import common
 from autobump import config
-from autobump.common import VersionControlException
+from autobump.common import popen, VersionControlException
 
 
 def _clone_repo(repo, checkout_dir):
     """Clone a git repository into a directory."""
-    child = subprocess.Popen([config.git(), "clone", repo, checkout_dir], stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
-        raise VersionControlException("Cloning {} into {} failed!".format(repo, checkout_dir))
+    return_code, _, _ = popen([config.git(), "clone", repo, checkout_dir])
+    if return_code != 0:
+        raise VersionControlException("Cloning {} into {} failed!"
+                                      .format(repo, checkout_dir))
 
 
 def _checkout_commit(checkout_dir, commit):
     """Checkout a Git commit at some location."""
-    child = subprocess.Popen([config.git(), "checkout", commit], cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
-        raise VersionControlException("Checking out commit {} at {} failed!".format(commit, checkout_dir))
+    return_code, _, _ = popen([config.git(), "checkout", commit], cwd=checkout_dir)
+    if return_code != 0:
+        raise VersionControlException("Checking out commit {} at {} failed!"
+                                      .format(commit, checkout_dir))
 
 
 def git_get_commit(repo, commit):
@@ -41,15 +38,11 @@ def git_get_commit(repo, commit):
 
 
 def git_all_tags(repo):
-    child = subprocess.Popen([config.git(), "tag", "--sort", "version:refname"],
-                             cwd=repo,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise common.VersionControlException("Failed to get tags of Git repository {}\n{}"
-                                             .format(repo, stderr_data.decode("ascii").strip()))
-    return stdout_data.decode("ascii").strip().split()
+    return_code, stdout, stderr = popen([config.git(), "tag", "--sort", "version:refname"], cwd=repo)
+    if return_code != 0:
+        raise VersionControlException("Failed to get tags of Git repository {}\n{}"
+                                      .format(repo, stderr))
+    return stdout.split()
 
 
 def git_last_tag(repo):
@@ -60,14 +53,11 @@ def git_last_tag(repo):
 
 
 def git_last_commit(repo):
-    child = subprocess.Popen([config.git(), "log", "-1", "--oneline"],
-                             cwd=repo,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise common.VersionControlException("Failed to get last commit of Git repository {}".format(repo))
-    return stdout_data.decode("ascii").strip().split()[0]
+    return_code, stdout, stderr = popen([config.git(), "log", "-1", "--oneline"], cwd=repo)
+    if return_code != 0:
+        raise VersionControlException("Failed to get last commit of Git repository {}"
+                                      .format(repo))
+    return stdout.split()[0]
 
 
 get_commit = git_get_commit

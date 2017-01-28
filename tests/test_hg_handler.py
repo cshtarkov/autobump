@@ -1,20 +1,16 @@
 import os
 import unittest
 import tempfile
-import subprocess
-from subprocess import PIPE
 
 from autobump.capir import Unit
-from autobump.common import VersionControlException
+from autobump.common import popen, VersionControlException
 from autobump.handlers import hg
 
 
 def _run_hg(checkout_dir, args):
     """Run Hg inside a directory with a list of arguments."""
-    # TODO: This should probably be merged with _run_git
-    child = subprocess.Popen(["hg"] + args, cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
+    return_code, _, _ = popen(["hg"] + args, cwd=checkout_dir)
+    if return_code != 0:
         raise VersionControlException("\'hg {}\' failed!".format(args))
 
 

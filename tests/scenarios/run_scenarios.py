@@ -5,9 +5,9 @@ import re
 import imp
 import sys
 import tempfile
-import subprocess
-from subprocess import PIPE
+from subprocess import CalledProcessError
 
+from autobump.common import popen
 from autobump.__init__ import autobump
 
 
@@ -38,19 +38,14 @@ def call_autobump(*args):
     return str(version)
 
 
-def call_git(repo, *args, silent=True):
+def call_git(repo, *args):
     """Call Git in some repository with some arguments.
 
     If the exit code is not 0, an exception is raised."""
-    stdout_pipe, stderr_pipe = (PIPE, PIPE) if silent else (sys.stdout, sys.stderr)
     cmd = ["git"] + list(args)
-    child = subprocess.Popen(cmd,
-                             cwd=repo,
-                             stdout=stdout_pipe,
-                             stderr=stderr_pipe)
-    child.communicate()
-    if child.returncode != 0:
-        raise subprocess.CalledProcessError(child.returncode, cmd)
+    return_code, _, _ = popen(cmd, cwd=repo)
+    if return_code != 0:
+        raise CalledProcessError(return_code, cmd)
 
 
 def git_patch(repo, message, patch):

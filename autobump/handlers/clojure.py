@@ -2,11 +2,10 @@
 import os
 import string
 import logging
-import subprocess
-from subprocess import PIPE
 
 from autobump import config
 from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
+from autobump.common import popen
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
@@ -46,11 +45,10 @@ def _run_inspector(files, repo):
     the working directory set to 'repo'."""
     arglist = [config.clojure(), inspector_clj] + files
     logger.debug("Running inspector as follows: " + ' '.join(arglist))
-    child = subprocess.Popen(arglist, cwd=repo, stdout=PIPE, stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise _ClojureUtilityException(stderr_data.decode("ascii").strip())
-    return stdout_data.decode("ascii").strip()
+    return_code, stdout, stderr = popen(arglist, cwd=repo)
+    if return_code != 0:
+        raise _ClojureUtilityException(stderr)
+    return stdout
 
 
 def _lookup_type(name):

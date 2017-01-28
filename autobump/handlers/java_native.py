@@ -5,11 +5,11 @@ import shutil
 import logging
 import tempfile
 import subprocess
-from subprocess import PIPE
 from xml.etree import ElementTree
 
 from autobump import config
 from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
+from autobump.common import popen
 
 logger = logging.getLogger(__name__)
 libexec = os.path.join(os.path.dirname(__file__), "..", "libexec")
@@ -78,22 +78,14 @@ def _compile_and_run_utility(utility, args):
     logger.warning("Compiling {} in place".format(utility))
     filename = utility + ".java"
     # First, try to compile in place.
-    child = subprocess.Popen([config.javac()] + [filename],
-                             cwd=libexec,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
+    return_code, stdout, stderr = popen([config.javac()] + [filename], cwd=libexec)
+    if return_code != 0:
         logger.warning("Failed to compile {} in place, trying in a tempdir"
                        .format(utility))
         with tempfile.TemporaryDirectory() as dir:
             shutil.copy(os.path.join(libexec, filename), dir)
-            child = subprocess.Popen([config.javac()] + [filename],
-                                    cwd=dir,
-                                    stdout=PIPE,
-                                    stderr=PIPE)
-            _, stderr_data = child.communicate()
-            if child.returncode != 0:
+            return_code, stdout, stderr = popen([config.javac()] + [filename], cwd=dir)
+            if return_code != 0:
                 logger.error("Failed to compile {}! Please compile manually.".format(utility))
                 raise JavaUtilityException("{} needs to be compiled".format(utility))
             # Call the utility from the temporary directory
@@ -109,11 +101,10 @@ def _run_utility(utility, args, basedir=libexec):
     if os.path.isfile(javafile) and not os.path.isfile(classfile):
         logger.warning("{} has not been compiled".format(utility))
         return _compile_and_run_utility(utility, args)
-    child = subprocess.Popen([config.java()] + [utility] + args, cwd=basedir, stdout=PIPE, stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise JavaUtilityException(stderr_data.decode("ascii").strip())
-    return stdout_data.decode("ascii").strip()
+    return_code, stdout, stderr = popen([config.java()] + [utility] + args, cwd=basedir)
+    if return_code != 0:
+        raise JavaUtilityException(stderr)
+    return stdout
 
 
 def _xml_element_to_type(elt):

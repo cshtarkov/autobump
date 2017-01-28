@@ -1,6 +1,7 @@
 """Common classes and functions used by the core logic and the handlers."""
 import re
 import logging
+import subprocess
 
 from autobump import diff
 
@@ -82,3 +83,16 @@ class Semver(object):
 
     def __str__(self):
         return str(self.major) + "." + str(self.minor) + "." + str(self.patch)
+
+
+def popen(args, cwd="."):
+    """Thin wrapper around subprocess.Popen that always pipes stdout
+    and stdin."""
+    child = subprocess.Popen(args,
+                             cwd=cwd,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+    stdout_data, stderr_data = child.communicate()
+    return (child.returncode,
+            stdout_data.decode("ascii").strip(),
+            stderr_data.decode("ascii").strip())

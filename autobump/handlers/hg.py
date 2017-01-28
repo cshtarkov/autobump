@@ -1,28 +1,25 @@
 """Implement source control handling for Mercurial."""
 import os
 import tempfile
-import subprocess
-from subprocess import PIPE
 
-from autobump import common
 from autobump import config
-from autobump.common import VersionControlException
+from autobump.common import popen, VersionControlException
 
 
 def _clone_repo(repo, checkout_dir):
     """Clone a hg repository into a directory."""
-    child = subprocess.Popen([config.hg(), "clone", repo, checkout_dir], stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
-        raise VersionControlException("Cloning {} into {} failed!".format(repo, checkout_dir))
+    return_code, _, _ = popen([config.hg(), "clone", repo, checkout_dir])
+    if return_code != 0:
+        raise VersionControlException("Cloning {} into {} failed!"
+                                      .format(repo, checkout_dir))
 
 
 def _checkout_commit(checkout_dir, commit):
     """Checkout a Hg commit at some location."""
-    child = subprocess.Popen([config.hg(), "update", commit], cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
-    child.communicate()
-    if child.returncode != 0:
-        raise VersionControlException("Checking out commit {} at {} failed!".format(commit, checkout_dir))
+    return_code, _, _ = popen([config.hg(), "update", commit], cwd=checkout_dir)
+    if return_code != 0:
+        raise VersionControlException("Checking out commit {} at {} failed!"
+                                      .format(commit, checkout_dir))
 
 
 def hg_get_commit(repo, commit):
@@ -41,36 +38,27 @@ def hg_get_commit(repo, commit):
 
 
 def hg_last_tag(repo):
-    child = subprocess.Popen([config.hg(), "log", "-r", '"."', "--template", "{latesttag}"],
-                             cwd=repo,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise common.VersionControlException("Failed to get last tag of Hg repository {}".format(repo))
-    return stdout_data.decode("ascii").strip()
+    return_code, stdout, stderr = popen([config.hg(), "log", "-r", '"."', "--template", "{latesttag}"], cwd=repo)
+    if return_code != 0:
+        raise VersionControlException("Failed to get last tag of Hg repository {}"
+                                      .format(repo))
+    return stdout
 
 
 def hg_all_tags(repo):
-    child = subprocess.Popen([config.hg(), "log", "-r", 'tag()', "--template", '{tags}\n'],
-                             cwd=repo,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise common.VersionControlException("Failed to get tags of Hg repository {}".format(repo))
-    return stdout_data.decode("ascii").strip().split()
+    return_code, stdout, stderr = popen([config.hg(), "log", "-r", 'tag()', "--template", '{tags}\n'], cwd=repo)
+    if return_code != 0:
+        raise VersionControlException("Failed to get tags of Hg repository {}"
+                                      .format(repo))
+    return stdout.split()
 
 
 def hg_last_commit(repo):
-    child = subprocess.Popen([config.hg(), "log", "-r", "tip", "--template", "{rev}"],
-                             cwd=repo,
-                             stdout=PIPE,
-                             stderr=PIPE)
-    stdout_data, stderr_data = child.communicate()
-    if child.returncode != 0:
-        raise common.VersionControlException("Failed to get last commit of Hg repository {}".format(repo))
-    return stdout_data.decode("ascii").strip().split()[0]
+    return_code, stdout, stderr = popen([config.hg(), "log", "-r", "tip", "--template", "{rev}"], cwd=repo)
+    if return_code != 0:
+        raise VersionControlException("Failed to get last commit of Hg repository {}"
+                                             .format(repo))
+    return stdout.split()[0]
 
 
 get_commit = hg_get_commit
