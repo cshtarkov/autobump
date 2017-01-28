@@ -192,7 +192,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
 
     # Set appropriate log level
-    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_format = "%(name)s (%(levelname)s) - %(message)s"
     if args.debug:
         logging.basicConfig(level=logging.DEBUG,
                             format=log_format)
