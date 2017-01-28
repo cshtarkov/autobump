@@ -74,6 +74,7 @@ def _run_type_compatibility_checker(location, superclass, subclass):
 def _compile_and_run_utility(utility, args):
     """Compile a utility somewhere in a temporary directory
     so it can be used this time, and then run it."""
+    # TODO: try to compile in place first, then to tempdir
     filename = utility + ".java"
     with tempfile.TemporaryDirectory() as dir:
         shutil.copy(os.path.join(libexec, filename), dir)

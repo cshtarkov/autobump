@@ -55,7 +55,7 @@ class Semver(object):
         "v1" -> "1.0.0"
         """
         logger.warning("Guessing version from string {}".format(string))
-        match = re.match(r"(v|ver|version)?-?(\d)\.?(\d)?\.?(\d)?", string)
+        match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?", string)
         if match:
             major = int(match.group(2))
             minor = int(match.group(3) or 0)
