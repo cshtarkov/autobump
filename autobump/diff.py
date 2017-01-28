@@ -77,7 +77,7 @@ def _compare_types(a_ent, b_ent):
 def _compare_signatures(a_ent, b_ent):
     """Compare signatures of two entities and return a list of Changes."""
     changes = []
-    logger.debug("Comparing signatures of {} and {}:\n\tVariant A: {}\n\tVariant B: {}"
+    logger.debug("Comparing signatures of {} and {}\n\tVariant A: {}\n\tVariant B: {}"
                  .format(a_ent, b_ent, str(a_ent.signatures), str(b_ent.signatures)))
 
     if len(a_ent.signatures) == 1 and len(b_ent.signatures) == 1:
@@ -102,7 +102,7 @@ def _compare_signatures(a_ent, b_ent):
                 compat_signatures.add(a_sig)
                 compat_signatures.add(b_sig)
     if len(compat_signatures) > 0:
-        logger.debug("There were some different, but compatible signatures:\n\t{}"
+        logger.debug("There were some different, but compatible signatures\n\t{}"
                      .format(str(compat_signatures)))
     not_in_a = not_in_a.difference(compat_signatures)
     not_in_b = not_in_b.difference(compat_signatures)
@@ -161,10 +161,9 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     there was a major, minor, patch or no change."""
     assert a_ent.name == b_ent.name, "Shouldn't compare entities with different names."
     assert type(a_ent) is type(b_ent), "Shouldn't compare entities of different types."
-    logger.debug("Now comparing: {0}.{1}"
-                 .format(path, a_ent.name))
 
     path = _join_path(path, a_ent.name)
+    logger.debug("Comparing {}" .format(path))
 
     if config.entity_ignored(path) and a_ent.name != "":
         logger.debug("Ignoring because of configuration")

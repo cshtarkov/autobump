@@ -54,13 +54,15 @@ class Semver(object):
         "v1.2" -> "1.2.0"
         "v1" -> "1.0.0"
         """
-        logger.warning("Guessing version from string {}".format(string))
         match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?", string)
         if match:
             major = int(match.group(2))
             minor = int(match.group(3) or 0)
             patch = int(match.group(4) or 0)
-            return semver(major, minor, patch)
+            guess = semver(major, minor, patch)
+            logger.warning("Guessing version from string '{}': {}"
+                           .format(string, guess))
+            return guess
         else:
             raise semver.NotAVersionNumber("Cannot reliable guess version number from {}".format(string))
 
