@@ -83,11 +83,15 @@ class TestGitRepoConversion(unittest.TestCase):
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
         self.assertEqual(len([u for u in units if u.name == "file2"]), 1)
 
+    @unittest.skipIf("TRAVIS" in os.environ,
+                     "Travis ships an outdated version of Git.")
     def test_last_tag(self):
         self.one_commit_fixture()
         _run_git(self.dir, ["tag", "v1.0.0"])
         self.assertEqual(git.last_tag(self.dir), "v1.0.0")
 
+    @unittest.skipIf("TRAVIS" in os.environ,
+                     "Travis ships an outdated version of Git.")
     def test_all_tags(self):
         self.two_commits_fixture()
         _run_git(self.dir, ["checkout", "HEAD~1"])
