@@ -63,6 +63,22 @@ class TestJavaHandlerBase(unittest.TestCase):
             }
             """),
 
+            ("packageY/InterfaceE.java",
+            """
+            package packageY;
+
+            public interface InterfaceE {
+            }
+            """),
+
+            ("packageY/InterfaceX.java",
+             """
+             package packageY;
+
+             public interface InterfaceX extends InterfaceD, InterfaceE {
+             }
+             """),
+
             ("packageY/ClassD.java",
             """
             package packageY;
@@ -71,6 +87,8 @@ class TestJavaHandlerBase(unittest.TestCase):
             public class ClassD extends ClassC implements InterfaceD {
                 public static void acceptsClassD(ClassD p) {}
                 public static void acceptsIfaceD(InterfaceD p) {}
+                public static void acceptsIfaceE(InterfaceE p) {}
+                public static void acceptsIfaceX(InterfaceX p) {}
                 public static void acceptsClassA(ClassA p) {}
                 public static void acceptsClassC(ClassC p) {}
                 public static void acceptsArrayClassC(ClassC[] p) {}
@@ -205,6 +223,13 @@ class TestTypesAST(TestJavaHandlerBase):
         interface = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[1].type
         subclass = self.codebase["packageY.ClassD"].functions["acceptsClassD"].signatures[0].parameters[1].type
         self.assertFalse(subclass.is_compatible(interface))
+
+    def test_interface_extension(self):
+        interface1 = self.codebase["packageY.ClassD"].functions["acceptsIfaceD"].signatures[0].parameters[1].type
+        interface2 = self.codebase["packageY.ClassD"].functions["acceptsIfaceE"].signatures[0].parameters[1].type
+        subclass = self.codebase["packageY.ClassD"].functions["acceptsIfaceX"].signatures[0].parameters[1].type
+        self.assertTrue(interface1.is_compatible(subclass))
+        self.assertTrue(interface2.is_compatible(subclass))
 
 
 class TestTypesNative(TestTypesAST):
