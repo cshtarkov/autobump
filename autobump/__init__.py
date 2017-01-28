@@ -301,6 +301,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
     # Return the new version if autobump is called from another Python program.
     # If called from an entry point as specified in setup.py, this is printed.
+    logger.info("Final answer, new version is {}".format(b_version))
     return b_version
 
 
