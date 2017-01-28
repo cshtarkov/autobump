@@ -290,10 +290,6 @@ index d451ade..6455580 100644
  }
      """),
 
-    # TODO: BUG: This test fails.
-    # ClassB extends ClassA, so m() is overloaded:
-    # Variant A is: void m(ClassB), void m(ImmutableMultiset)
-    # Variant B is: void m(ClassB), void m(Multiset)
     ("Change type of parameter to interface",
      "6.1.1",
      """
