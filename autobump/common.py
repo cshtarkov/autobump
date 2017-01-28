@@ -32,46 +32,56 @@ class VersionControlException(Exception):
 
 
 class Semver(object):
-    # TODO: Implement support for labels.
     """Minimal representation of a semantic version."""
 
     class NotAVersionNumber(Exception):
         pass
 
-    def __init__(self, major, minor, patch):
+    def __init__(self, major, minor, patch, label=""):
         assert type(major) is int
         assert type(minor) is int
         assert type(patch) is int
-        self.major, self.minor, self.patch = major, minor, patch
+        assert type(label) is str
+        self.major, self.minor, self.patch, self.label = major, minor, patch, label
 
     def __eq__(self, other):
         assert isinstance(other, type(self))
         return self.major == other.major and \
                self.minor == other.minor and \
-               self.patch == other.patch
+               self.patch == other.patch and \
+               self.label == other.label
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     @classmethod
     def from_string(semver, version):
-        major, minor, patch = [int(c) for c in version.split(".")]
-        return semver(major, minor, patch)
+        if "-" in version:
+            numeric = version[:version.find("-")]
+            try:
+                label = version[version.find("-") + 1:]
+            except IndexError:
+                raise semver.NotAVersionNumber()
+        else:
+            numeric = version
+            label = ""
+        major, minor, patch = [int(c) for c in numeric.split(".")]
+        return semver(major, minor, patch, label)
 
     @classmethod
     def from_tuple(semver, version):
-        major, minor, patch = version
-        return semver(major, minor, patch)
+        return semver(*version)
 
     @classmethod
     def guess_from_string(semver, string):
         """Guess a version number from a tag name. """
-        match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?", string)
+        match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?-?(.*)$", string)
         if match:
             major = int(match.group(2))
             minor = int(match.group(3) or 0)
             patch = int(match.group(4) or 0)
-            guess = semver(major, minor, patch)
+            label = str(match.group(5) or "")
+            guess = semver(major, minor, patch, label)
             logger.warning("Guessing version from string '{}': {}"
                            .format(string, guess))
             return guess
@@ -82,16 +92,23 @@ class Semver(object):
         """Bump version using a Bump enum."""
         assert type(bump) is diff.Bump, "Bump should be an Enum"
         if bump is diff.Bump.patch:
-            return Semver(self.major, self.minor, self.patch + 1)
+            return Semver(self.major, self.minor, self.patch + 1, "")
         if bump is diff.Bump.minor:
-            return Semver(self.major, self.minor + 1, 0)
+            return Semver(self.major, self.minor + 1, 0, "")
         if bump is diff.Bump.major:
-            return Semver(self.major + 1, 0, 0)
+            return Semver(self.major + 1, 0, 0, "")
         # No bump
-        return Semver(self.major, self.minor, self.patch)
+        return Semver(self.major, self.minor, self.patch, self.label)
+
+    def drop_label(self):
+        """Return a new semver with the label gone."""
+        return Semver(self.major, self.minor, self.patch, "")
 
     def __str__(self):
-        return str(self.major) + "." + str(self.minor) + "." + str(self.patch)
+        return "{}.{}.{}{}".format(self.major,
+                                   self.minor,
+                                   self.patch,
+                                   "" if self.label == "" else "-" + self.label)
 
 
 def popen(args, cwd="."):
