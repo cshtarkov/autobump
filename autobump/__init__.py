@@ -157,6 +157,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser.add_argument("-i", "--info",
                         action="store_true",
                         help="print progress information to stderr")
+    parser.add_argument("-s", "--silence",
+                        action="store_true",
+                        help="silence all output except for errors and results, overrides --info and --debug")
     parser.add_argument("-r", "--repo",
                         type=str,
                         help="repository location, will use working directory if not specified")
@@ -184,9 +187,11 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
 
     # Set appropriate log level
-    # TODO: Support silencing even warnings
     log_format = "%(levelname)s (%(name)s) - %(message)s"
-    if args.debug:
+    if args.silence:
+        logging.basicConfig(level=logging.ERROR,
+                            format=log_format)
+    elif args.debug:
         logging.basicConfig(level=logging.DEBUG,
                             format=log_format)
     elif args.info:
