@@ -85,6 +85,37 @@ def _patch_types_with_location(units, location):
         _patch_types_with_location(unit.units, location)
 
 
+def _evaluate(args, repo):
+    """Run Autobump in evaluation mode."""
+    args.evaluate = False
+    first_revision = args.f
+    last_revision = args.to
+    logger.info("Running in evaluation mode between {} and {}"
+                .format(args.f, args.to))
+    all_revisions = repo.all_tags()
+    if first_revision not in all_revisions or last_revision not in all_revisions:
+        logger.error("Invalid range, one or more tags not found!")
+        exit(1)
+    mismatched = []
+    for rev_i in range(all_revisions.index(first_revision),
+                       all_revisions.index(last_revision) - 1):
+        a_revision = all_revisions[rev_i]
+        b_revision = all_revisions[rev_i + 1]
+        logger.debug("Evaluating revisions {}...{}"
+                     .format(a_revision, b_revision))
+        setattr(args, "from", a_revision)
+        args.to = b_revision
+        b_version_expected = Semver.guess_from_string(b_revision)
+        b_version_actual = autobump(args=args)
+        if b_version_expected != b_version_actual:
+            logger.debug("Version found differs from name of tag:\n\tReported: {}\n\tFrom tag: {}"
+                         .format(b_version_actual, b_version_expected))
+            mismatched.append((a_revision, b_revision, b_version_actual))
+    for a_revision, b_revision, actual in mismatched:
+        print("{a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
+              .format(a_revision=a_revision, b_revision=b_revision, actual=actual))
+
+
 def autobump(**kwargs):
     """Main entry point."""
     description = """
@@ -197,39 +228,11 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     logger.info("Language identified as {}".format(repo_handler))
 
     # Check for evaluation mode
-    # TODO: move this, and maybe other things, to another function
-    # this is getting ridiculous
     if args.evaluate:
         if not args.f or not args.to:
             logger.error("Evaluation mode requires supplying a range")
             exit(1)
-        args.evaluate = False
-        first_revision = args.f
-        last_revision = args.to
-        logger.info("Running in evaluation mode between {} and {}"
-                    .format(args.f, args.to))
-        all_revisions = repo.all_tags()
-        if first_revision not in all_revisions or last_revision not in all_revisions:
-            logger.error("Invalid range, one or more tags not found!")
-            exit(1)
-        mismatched = []
-        for rev_i in range(all_revisions.index(first_revision),
-                           all_revisions.index(last_revision) - 1):
-            a_revision = all_revisions[rev_i]
-            b_revision = all_revisions[rev_i + 1]
-            logger.debug("Evaluating revisions {}...{}"
-                         .format(a_revision, b_revision))
-            setattr(args, "from", a_revision)
-            args.to = b_revision
-            b_version_expected = Semver.guess_from_string(b_revision)
-            b_version_actual = autobump(args=args)
-            if b_version_expected != b_version_actual:
-                logger.debug("Version found differs from name of tag:\n\tReported: {}\n\tFrom tag: {}"
-                             .format(b_version_actual, b_version_expected))
-                mismatched.append((a_revision, b_revision, b_version_actual))
-        for a_revision, b_revision, actual in mismatched:
-            print("{a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
-                  .format(a_revision=a_revision, b_revision=b_revision, actual=actual))
+        _evaluate(args, repo)
         exit(0)
 
     # Identify revisions
