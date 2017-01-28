@@ -74,20 +74,32 @@ def _run_type_compatibility_checker(location, superclass, subclass):
 def _compile_and_run_utility(utility, args):
     """Compile a utility somewhere in a temporary directory
     so it can be used this time, and then run it."""
-    # TODO: try to compile in place first, then to tempdir
+
+    logger.warning("Compiling {} in place".format(utility))
     filename = utility + ".java"
-    with tempfile.TemporaryDirectory() as dir:
-        shutil.copy(os.path.join(libexec, filename), dir)
-        child = subprocess.Popen([config.javac()] + [filename],
-                                 cwd=dir,
-                                 stdout=PIPE,
-                                 stderr=PIPE)
-        _, stderr_data = child.communicate()
-        if child.returncode != 0:
-            logger.error("Failed to compile {}! Please compile manually.".format(utility))
-            exit(1)
-            # TODO: Tempdir leaks?
-        return _run_utility(utility, args, basedir=dir)
+    # First, try to compile in place.
+    child = subprocess.Popen([config.javac()] + [filename],
+                             cwd=libexec,
+                             stdout=PIPE,
+                             stderr=PIPE)
+    child.communicate()
+    if child.returncode != 0:
+        logger.warning("Failed to compile {} in place, trying in a tempdir"
+                       .format(utility))
+        with tempfile.TemporaryDirectory() as dir:
+            shutil.copy(os.path.join(libexec, filename), dir)
+            child = subprocess.Popen([config.javac()] + [filename],
+                                    cwd=dir,
+                                    stdout=PIPE,
+                                    stderr=PIPE)
+            _, stderr_data = child.communicate()
+            if child.returncode != 0:
+                logger.error("Failed to compile {}! Please compile manually.".format(utility))
+                raise JavaUtilityException("{} needs to be compiled".format(utility))
+            # Call the utility from the temporary directory
+            return _run_utility(utility, args, basedir=dir)
+    # Compilation succeeded in-place, call the utility normally
+    return _run_utility(utility, args)
 
 
 def _run_utility(utility, args, basedir=libexec):
@@ -95,7 +107,7 @@ def _run_utility(utility, args, basedir=libexec):
     javafile = os.path.join(basedir, utility + ".java")
     classfile = os.path.join(basedir, utility + ".class")
     if os.path.isfile(javafile) and not os.path.isfile(classfile):
-        logger.warning("{} has not been compiled! Trying to compile in a temporary directory.".format(utility))
+        logger.warning("{} has not been compiled".format(utility))
         return _compile_and_run_utility(utility, args)
     child = subprocess.Popen([config.java()] + [utility] + args, cwd=basedir, stdout=PIPE, stderr=PIPE)
     stdout_data, stderr_data = child.communicate()

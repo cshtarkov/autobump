@@ -12,7 +12,7 @@ JAVA_CLASS_FILES=$(JAVA_FILES:.java=.class)
 
 default: all
 
-all: libexec lint .coverage
+all: lint .coverage
 
 # Fail if there any TODOs left in the source code.
 .PHONY: todos
