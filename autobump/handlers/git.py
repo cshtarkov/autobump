@@ -47,7 +47,8 @@ def git_all_tags(repo):
                              stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
-        raise common.VersionControlException("Failed to get tags of Git repository {}".format(repo))
+        raise common.VersionControlException("Failed to get tags of Git repository {}\n{}"
+                                             .format(repo, stderr_data.decode("ascii").strip()))
     return stdout_data.decode("ascii").strip().split()
 
 
