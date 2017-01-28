@@ -47,12 +47,11 @@ def git_all_tags(repo):
                              stderr=PIPE)
     stdout_data, stderr_data = child.communicate()
     if child.returncode != 0:
-        raise common.VersionControlException("Failed to get last tag of Git repository {}".format(repo))
+        raise common.VersionControlException("Failed to get tags of Git repository {}".format(repo))
     return stdout_data.decode("ascii").strip().split()
 
 
 def git_last_tag(repo):
-    # TODO: handle missing last tag
     all_tags = git_all_tags(repo)
     if len(all_tags) == 0:
         raise VersionControlException("No last tag")

@@ -52,7 +52,14 @@ def hg_last_tag(repo):
 
 
 def hg_all_tags(repo):
-    raise NotImplemented
+    child = subprocess.Popen([config.hg(), "log", "-r", 'tag()', "--template", '{tags}\n'],
+                             cwd=repo,
+                             stdout=PIPE,
+                             stderr=PIPE)
+    stdout_data, stderr_data = child.communicate()
+    if child.returncode != 0:
+        raise common.VersionControlException("Failed to get tags of Hg repository {}".format(repo))
+    return stdout_data.decode("ascii").strip().split()
 
 
 def hg_last_commit(repo):

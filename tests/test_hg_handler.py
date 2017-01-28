@@ -6,15 +6,16 @@ from subprocess import PIPE
 
 from autobump.capir import Unit
 from autobump.common import VersionControlException
-from autobump.handlers import git
+from autobump.handlers import hg
 
 
-def _run_git(checkout_dir, args):
-    """Run Git inside a directory with a list of arguments."""
-    child = subprocess.Popen(["git"] + args, cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
+def _run_hg(checkout_dir, args):
+    """Run Hg inside a directory with a list of arguments."""
+    # TODO: This should probably be merged with _run_git
+    child = subprocess.Popen(["hg"] + args, cwd=checkout_dir, stdout=PIPE, stderr=PIPE)
     child.communicate()
     if child.returncode != 0:
-        raise VersionControlException("\'git {}\' failed!".format(args))
+        raise VersionControlException("\'hg {}\' failed!".format(args))
 
 
 def mock_transformator(checkout_dir):
@@ -22,6 +23,7 @@ def mock_transformator(checkout_dir):
     to a list of units.
 
     An empty, public unit is created for each file."""
+    # TODO: This can be imported from the git test
     units = []
     for _, _, files in os.walk(checkout_dir):
         for file in files:
@@ -29,47 +31,51 @@ def mock_transformator(checkout_dir):
     return units
 
 
-class TestGitRepoConversion(unittest.TestCase):
-    """Test whether the Git handler converts a repo
+class TestHgRepoConversion(unittest.TestCase):
+    """Test whether the Hg handler converts a repo
     to a list of units correctly.
 
     The transformator function is mocked."""
     def setUp(self):
         self.dir_handle = tempfile.TemporaryDirectory()
         self.dir = self.dir_handle.name
-        _run_git(self.dir, ["init"])
-        _run_git(self.dir, ["config", "user.email", "mock@autobump.com"])
-        _run_git(self.dir, ["config", "user.name", "Mock"])
+        _run_hg(self.dir, ["init"])
+        hgrc_contents = """
+[ui]
+username = Mock <mock@autobump.com>
+"""
+        with open(os.path.join(self.dir, ".hg/hgrc"), "w") as hgrc:
+            print(hgrc_contents, file=hgrc)
 
     def one_commit_fixture(self):
         with open(os.path.join(self.dir, "file1"), "w"):
             pass
-        _run_git(self.dir, ["add", "file1"])
-        _run_git(self.dir, ["commit", "-a", "-m", '"first commit"'])
+        _run_hg(self.dir, ["add", "file1"])
+        _run_hg(self.dir, ["commit", "-m", '"first commit"'])
 
     def two_commits_fixture(self):
         with open(os.path.join(self.dir, "file1"), "w"):
             pass
         with open(os.path.join(self.dir, "file2"), "w"):
             pass
-        _run_git(self.dir, ["add", "file1"])
-        _run_git(self.dir, ["commit", "-a", "-m", '"first commit"'])
-        _run_git(self.dir, ["add", "file2"])
-        _run_git(self.dir, ["commit", "-a", "-m", '"second commit"'])
+        _run_hg(self.dir, ["add", "file1"])
+        _run_hg(self.dir, ["commit", "-m", '"first commit"'])
+        _run_hg(self.dir, ["add", "file2"])
+        _run_hg(self.dir, ["commit", "-m", '"second commit"'])
 
     def tearDown(self):
         self.dir_handle.cleanup()
 
     def test_current_commit(self):
         self.one_commit_fixture()
-        handle, location = git.get_commit(self.dir, "HEAD")
+        handle, location = hg.get_commit(self.dir, "0")
         units = mock_transformator(location)
         handle.cleanup()
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
 
     def test_previous_commit(self):
         self.two_commits_fixture()
-        handle, location = git.get_commit(self.dir, "HEAD~1")
+        handle, location = hg.get_commit(self.dir, "0")
         units = mock_transformator(location)
         handle.cleanup()
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
@@ -77,7 +83,7 @@ class TestGitRepoConversion(unittest.TestCase):
 
     def test_last_commit(self):
         self.two_commits_fixture()
-        handle, location = git.get_commit(self.dir, git.last_commit(self.dir))
+        handle, location = hg.get_commit(self.dir, hg.last_commit(self.dir))
         units = mock_transformator(location)
         handle.cleanup()
         self.assertEqual(len([u for u in units if u.name == "file1"]), 1)
@@ -85,16 +91,16 @@ class TestGitRepoConversion(unittest.TestCase):
 
     def test_last_tag(self):
         self.one_commit_fixture()
-        _run_git(self.dir, ["tag", "v1.0.0"])
-        self.assertEqual(git.last_tag(self.dir), "v1.0.0")
+        _run_hg(self.dir, ["tag", "v1.0.0"])
+        self.assertEqual(hg.last_tag(self.dir), "v1.0.0")
 
     def test_all_tags(self):
         self.two_commits_fixture()
-        _run_git(self.dir, ["checkout", "HEAD~1"])
-        _run_git(self.dir, ["tag", "v1.0.0"])
-        _run_git(self.dir, ["checkout", "master"])
-        _run_git(self.dir, ["tag", "v2.0.0"])
-        all_tags = git.all_tags(self.dir)
+        _run_hg(self.dir, ["update", "0"])
+        _run_hg(self.dir, ["tag", "v1.0.0", "-f"])
+        _run_hg(self.dir, ["update", "1"])
+        _run_hg(self.dir, ["tag", "v2.0.0", "-f"])
+        all_tags = hg.all_tags(self.dir)
         self.assertEqual(len(all_tags), 2)
         self.assertEqual(all_tags[0], "v1.0.0")
         self.assertEqual(all_tags[1], "v2.0.0")
