@@ -31,7 +31,10 @@ from autobump.capir import Type, Field, Parameter, Signature, Function, Unit
 
 logger = logging.getLogger(__name__)
 
+# When qualifying types, we can (mostly) safely skip all of these.
 _primitive_types = {"void", "byte", "short", "int", "long", "float", "double", "boolean", "char"}
+_builtin_types = {"T", "String", "Object", "Class", "List", "Set", "Map", "Throwable", "Collection"}
+
 _source_file_ext = ".java"
 
 
@@ -101,13 +104,21 @@ class _JavaTypeSystem(object):
 
             # Check 'extends' for this type
             if hasattr(node, "extends") and node.extends is not None:
-                extends = _qualify_type(node.extends, compilation)
-                if extends in self.type_objects:
-                    self.type_objects[extends].children.add(type_object)
+                if isinstance(node.extends, list):
+                    # No, Java doesn't allow multiple inheritance,
+                    # but an interface can extend several other interfaces.
+                    # We can reuse the same logic as a class implementing multiple
+                    # interfaces.
+                    assert not hasattr(node, "implements")
+                    node.implements = node.extends
                 else:
-                    extended_object = _JavaType(extends)
-                    self.type_objects[extends] = extended_object
-                    self.type_objects[extends].children.add(type_object)
+                    extends = _qualify_type(node.extends, compilation)
+                    if extends in self.type_objects:
+                        self.type_objects[extends].children.add(type_object)
+                    else:
+                        extended_object = _JavaType(extends)
+                        self.type_objects[extends] = extended_object
+                        self.type_objects[extends].children.add(type_object)
 
             # Check 'implements' for this type
             if hasattr(node, "implements") and node.implements is not None:
@@ -120,8 +131,8 @@ class _JavaTypeSystem(object):
                         self.type_objects[interface] = interface_object
                         self.type_objects[interface].children.add(type_object)
 
-        # Also need to add all primitive types
-        for primitive_type in _primitive_types:
+        # Also need to add all primitive types and built-in types
+        for primitive_type in _primitive_types.union(_builtin_types):
             type_object = _JavaType(primitive_type)
             self.type_objects[primitive_type] = type_object
 
@@ -191,10 +202,10 @@ def _qualify_type(type, compilation):
     """Return the fully-qualified name of a type reference in a compilation unit."""
     name = type.name
     dimension = len(getattr(type, "dimensions", []))
-    if name in _primitive_types:
+    if name in _primitive_types or name in _builtin_types:
         return _prefix_array_dimension(name, dimension)
     candidates = [i for i in compilation.imports
-                  if i.path.endswith(name) and (i.path.find(name) == 0 or i.path[i.path.find(name) - 1] == ".")]
+                  if i.path.endswith(name) and (i.path.find(name) == 0 or i.path[i.path.rfind(name) - 1] == ".")]
     assert len(candidates) <= 1, \
            "Don't know what to do: more than one candidate for qualifying {} found in {}".format(name, compilation.filename)
     if len(candidates) == 1:
@@ -302,8 +313,10 @@ def _compilation_to_unit(compilation, type_system):
     In Java, there can be at most one class or interface declaration
     per file. To avoid redundancy, the file is not considered a separate
     Unit."""
-    assert len(compilation.types) == 1, \
+    assert len(compilation.types) <= 1, \
            "Don't know what to do: {} contains more than one top-level type declaration!".format(compilation.filename)
+    if len(compilation.types) == 0:
+        return Unit("", {}, {}, {})
     return _class_or_interface_to_unit(compilation.types[0], compilation, type_system)
 
 

@@ -36,7 +36,8 @@ class TestSemver(unittest.TestCase):
             "version5": "5.0.0",
             "1.2.3": "1.2.3",
             "8": "8.0.0",
-            "9.0": "9.0.0"
+            "9.0": "9.0.0",
+            "v2.13.0": "2.13.0"
         }
         for string, version in guesses.items():
             self.assertEqual(str(Semver.guess_from_string(string)), version)
