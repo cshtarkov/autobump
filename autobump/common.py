@@ -1,4 +1,23 @@
-"""Common classes and functions used by the core logic and the handlers."""
+# Copyright 2016-2017 Christian Shtarkov
+#
+# This file is part of Autobump.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""
+Common classes and functions used throughout Autobump.
+"""
+
 import re
 import logging
 import subprocess
@@ -45,16 +64,7 @@ class Semver(object):
 
     @classmethod
     def guess_from_string(semver, string):
-        """Guess a version number from a tag name.
-
-        Example recognized patterns:
-        "1.2.3" -> "1.2.3"
-        "1.2" -> "1.2.0"
-        "1" -> "1.0.0"
-        "v1.2.3" -> "1.2.3"
-        "v1.2" -> "1.2.0"
-        "v1" -> "1.0.0"
-        """
+        """Guess a version number from a tag name. """
         match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?", string)
         if match:
             major = int(match.group(2))
@@ -68,9 +78,7 @@ class Semver(object):
             raise semver.NotAVersionNumber("Cannot reliable guess version number from {}".format(string))
 
     def bump(self, bump):
-        """Bump version using a Bump enum.
-
-        Returns a new Semver object."""
+        """Bump version using a Bump enum."""
         assert type(bump) is diff.Bump, "Bump should be an Enum"
         if bump is diff.Bump.patch:
             return Semver(self.major, self.minor, self.patch + 1)
@@ -86,8 +94,11 @@ class Semver(object):
 
 
 def popen(args, cwd="."):
-    """Thin wrapper around subprocess.Popen that always pipes stdout
-    and stdin."""
+    """Thinly wrap subprocess.Popen.
+
+    Always pipes stdout and stderr so that nothing is seen by
+    the end user unless explicitly printed.
+    """
     child = subprocess.Popen(args,
                              cwd=cwd,
                              stdout=subprocess.PIPE,

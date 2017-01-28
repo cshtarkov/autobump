@@ -1,5 +1,32 @@
-"""Tool for automatically suggesting the next version of a project according
-to semantic versioning."""
+# Copyright 2016-2017 Christian Shtarkov
+#
+# This file is part of Autobump.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""
+Tool for automatically suggesting the next version of a project
+according to semantic versioning.
+
+Autobump inspects how a version-controlled project has changed over time, identifies
+the major, minor and patch changes as specified by semantic versioning, and proposes
+a new version based on the previous one.
+
+The tool works with multiple languages through the use of handlers (see 'handlers/')
+by converting the public API of two revisions of a library into a common representation
+(see 'capir.py') which can then be diffed (see 'diff.py') in order to get the new version.
+"""
+
 import os
 import sys
 import enum
@@ -19,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class _Repository(object):
-    """Represents a repository at a location."""
+    """Represent a repository at a location."""
     class VCS(enum.Enum):
         git = 0
         hg = 1
@@ -73,7 +100,12 @@ class _Repository(object):
 
 
 def _patch_types_with_location(units, location):
-    """Walk all types found in a dictionary of units and set their location property."""
+    """Walk all types found in a dictionary of units and
+    set their location property.
+
+    This is necessary for some handlers, where the directory layout
+    of the library matters.
+    """
     for unit in units.values():
         for field in unit.fields.values():
             field.type.location = location
@@ -117,7 +149,7 @@ def _evaluate(args, repo):
 
 
 def autobump(**kwargs):
-    """Main entry point."""
+    """Main entry point of Autobump."""
     description = """
 Determine change of semantic version of code in a repository.
 

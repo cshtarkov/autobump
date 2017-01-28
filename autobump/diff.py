@@ -1,4 +1,31 @@
-"""Core codebase comparison logic."""
+# Copyright 2016-2017 Christian Shtarkov
+#
+# This file is part of Autobump.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""
+Codebase diffing logic.
+
+This is the heart of Autobump.
+
+The main entrypoint to this module 'compare_codebases'
+is used to determine what the appropriate version bump should be
+by considering how a codebase has changed over time.
+
+Those changes can also be emmitted to a changelog file if requested.
+"""
+
 import logging
 import functools
 from enum import Enum
@@ -54,8 +81,7 @@ class Change(Enum):
 
 
 def _join_path(path, name):
-    """Join a prefix path and an entity name
-    to form a new path."""
+    """Join a prefix path and an entity name to form a new path."""
     return (path + "." if path != "" else "") + name
 
 
@@ -158,7 +184,8 @@ def _compare_entities(a_ent, b_ent, changelog_file, path=""):
     """Compare two code entities which have the same name.
 
     Return a Bump enum based on whether
-    there was a major, minor, patch or no change."""
+    there was a major, minor, patch or no change.
+    """
     assert a_ent.name == b_ent.name, "Shouldn't compare entities with different names."
     assert type(a_ent) is type(b_ent), "Shouldn't compare entities of different types."
 

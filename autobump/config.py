@@ -1,11 +1,32 @@
-"""Provide functions that get configuration parameters.
+# Copyright 2016-2017 Christian Shtarkov
+#
+# This file is part of Autobump.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""
+Provide functions that get configuration parameters.
 
 Methods check these sources in succession and stop at the first one:
 
 1. Environment variables.
 2. Configuration file.
 3. Defaults.
+
+Additionally, configuration may be overriden at runtime by using
+the context manager and decorator defined here.
 """
+
 import os
 import re
 import logging
