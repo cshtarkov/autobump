@@ -1,7 +1,11 @@
+import sys
 from setuptools import setup
 
+if sys.version_info < (3, 5):
+    sys.exit("Python 3.5+ is required for Autobump.")
+
 setup(name="autobump",
-      version="0.1.2",
+      version="0.2.0",
       description="Automatic semantic versioning of projects",
       url="https://github.com/cshtarkov/autobump",
       author="Christian Shtarkov",
