@@ -90,7 +90,7 @@ def _evaluate(args, all_revisions):
         exit(1)
     mismatched = []
     for rev_i in range(all_revisions.index(first_revision),
-                       all_revisions.index(last_revision) - 1):
+                       all_revisions.index(last_revision)):
         a_revision = all_revisions[rev_i]
         b_revision = all_revisions[rev_i + 1]
         logger.debug("Evaluating revisions {}...{}"
