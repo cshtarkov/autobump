@@ -184,6 +184,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
 
     # Set appropriate log level
+    # TODO: Support silencing even warnings
     log_format = "%(levelname)s (%(name)s) - %(message)s"
     if args.debug:
         logging.basicConfig(level=logging.DEBUG,

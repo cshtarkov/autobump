@@ -32,6 +32,7 @@ class VersionControlException(Exception):
 
 
 class Semver(object):
+    # TODO: Implement support for labels.
     """Minimal representation of a semantic version."""
 
     class NotAVersionNumber(Exception):
