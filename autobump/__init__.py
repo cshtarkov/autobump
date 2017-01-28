@@ -29,9 +29,9 @@ by converting the public API of two revisions of a library into a common represe
 
 import os
 import sys
-import enum
 import logging
 import argparse
+from functools import partial
 
 from autobump import diff
 from autobump.common import Semver, VersionControlException
@@ -45,58 +45,19 @@ from autobump.handlers import clojure
 logger = logging.getLogger(__name__)
 
 
-class _Repository(object):
-    """Represent a repository at a location."""
-    class VCS(enum.Enum):
-        git = 0
-        hg = 1
-
-    def __init__(self, location):
-        self.location = location
-        try:
-            # TODO: This will not work with bare repositories.
-            if os.path.isdir(os.path.join(self.location, ".git")):
-                self.vcs = self.VCS.git
-            elif os.path.isdir(os.path.join(self.location, ".hg")):
-                self.vcs = self.VCS.hg
-            else:
-                self.vcs = None
-        except IOError:
-            logger.error("IO error occured while trying to get VCS")
-        self.handler = self._match_handler(self.vcs)
-
-    def _match_handler(self, vcs):
-        """Return the handler responsible for the VCS of this type."""
-        handlers = {
-            self.VCS.git: git,
-            self.VCS.hg: hg
-        }
-        return handlers.get(vcs, None)
-
-    def get_commit(self, commit):
-        assert self.handler is not None
-        return self.handler.get_commit(self.location, commit)
-
-    def all_tags(self):
-        """Return a list of all tags in chronological order."""
-        if self.handler is not None:
-            return self.handler.all_tags(self.location)
+def _identify_vcs(location):
+    """Identify the type of a repository and return the appropriate handler."""
+    try:
+        # TODO: This will not work with bare repositories.
+        if os.path.isdir(os.path.join(location, ".git")):
+            return git
+        elif os.path.isdir(os.path.join(location, ".hg")):
+            return hg
         else:
-            raise NotImplementedError("Cannot get all tags for repository type {}".format(self.vcs))
-
-    def last_tag(self):
-        """Return name of most recently made tag."""
-        if self.handler is not None:
-            return self.handler.last_tag(self.location)
-        else:
-            raise NotImplementedError("Cannot get last tag for repository type {}".format(self.vcs))
-
-    def last_commit(self):
-        """Return identifier of most recently made commit."""
-        if self.handler is not None:
-            return self.handler.last_commit(self.location)
-        else:
-            raise NotImplementedError("Cannot get last tag for repository type {}".format(self.vcs))
+            return None
+    except IOError:
+        logger.error("IO error occured while trying to get VCS")
+        return None
 
 
 def _patch_types_with_location(units, location):
@@ -117,14 +78,13 @@ def _patch_types_with_location(units, location):
         _patch_types_with_location(unit.units, location)
 
 
-def _evaluate(args, repo):
+def _evaluate(args, all_revisions):
     """Run Autobump in evaluation mode."""
     args.evaluate = False
     first_revision = args.f
     last_revision = args.to
     logger.info("Running in evaluation mode between {} and {}"
                 .format(args.f, args.to))
-    all_revisions = repo.all_tags()
     if first_revision not in all_revisions or last_revision not in all_revisions:
         logger.error("Invalid range, one or more tags not found!")
         exit(1)
@@ -235,15 +195,22 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         logging.basicConfig(format=log_format)
     logger.info("Logging enabled")
 
+    # Identify location of repository
+    repo = args.repo or os.getcwd()
+    logger.info("Repository is: {}".format(repo))
+
     # Identify VCS
-    repo = _Repository(args.repo or os.getcwd())
-    if repo.vcs is None:
+    vcs_handler = _identify_vcs(repo)
+    if vcs_handler is None:
         logger.error("Failed to identify VCS! Are you running Autobump in the root of the repository?")
         exit(1)
-    logger.info("VCS identified as {}".format(repo.vcs))
+    logger.info("VCS handler is {}".format(vcs_handler.__name__))
+    vcs_get_commit = partial(vcs_handler.get_commit, repo)
+    vcs_all_tags = partial(vcs_handler.all_tags, repo)
+    vcs_last_tag = partial(vcs_handler.last_tag, repo)
+    vcs_last_commit = partial(vcs_handler.last_commit, repo)
 
     # Identify language
-    repo_handler = args.handler
     handler_map = {
         "py": python,
         "python": python,
@@ -251,27 +218,25 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         "java_native": java_native,
         "clojure": clojure
     }
-    try:
-        codebase_to_units = handler_map[repo_handler].codebase_to_units
-        build_required = handler_map[repo_handler].build_required
-    except KeyError:
-        logger.error("Invalid handler {} specified!".format(repo_handler))
+    lang_handler = handler_map.get(args.handler, None)
+    if lang_handler is None:
+        logger.error("Invalid handler {} specified!".format(args.handler))
         exit(1)
-    logger.info("Language identified as {}".format(repo_handler))
+    logger.info("Language handler is {}".format(lang_handler.__name__))
 
     # Check for evaluation mode
     if args.evaluate:
         if not args.f or not args.to:
             logger.error("Evaluation mode requires supplying a range")
             exit(1)
-        _evaluate(args, repo)
+        _evaluate(args, vcs_all_tags())
         exit(0)
 
     # Identify revisions
     try:
-        a_revision = args.f or repo.last_tag()
+        a_revision = args.f or vcs_last_tag()
         logger.info("Earlier revision identified as {}".format(a_revision))
-        b_revision = args.to or repo.last_commit()
+        b_revision = args.to or vcs_last_commit()
         logger.info("Later revision identified as {}".format(b_revision))
     except VersionControlException:
         logger.error("Failed to automatically determine comparison range.")
@@ -290,16 +255,16 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         exit(1)
 
     # Determine bump
-    a_handle, a_location = repo.get_commit(a_revision)
-    b_handle, b_location = repo.get_commit(b_revision)
-    if build_required:
+    a_handle, a_location = vcs_get_commit(a_revision)
+    b_handle, b_location = vcs_get_commit(b_revision)
+    if lang_handler.build_required:
         logger.info("Handler indicated that a build is required")
         # Options "--build-command" and "--build-root" should be passed in.
         if not args.build_command or not args.build_root:
             logger.error("The {} handler requires that the project is built, but no build command or build root were provided".format(args.handler))
             exit(1)
-        a_units = codebase_to_units(a_location, args.build_command, args.build_root)
-        b_units = codebase_to_units(b_location, args.build_command, args.build_root)
+        a_units = lang_handler.codebase_to_units(a_location, args.build_command, args.build_root)
+        b_units = lang_handler.codebase_to_units(b_location, args.build_command, args.build_root)
         # Need to set the 'location' property of all types in both codebases
         # to the location of the latter one. Comparing types may require
         # loading compiled components.
@@ -310,8 +275,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         logger.info("Handler indicated no build is required")
         if args.build_command or args.build_root:
             logger.warn("No build is required, but build-command or build-root given - IGNORING")
-        a_units = codebase_to_units(a_location)
-        b_units = codebase_to_units(b_location)
+        a_units = lang_handler.codebase_to_units(a_location)
+        b_units = lang_handler.codebase_to_units(b_location)
 
     logger.debug("Found {} units in variant A".format(len(a_units)))
     logger.debug("Found {} units in variant B".format(len(b_units)))
