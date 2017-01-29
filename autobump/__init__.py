@@ -291,6 +291,8 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
 
     logger.debug("Found {} units in variant A".format(len(a_units)))
     logger.debug("Found {} units in variant B".format(len(b_units)))
+    if len(a_units) == 0 or len(b_units) == 0:
+        logger.warning("Is the ignore list too restrictive?")
     bump = diff.compare_codebases(a_units, b_units, changelog_file)
     logger.info("Bump found to be {}".format(bump))
     if changelog_file not in {None, sys.stdout}:
