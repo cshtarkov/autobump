@@ -3,6 +3,7 @@ import unittest
 from autobump.diff import Bump
 from autobump.common import Semver
 
+
 class TestSemver(unittest.TestCase):
     """Test representation of a semantic version."""
 

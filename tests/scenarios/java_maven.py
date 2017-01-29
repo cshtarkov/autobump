@@ -27,6 +27,7 @@ def tearDown(_):
     if previous_classpath is not None:
         os.environ["CLASSPATH"] = previous_classpath
 
+
 commit_history = [
 
     ("Initial commit",

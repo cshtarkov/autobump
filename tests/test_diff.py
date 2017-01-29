@@ -207,5 +207,6 @@ class TestSingleEntities(unittest.TestCase):
                                     [Signature([Parameter("a", _compatWithA)])]))
         self.expect(Bump.major)
 
+
 if __name__ == "__main__":
     unittest.main()

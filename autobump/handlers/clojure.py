@@ -185,5 +185,6 @@ def clojure_codebase_to_units(location):
 
     return _sexp_read(_run_inspector(cljfiles, location))
 
+
 build_required = False
 codebase_to_units = clojure_codebase_to_units

@@ -231,5 +231,6 @@ def java_codebase_to_units(location, build_command, build_root):
         units[unit.name] = unit
     return units
 
+
 build_required = True
 codebase_to_units = java_codebase_to_units

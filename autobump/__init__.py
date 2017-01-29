@@ -88,7 +88,6 @@ def _evaluate(args, all_revisions):
     if first_revision not in all_revisions or last_revision not in all_revisions:
         logger.error("Invalid range, one or more tags not found!")
         exit(1)
-    mismatched = []
     for rev_i in range(all_revisions.index(first_revision),
                        all_revisions.index(last_revision)):
         a_revision = all_revisions[rev_i]

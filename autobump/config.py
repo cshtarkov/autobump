@@ -205,9 +205,10 @@ def java_classpath():
     value = get("java_native", "classpath")
     return (value + ":.:") if value != "" else ""
 
+
 # java_ast
 java_error_on_external_types = make_get("java_ast", "error_on_external_types")
-java_omit_on_error  = make_get("java_ast", "omit_on_error")
+java_omit_on_error = make_get("java_ast", "omit_on_error")
 
 # clojure
 clojure_lazy_type_checking = make_get("clojure", "lazy_type_checking")
