@@ -102,15 +102,13 @@ def _evaluate(args, all_revisions):
                      .format(a_revision, b_revision))
         setattr(args, "from", a_revision)
         args.to = b_revision
-        b_version_expected = Semver.guess_from_string(b_revision)
+        b_version_expected = Semver.guess_from_string(b_revision).drop_label()
         b_version_actual = autobump(args=args)
         if b_version_expected != b_version_actual:
             logger.debug("Version found differs from name of tag:\n\tReported: {}\n\tFrom tag: {}"
                          .format(b_version_actual, b_version_expected))
-            mismatched.append((a_revision, b_revision, b_version_actual))
-    for a_revision, b_revision, actual in mismatched:
-        print("{a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
-              .format(a_revision=a_revision, b_revision=b_revision, actual=actual))
+            print("---- {a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
+                .format(a_revision=a_revision, b_revision=b_revision, actual=b_version_actual))
 
 
 def autobump(**kwargs):
