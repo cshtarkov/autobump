@@ -300,9 +300,12 @@ def _source_to_compilation(filename, source):
         tree = javalang.parse.parse(source)
     except javalang.parser.JavaSyntaxError as e:
         logger.error("Java Syntax Error  {}:{}: {}"
-                     .format(filename, e.at, e.description))
+                    .format(filename, e.at, e.description))
         logger.error("Stopped parsing {}".format(filename))
-        exit(1)
+        if not config.java_omit_on_error():
+            exit(1)
+        else:
+            tree = javalang.parse.parse("")
     tree.filename = filename
     return tree
 
