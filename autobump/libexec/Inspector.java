@@ -169,7 +169,7 @@ public class Inspector {
 
         // Validate and parse arguments
         Queue<Class> forInspection = new LinkedList<Class>();
-        if (args.length < 2) {
+        if (args.length < 1) {
             abort("Invalid number of arguments: expected [build-location] [class-names...]");
         }
 
