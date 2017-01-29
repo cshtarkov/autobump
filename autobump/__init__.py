@@ -93,6 +93,11 @@ def _evaluate(args, all_revisions):
                        all_revisions.index(last_revision)):
         a_revision = all_revisions[rev_i]
         b_revision = all_revisions[rev_i + 1]
+        # Omit version pairs that are the same one, just
+        # with a different label.
+        if Semver.guess_from_string(b_revision).drop_label() == \
+           Semver.guess_from_string(a_revision).drop_label():
+            continue
         logger.debug("Evaluating revisions {}...{}"
                      .format(a_revision, b_revision))
         setattr(args, "from", a_revision)
