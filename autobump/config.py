@@ -65,7 +65,6 @@ defaults = {
     },
 
     "java_native": {
-        "lazy_type_checking": False,
         "classpath": ""
     },
 
@@ -197,10 +196,8 @@ python_omit_on_error = make_get("python", "omit_on_error")
 structural_typing = make_get("python", "structural_typing")
 type_hinting = make_get("python", "type_hinting")
 
+
 # java_native
-java_lazy_type_checking = make_get("java_native", "lazy_type_checking")
-
-
 def java_classpath():
     # The classpath is special, because we need to append
     # the working directory so that Autobump's utilities like

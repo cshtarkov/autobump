@@ -51,11 +51,12 @@ class _JavaNativeType(Type):
     def is_compatible(self, other):
         assert type(self) is type(other), "Should never happen: comparing a _JavaNativeType to something else."
         assert hasattr(self, "location") and self.location is not None, "Should never happen: location should be set prior to calling is_compatible"
+
         if self.dimension != other.dimension:
             return False
 
-        if config.java_lazy_type_checking():
-            return self.name == other.name and self.dimension == other.dimension
+        if self.name == other.name:
+            return True
         else:
             return _run_type_compatibility_checker(self.location, self.name, other.name)
 
