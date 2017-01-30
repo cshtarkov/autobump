@@ -78,7 +78,7 @@ def _patch_types_with_location(units, location):
         _patch_types_with_location(unit.units, location)
 
 
-def _evaluate(args, all_revisions):
+def evaluate(args, all_revisions):
     """Run Autobump in evaluation mode."""
     args.evaluate = False
     first_revision = args.f
@@ -110,7 +110,7 @@ def _evaluate(args, all_revisions):
                 .format(a_revision=a_revision, b_revision=b_revision, actual=b_version_actual))
 
 
-def autobump(**kwargs):
+def autobump(args=None):
     """Main entry point of Autobump."""
     description = """
 Determine change of semantic version of code in a repository.
@@ -185,7 +185,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
                         help="run in evaluation mode, measure quality of tags")
 
     # Parse command-line arguments only if not passed to the function.
-    args = kwargs.get("args", parser.parse_args())
+    args = args or parser.parse_args()
     args.f = getattr(args, "from")  # Syntax doesn't allow `args.from`.
 
     # Set appropriate log level
@@ -237,7 +237,7 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
         if not args.f or not args.to:
             logger.error("Evaluation mode requires supplying a range")
             exit(1)
-        _evaluate(args, vcs_all_tags())
+        evaluate(args, vcs_all_tags())
         exit(0)
 
     # Identify revisions
