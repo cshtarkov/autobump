@@ -85,9 +85,12 @@ def evaluate(args, all_revisions):
     last_revision = args.to
     logger.info("Running in evaluation mode between {} and {}"
                 .format(args.f, args.to))
+
     if first_revision not in all_revisions or last_revision not in all_revisions:
         logger.error("Invalid range, one or more tags not found!")
         exit(1)
+
+    failed = 0
     for rev_i in range(all_revisions.index(first_revision),
                        all_revisions.index(last_revision)):
         a_revision = all_revisions[rev_i]
@@ -108,6 +111,9 @@ def evaluate(args, all_revisions):
                          .format(b_version_actual, b_version_expected))
             print("---- {a_revision} --- {b_revision} should have been {a_revision} --- {actual}"
                 .format(a_revision=a_revision, b_revision=b_revision, actual=b_version_actual))
+            failed = failed + 1
+
+    return failed
 
 
 def autobump(args=None):

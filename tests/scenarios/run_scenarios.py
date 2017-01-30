@@ -4,44 +4,19 @@ import os
 import re
 import imp
 import sys
+import argparse
 import tempfile
 from subprocess import CalledProcessError
 
 from autobump.common import popen
-from autobump.__init__ import autobump
-
-
-class IteratorWithRunner(object):
-    """Iterator over an entire list, returning
-    tuples of the form (a[i], a[i+k]).
-    Iterations stops once i+k is the final element."""
-    def __init__(self, a, k=1):
-        self.a = a
-        self.k = k
-
-    def __iter__(self):
-        self.i = 0
-        return self
-
-    def __next__(self):
-        if self.i + self.k >= len(self.a):
-            raise StopIteration
-        self.i += 1
-        return (self.a[self.i - 1], self.a[self.i - 1 + self.k])
-
-
-def call_autobump(*args):
-    """Call autobump as if it was called as a standalone program.
-    Returns the new version number as reported by autobump."""
-    sys.argv[1:] = ["-d"] + list(args)
-    version = autobump()
-    return str(version)
+from autobump.__init__ import evaluate
 
 
 def call_git(repo, *args):
     """Call Git in some repository with some arguments.
 
-    If the exit code is not 0, an exception is raised."""
+    If the exit code is not 0, an exception is raised.
+    """
     cmd = ["git"] + list(args)
     return_code, _, _ = popen(cmd, cwd=repo)
     if return_code != 0:
@@ -64,45 +39,40 @@ def reconstruct(commit_history, repo):
     """Reconstruct a repository based on its commit
     history."""
 
-    # First, create an empty repository.
     call_git(repo, "init")
     call_git(repo, "config", "user.email", "mock@autobump.com")
     call_git(repo, "config", "user.name", "Mock")
 
-    # Then, apply the first patch to get things started.
-    message, version, patch = commit_history[0]
-    git_patch(repo, message, patch)
-    call_git(repo, "tag", version)
+    _, first_version, _ = commit_history[0]
+    all_versions = []
 
-    # Commit the remaining patches.
-    for _, after in IteratorWithRunner(commit_history):
-        message, new_version, patch = after
+    for commit in commit_history:
+        message, new_version, patch = commit
         git_patch(repo, message, patch)
         call_git(repo, "tag", new_version)
+        last_version = new_version
+        all_versions.append(last_version)
+
+    return first_version, last_version, all_versions
 
 
-def reconstruct_and_verify(commit_history, handler, build_command, build_root, setUp, tearDown):
+def reconstruct_and_verify(commit_history, setUp, tearDown, **kwargs):
     """Verify that a reconstructed repository matches
     the expected version at every commit."""
 
-    failed = 0
     with tempfile.TemporaryDirectory() as repo:
-        reconstruct(commit_history, repo)
-
+        args = argparse.Namespace(**kwargs)
+        args.f, args.to, all_versions = reconstruct(commit_history, repo)
+        args.repo = repo
+        args.changelog = None
+        args.changelog_stdout = None
+        args.from_version = None
+        args.to_version = None
+        args.silence = False
+        args.info = False
+        args.debug = True
         setUp(repo)
-        for before, after in IteratorWithRunner(commit_history):
-            _, previous_version, _ = before
-            message, new_version, patch = after
-            proposed_version = call_autobump(handler,
-                                             "-r", repo,
-                                             "--from", previous_version,
-                                             "--to", new_version,
-                                             "--build-command", build_command,
-                                             "--build-root", build_root)
-            if new_version != proposed_version:
-                failed += 1
-                print("\nVersion mismatch: expected {}, got {}.\nMessage and patch:\n{}\n{}"
-                      .format(new_version, proposed_version, message, patch))
+        failed = evaluate(args, all_versions)
         tearDown(repo)
 
     return failed
@@ -134,20 +104,18 @@ def run_scenarios():
         try:
             module = imp.find_module(scenario_name, [scenario_dir])
             scenario = imp.load_module(scenario_name, *module)
+            assert hasattr(scenario, "handler")
             print("Running scenario: {}".format(scenario_name))
             total += len(scenario.commit_history) - 1
             commit_history = scenario.commit_history
-            handler = scenario.handler
-            build_command = getattr(scenario, "build_command", "none")
-            build_root = getattr(scenario, "build_root", "none")
             setUp = getattr(scenario, "setUp", lambda r: None)
             tearDown = getattr(scenario, "tearDown", lambda r: None)
             failed += reconstruct_and_verify(commit_history,
-                                             handler,
-                                             build_command,
-                                             build_root,
                                              setUp,
-                                             tearDown)
+                                             tearDown,
+                                             handler=getattr(scenario, "handler"),
+                                             build_command=getattr(scenario, "build_command", None),
+                                             build_root=getattr(scenario, "build_root", None))
         except ImportError as ex:
             errors += 1
             print("Failed to run scenario: {}".format(scenario_name))
