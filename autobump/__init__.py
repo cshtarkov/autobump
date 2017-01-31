@@ -307,6 +307,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     # Determine version
     a_version = Semver.from_string(args.from_version) if args.from_version is not None else Semver.guess_from_string(a_revision)
     logger.debug("Earlier version is {}".format(a_version))
+    if bump == diff.Bump.major and a_version.major == 0:
+        logger.warning("Found breaking changes, but there's no stable API yet")
+        bump = diff.Bump.minor
     b_version = a_version.bump(bump)
     logger.debug("Later version is {}".format(b_version))
 
