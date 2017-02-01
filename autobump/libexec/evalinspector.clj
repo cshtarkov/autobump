@@ -34,6 +34,10 @@
     'definline
     'defn
     'defonce
+    'defrecord
+    'defprotocol
+    'defmulti
+    'defmethod
     'ann
     'ann-form})
 
@@ -158,10 +162,7 @@
          name
          (map describe-field fields)
          (map describe-function functions)
-         (map describe-unit units)))
-  ([{name :name qname :qname value :value}]
-   (list 'unit
-         '() '() '())))
+         '())))
 
 (defn- safe-eval-file
   "Safely evaluate forms in a file and returns its namespace."

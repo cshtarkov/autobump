@@ -37,6 +37,11 @@ class TestClojureHandlerBase(unittest.TestCase):
             (defn type-hinting [^String s ^Integer i ^String m])
             (defmacro some-macro [])
             (defmacro some-macro-arg [a])
+
+            (defrecord RecordA [f1 f2])
+            (defprotocol ProtocolA
+              (method1 [a])
+              (method2 [a b]))
             """),
 
             ("lib/other.clj",
@@ -82,6 +87,9 @@ class TestFields(TestClojureHandlerBase):
 
     def test_field_visible(self):
         self.assertTrue("constant" in self.codebase["lib.core"].fields)
+
+    def test_protocol_field(self):
+        self.assertTrue("ProtocolA" in self.codebase["lib.core"].fields)
 
 
 class TestFunctions(TestClojureHandlerBase):
@@ -137,6 +145,13 @@ class TestFunctions(TestClojureHandlerBase):
         self.assertEqual(1, len(signatures[0].parameters))
         self.assertEqual(2, len(signatures[1].parameters))
 
+    def test_record_functions(self):
+        self.assertTrue("->RecordA" in self.functions)
+        self.assertTrue("map->RecordA" in self.functions)
+
+    def test_protocol_methods(self):
+        self.assertTrue("method1" in self.functions)
+        self.assertTrue("method2" in self.functions)
 
 class TestTypes(TestClojureHandlerBase):
 
