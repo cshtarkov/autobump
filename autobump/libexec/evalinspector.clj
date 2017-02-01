@@ -45,7 +45,8 @@
     (System/exit exit-code)))
 
 (defn- not-this-file
-  "Predicate that matches all file names except this program."
+  "Predicate that matches all file names except this program.
+  (Only if it's an absolute path.)"
   [file]
   (not (= (:file (meta #'not-this-file)) file)))
 
@@ -135,24 +136,32 @@
   (:arglists (meta symbol)))
 
 (defn- describe-signature
-  "Describe a signature as a sexp using only ()."
   [signature]
   (concat (list 'signature)
           (map expand-tags (split-arguments signature))))
 
 (defn- describe-function
-  "Describe a function as a sexp using only ()."
-  [{name :name qname :qname function :var}]
+  [{name :name qname :qname function :value}]
   (list 'function
         name
         (map describe-signature (signatures qname))))
 
 (defn- describe-field
-  "Describe a field as a sexp using only ()."
-  [{name :name qname :qname value :var}]
+  [{name :name qname :qname value :value}]
   (list 'field
         name
         (type value)))
+
+(defn- describe-unit
+  ([name fields functions units]
+   (list 'unit
+         name
+         (map describe-field fields)
+         (map describe-function functions)
+         (map describe-unit units)))
+  ([{name :name qname :qname value :value}]
+   (list 'unit
+         '() '() '())))
 
 (defn- safe-eval-file
   "Safely evaluate forms in a file and returns its namespace."
@@ -162,30 +171,35 @@
     (map safe-eval forms)
     namespace))
 
+(defn- describe-symbol
+  "Return a map containing the name of the symbol found in ns, it's fully qualified name
+  and the value of the var it points to."
+  [ns s]
+  (let [qualified-name (ns-resolve ns s)]
+    {:name s :qname qualified-name :value (var-get qualified-name)}))
+
+(defn- is-function [{v :value}]
+  (fn? v))
+
+(defn- is-unit [{v :value}]
+  (class? v))
+
+(defn- is-field [smap]
+  (and (not (is-function smap)) (not (is-unit smap))))
+
 (defn- describe-ns
-  "Describe a file as a sexp using only ()."
-  [namespace]
-  (let* [vars (map
-               (fn [s]
-                 (let [resolved (ns-resolve namespace s)]
-                   {:name s
-                    :qname resolved
-                    :var (var-get resolved)}))
-               (symbols-in-ns namespace))
-         fields (filter (fn [p] (not (fn? (:var p)))) vars)
-         functions (filter (fn [p] (fn? (:var p))) vars)]
-    (list 'file
-          namespace
-          (map describe-field fields)
-          (map describe-function functions))))
+  [ns]
+  (let [symbols (map (partial describe-symbol ns) (symbols-in-ns ns))]
+    (let [fields (filter is-field symbols)
+          functions (filter is-function symbols)
+          units (filter is-unit symbols)]
+      (describe-unit ns fields functions units))))
 
 (defn describe-files
-  "Describe a seq of files using only ()."
   [files]
   (map describe-ns (map safe-eval-file (filter not-this-file files))))
 
 (defn main
-  "Main entry point of the program."
   [args]
   (when (empty? args)
     (abort! "Invalid number of arguments: expected [files...]"))

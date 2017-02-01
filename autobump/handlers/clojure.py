@@ -134,21 +134,25 @@ def _sexp_read(s):
         tag, name, type_name = lst
         return Field(name, _lookup_type(type_name))
 
-    def read_file(lst):
-        verify_tag("file", lst)
-        tag, ns, fields, functions = lst
+    def read_unit(lst):
+        verify_tag("unit", lst)
+        tag, name, fields, functions, units = lst
         fields_dict = {}
         functions_dict = {}
+        units_dict = {}
         for f in fields:
             field = read_field(f)
             fields_dict[field.name] = field
         for f in functions:
             function = read_function(f)
             functions_dict[function.name] = function
-        return Unit(ns,
+        for u in units:
+            unit = read_unit(u)
+            units_dict[unit.name] = unit
+        return Unit(name,
                     fields_dict,
                     functions_dict,
-                    dict())
+                    units_dict)
 
     # TODO: Why [0]?
     units = dict()
@@ -157,7 +161,7 @@ def _sexp_read(s):
         raise _SexpReadException("Sexp contains more than one top-level form")
     files = lst[0]
     for f in files:
-        unit = read_file(f)
+        unit = read_unit(f)
         units[unit.name] = unit
     return units
 
