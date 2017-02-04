@@ -182,19 +182,15 @@
 (defn- is-function [{v :value}]
   (fn? v))
 
-(defn- is-unit [{v :value}]
-  (class? v))
-
-(defn- is-field [smap]
-  (and (not (is-function smap)) (not (is-unit smap))))
+(defn- is-field [{v :value}]
+  (not (fn? v)))
 
 (defn- describe-ns
   [ns]
   (let [symbols (map (partial describe-symbol ns) (symbols-in-ns ns))]
     (let [fields (filter is-field symbols)
-          functions (filter is-function symbols)
-          units (filter is-unit symbols)]
-      (describe-unit ns fields functions units))))
+          functions (filter is-function symbols)]
+      (describe-unit ns fields functions '()))))
 
 (defn describe-files
   [files]
