@@ -75,7 +75,7 @@ class Semver(object):
     @classmethod
     def guess_from_string(semver, string):
         """Guess a version number from a tag name. """
-        match = re.match(r"(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?-?(.*)$", string)
+        match = re.match(r"[\w-]*-?(v|ver|version)?-?(\d+)\.?(\d+)?\.?(\d+)?-?(.*)$", string)
         if match:
             major = int(match.group(2))
             minor = int(match.group(3) or 0)

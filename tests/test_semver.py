@@ -48,7 +48,13 @@ class TestSemver(unittest.TestCase):
             "v2.13.0": "2.13.0",
             "v1.0.0-rc1": "1.0.0-rc1",
             "v1.0.0-beta": "1.0.0-beta",
-            "v2.3.4b": "2.3.4-b"
+            "v2.3.4b": "2.3.4-b",
+            "project-v1.0.0": "1.0.0",
+            "project-1.0.0": "1.0.0",
+            "vproject-1.0.0": "1.0.0",
+            "versionedproject-v2.3.4-beta": "2.3.4-beta",
+            "with-dash-v1.0.0": "1.0.0",
+            "with_underscore-v1.0.0": "1.0.0"
         }
         for string, version in guesses.items():
             self.assertEqual(str(Semver.guess_from_string(string)), version)
