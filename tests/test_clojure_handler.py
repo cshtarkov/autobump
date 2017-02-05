@@ -171,5 +171,6 @@ class TestTypes(TestClojureHandlerBase):
         # Object replaced by String
         self.assertFalse(parameters[2].type.is_compatible(parameters[0].type))
 
+
 if __name__ == "__main__":
     unittest.main()
