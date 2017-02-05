@@ -26,7 +26,7 @@
 ;; This program is invoked by autobump's Clojure handler.
 
 (ns autobump.handlers.clojure
-  (:require [clojure.set :refer [union]]))
+  (:require [clojure.set]))
 
 (def form-whitelist
   #{'ns
@@ -79,10 +79,16 @@
   [file-name]
   (read-string (str "(" (slurp file-name) ")")))
 
+(defn- safe-supers
+  [t]
+  (try
+    (supers t)
+    (catch Exception - (list))))
+
 (defn- all-supers
   "Return a set of all supers of the type T."
   [t]
-  (if (nil? t) #{} (apply union #{t} (map all-supers (supers t)))))
+  (if (nil? t) #{} (apply clojure.set/union #{t} (map all-supers (safe-supers t)))))
 
 (defn- describe-type
   [t]
@@ -200,11 +206,13 @@
   (not (fn? v)))
 
 (defn- describe-ns
-  [ns]
-  (let [symbols (map (partial describe-symbol ns) (symbols-in-ns ns))]
+  [namespace]
+  (use namespace)
+  (in-ns namespace)
+  (let [symbols (map (partial describe-symbol namespace) (symbols-in-ns namespace))]
     (let [fields (filter is-field symbols)
           functions (filter is-function symbols)]
-      (describe-unit ns fields functions '()))))
+      (describe-unit namespace fields functions '()))))
 
 (defn describe-files
   [files]
