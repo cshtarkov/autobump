@@ -25,7 +25,8 @@
 ;;
 ;; This program is invoked by autobump's Clojure handler.
 
-(ns autobump.handlers.clojure)
+(ns autobump.handlers.clojure
+  (:require [clojure.set :refer [union]]))
 
 (def form-whitelist
   #{'ns
@@ -78,6 +79,17 @@
   [file-name]
   (read-string (str "(" (slurp file-name) ")")))
 
+(defn- all-supers
+  "Return a set of all supers of the type T."
+  [t]
+  (if (nil? t) #{} (apply union #{t} (map all-supers (supers t)))))
+
+(defn- describe-type
+  [t]
+  (list 'type
+        t
+        (into '() (all-supers t))))
+
 (defn- form-safe?
   "Check whether a form is safe for evaluation."
   [form]
@@ -105,13 +117,15 @@
   (require ns)
   (keys (ns-publics ns)))
 
+(defn- safe-resolve [t] (if (nil? t) nil (resolve t)))
+
 (defn- expand-tag
   "Given an argument, transform into a (argument type) pair."
   [arg]
   (cond
-    (vector? arg) '(anon-vector nil)
-    (map? arg) '(anon-map nil)
-    true (list arg (:tag (meta arg)))))
+    (vector? arg) (list 'anon-vector (describe-type nil))
+    (map? arg) (list 'anon-map (describe-type nil))
+    true (list arg (describe-type (safe-resolve (:tag (meta arg)))))))
 
 (defn- expand-tags
   "Given a seq of arguments, transform each argument into a (argument type) pair."
@@ -154,7 +168,7 @@
   [{name :name qname :qname value :value}]
   (list 'field
         name
-        (type value)))
+        (describe-type (type value))))
 
 (defn- describe-unit
   ([name fields functions units]

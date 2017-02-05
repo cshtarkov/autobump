@@ -74,7 +74,6 @@ defaults = {
     },
 
     "clojure": {
-        "lazy_type_checking": True,
         "classpath": ""
     },
 }
@@ -211,5 +210,4 @@ java_error_on_external_types = make_get("java_ast", "error_on_external_types")
 java_omit_on_error = make_get("java_ast", "omit_on_error")
 
 # clojure
-clojure_lazy_type_checking = make_get("clojure", "lazy_type_checking")
 clojure_classpath = make_get("clojure", "classpath")

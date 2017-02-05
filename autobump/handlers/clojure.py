@@ -37,22 +37,23 @@ _source_file_ext = ".clj"
 
 
 class _ClojureType(Type):
-    def __init__(self, name):
+    def __init__(self, name, supers):
         self.name = name
+        self.supers = supers
 
     def is_compatible(self, other):
         if self.name == "nil":
             return True
-        if config.clojure_lazy_type_checking():
-            return self.name == other.name
-        else:
-            raise NotImplementedError("Non-lazy type checking")
+        return other.name in self.supers
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
         return "<ClojureType {}>".format(self.name)
+
+
+_clojure_nil = _ClojureType("nil", set())
 
 
 class _ClojureUtilityException(Exception):
@@ -72,11 +73,6 @@ def _run_inspector(files, repo):
     if return_code != 0:
         raise _ClojureUtilityException(stderr)
     return stdout
-
-
-def _lookup_type(name):
-    # TODO: Properly lookup types.
-    return _ClojureType(name)
 
 
 def _sexp_read(s):
@@ -112,27 +108,32 @@ def _sexp_read(s):
         if lst[0] != tag:
             raise _SexpReadException("Expected {}, got {}".format(tag, lst[0]))
 
+    def _read_type(lst):
+        verify_tag("type", lst)
+        tag, name, supers = lst
+        return _ClojureType(name, set(supers))
+
     def read_signature(lst):
         verify_tag("signature", lst)
         tag, positional, optional = lst
-        parameters = [Parameter(name, _lookup_type(type_name))
-                      for name, type_name
+        parameters = [Parameter(name, _read_type(type))
+                      for name, type
                       in positional]
         # TODO: Properly handle default values (:or idiom).
-        parameters += [Parameter(name, _lookup_type(type_name), default_value=True)
-                       for name, type_name
+        parameters += [Parameter(name, _read_type(type), default_value=True)
+                       for name, type
                        in optional]
         return Signature(parameters)
 
     def read_function(lst):
         verify_tag("function", lst)
         tag, name, signatures = lst
-        return Function(name, _lookup_type("nil"), [read_signature(s) for s in signatures])
+        return Function(name, _clojure_nil, [read_signature(s) for s in signatures])
 
     def read_field(lst):
         verify_tag("field", lst)
-        tag, name, type_name = lst
-        return Field(name, _lookup_type(type_name))
+        tag, name, type = lst
+        return Field(name, _read_type(type))
 
     def read_unit(lst):
         verify_tag("unit", lst)

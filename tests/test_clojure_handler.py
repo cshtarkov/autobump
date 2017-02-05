@@ -34,7 +34,7 @@ class TestClojureHandlerBase(unittest.TestCase):
             (defn multiple-signatures
               ([a] nil)
               ([a b] nil))
-            (defn type-hinting [^String s ^Integer i ^String m])
+            (defn type-hinting [^String s ^Integer i ^Object m])
             (defmacro some-macro [])
             (defmacro some-macro-arg [a])
 
@@ -153,6 +153,7 @@ class TestFunctions(TestClojureHandlerBase):
         self.assertTrue("method1" in self.functions)
         self.assertTrue("method2" in self.functions)
 
+
 class TestTypes(TestClojureHandlerBase):
 
     def setUp(self):
@@ -163,6 +164,12 @@ class TestTypes(TestClojureHandlerBase):
         self.assertFalse(parameters[0].type.is_compatible(parameters[1].type))
         self.assertTrue(parameters[0].type.is_compatible(parameters[2].type))
 
+    def test_type_compatibility(self):
+        parameters = self.codebase["lib.core"].functions["type-hinting"].signatures[0].parameters
+        # String replaced by Object
+        self.assertTrue(parameters[0].type.is_compatible(parameters[2].type))
+        # Object replaced by String
+        self.assertFalse(parameters[2].type.is_compatible(parameters[0].type))
 
 if __name__ == "__main__":
     unittest.main()
