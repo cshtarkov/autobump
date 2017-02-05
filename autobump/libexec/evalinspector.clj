@@ -220,8 +220,9 @@
 
 (defn main
   [args]
-  (when (empty? args)
-    (abort! "Invalid number of arguments: expected [files...]"))
+  (when (or (empty? args)
+            (> (count args) 2))
+    (abort! "Invalid number of arguments: expected [file]"))
   (-> args
       (describe-files)
       (println)))
