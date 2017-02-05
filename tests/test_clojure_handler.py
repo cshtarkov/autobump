@@ -161,15 +161,16 @@ class TestTypes(TestClojureHandlerBase):
 
     def test_type_hinting(self):
         parameters = self.codebase["lib.core"].functions["type-hinting"].signatures[0].parameters
+        self.assertTrue(parameters[0].type.is_compatible(parameters[0].type))
         self.assertFalse(parameters[0].type.is_compatible(parameters[1].type))
-        self.assertTrue(parameters[0].type.is_compatible(parameters[2].type))
+        self.assertFalse(parameters[0].type.is_compatible(parameters[2].type))
 
     def test_type_compatibility(self):
         parameters = self.codebase["lib.core"].functions["type-hinting"].signatures[0].parameters
-        # String replaced by Object
-        self.assertTrue(parameters[0].type.is_compatible(parameters[2].type))
-        # Object replaced by String
-        self.assertFalse(parameters[2].type.is_compatible(parameters[0].type))
+        # Object replaces String
+        self.assertTrue(parameters[2].type.is_compatible(parameters[0].type))
+        # String replaces Object
+        self.assertFalse(parameters[0].type.is_compatible(parameters[2].type))
 
 
 if __name__ == "__main__":

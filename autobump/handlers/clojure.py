@@ -44,7 +44,9 @@ class _ClojureType(Type):
     def is_compatible(self, other):
         if self.name == "nil":
             return True
-        return other.name in self.supers
+        if self.name == other.name:
+            return True
+        return self.name in other.supers
 
     def __str__(self):
         return self.__repr__()
