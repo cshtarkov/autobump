@@ -173,6 +173,39 @@ index 62ccb58..7c80c43 100644
     (+ a b c))
 
  (defn- identity [x] x)
+     """),
+
+    ("Add function with typehinted parameter",
+     "3.1.0",
+     """
+diff --git a/src/clojure_lein/core.clj b/src/clojure_lein/core.clj
+index 7c80c43..71902a2 100644
+--- a/src/clojure_lein/core.clj
++++ b/src/clojure_lein/core.clj
+@@ -5,4 +5,6 @@
+   [a b c]
+    (+ a b c))
+
++(defn p [^String s] (println s))
++
+ (defn- identity [x] x)
+     """),
+
+    ("Relax type hint",
+     "3.1.1",
+     """
+diff --git a/src/clojure_lein/core.clj b/src/clojure_lein/core.clj
+index 71902a2..7a973c8 100644
+--- a/src/clojure_lein/core.clj
++++ b/src/clojure_lein/core.clj
+@@ -5,6 +5,6 @@
+   [a b c]
+    (+ a b c))
+
+-(defn p [^String s] (println s))
++(defn p [^Object s] (println s))
+
+ (defn- identity [x] x)
      """)
 
 ]
