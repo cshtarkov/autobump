@@ -197,7 +197,7 @@
   and the value of the var it points to."
   [ns s]
   (let [qualified-name (ns-resolve ns s)]
-    {:name s :qname qualified-name :value (var-get qualified-name)}))
+    {:name s :qname qualified-name :value (try (var-get qualified-name) (catch Exception - qualified-name))}))
 
 (defn- is-function [{v :value}]
   (fn? v))
