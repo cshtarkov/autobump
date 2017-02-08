@@ -62,6 +62,7 @@ def reconstruct_and_verify(commit_history, setUp, tearDown, **kwargs):
 
     with tempfile.TemporaryDirectory() as repo:
         args = argparse.Namespace(**kwargs)
+        args.export_config = None
         args.f, args.to, all_versions = reconstruct(commit_history, repo)
         args.repo = repo
         args.changelog = None

@@ -33,7 +33,7 @@ import logging
 import argparse
 from functools import partial
 
-from autobump import diff
+from autobump import config, diff
 from autobump.common import Semver, VersionControlException
 from autobump.handlers import hg
 from autobump.handlers import git
@@ -191,6 +191,9 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     parser.add_argument("-e", "--evaluate",
                         action="store_true",
                         help="run in evaluation mode, measure quality of tags")
+    parser.add_argument("-ec", "--export-config",
+                        action="store_true",
+                        help="print the current configuration to stdout and exit")
 
     # Parse command-line arguments only if not passed to the function.
     args = args or parser.parse_args()
@@ -210,6 +213,11 @@ $ {0} java --from milestone-foo --from-version 1.1.0 --to milestone-bar
     else:
         logging.basicConfig(format=log_format)
     logger.info("Logging enabled")
+
+    # Export config
+    if args.export_config:
+        print(config.export_config())
+        exit(0)
 
     # Identify location of repository
     repo = args.repo or os.getcwd()

@@ -31,6 +31,7 @@ import os
 import re
 import logging
 import configparser
+from io import StringIO
 from copy import deepcopy
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,30 @@ defaults = {
 cached = dict()
 
 
+def _value_to_string(value):
+    if isinstance(value, list):
+        return '\n'.join(value)
+    if isinstance(value, bool):
+        return str(value)
+    return value
+
+
+def export_config():
+    """Returns the contents of the current configuration
+    as an INI file."""
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+
+    for category in defaults:
+        for name in defaults[category]:
+            if not config.has_section(category):
+                config.add_section(category)
+            config[category][name] = _value_to_string(get(category, name))
+    ini = StringIO()
+    config.write(ini)
+    return ini.getvalue()
+
+
 def get(category, name):
     """Get the value of a configuration parameter
     by checking several sources in succession."""
@@ -108,7 +133,7 @@ def get(category, name):
     return value
 
 
-def make_get(category, name):
+def _make_get(category, name):
     """Return a no-arguments function that
     gets the value of a parameter."""
     return lambda: get(category, name)
@@ -152,11 +177,11 @@ def set(category, name, value):
 # autobump
 # TODO: move these to respective handlers
 # or rename this to "executables"
-git = make_get("autobump", "git")
-hg = make_get("autobump", "hg")
-clojure = make_get("autobump", "clojure")
-java = make_get("autobump", "java")
-javac = make_get("autobump", "javac")
+git = _make_get("autobump", "git")
+hg = _make_get("autobump", "hg")
+clojure = _make_get("autobump", "clojure")
+java = _make_get("autobump", "java")
+javac = _make_get("autobump", "javac")
 
 
 # ignore
@@ -191,9 +216,9 @@ def entity_ignored(name):
 
 
 # python
-python_omit_on_error = make_get("python", "omit_on_error")
-structural_typing = make_get("python", "structural_typing")
-type_hinting = make_get("python", "type_hinting")
+python_omit_on_error = _make_get("python", "omit_on_error")
+structural_typing = _make_get("python", "structural_typing")
+type_hinting = _make_get("python", "type_hinting")
 
 
 # java_native
@@ -206,8 +231,8 @@ def java_classpath():
 
 
 # java_ast
-java_error_on_external_types = make_get("java_ast", "error_on_external_types")
-java_omit_on_error = make_get("java_ast", "omit_on_error")
+java_error_on_external_types = _make_get("java_ast", "error_on_external_types")
+java_omit_on_error = _make_get("java_ast", "omit_on_error")
 
 # clojure
-clojure_classpath = make_get("clojure", "classpath")
+clojure_classpath = _make_get("clojure", "classpath")

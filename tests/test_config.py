@@ -1,4 +1,5 @@
 import unittest
+import configparser
 
 from autobump import config
 from autobump.config import config_override
@@ -95,6 +96,17 @@ class TestOnlyConsider(unittest.TestCase):
     def test_only_entity(self):
         self.assertFalse(config.entity_ignored("Entity"))
         self.assertTrue(config.entity_ignored("AnotherOne"))
+
+
+class TestExportConfig(unittest.TestCase):
+    """Test exporting the config."""
+
+    def test_exported_config_same_as_current_config(self):
+        exported = configparser.ConfigParser()
+        exported.read_string(config.export_config())
+        for category in config.defaults:
+            for name in config.defaults[category]:
+                self.assertEqual(config._value_to_string(config.get(category, name)), exported[category][name])
 
 
 if __name__ == "__main__":
