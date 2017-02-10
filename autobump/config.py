@@ -79,6 +79,7 @@ defaults = {
     },
 }
 cached = dict()
+_configparser = None
 
 
 def _value_to_string(value):
@@ -119,9 +120,11 @@ def get(category, name):
 
     # Check configuration file.
     else:
-        config = configparser.ConfigParser()
-        config.read(CONFIG_FILE)
-        value = config.get(category, name, fallback=defaults[category][name])
+        global _configparser
+        if _configparser is None:
+            _configparser = configparser.ConfigParser()
+            _configparser.read(CONFIG_FILE)
+        value = _configparser.get(category, name, fallback=defaults[category][name])
 
     if falsy.match(str(value)):
         value = False
