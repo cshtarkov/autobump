@@ -37,7 +37,7 @@ from copy import deepcopy
 logger = logging.getLogger(__name__)
 
 CONFIG_FILE = "autobump.ini"
-falsy = re.compile(r"^([Ff](alse)?|0+)$")
+_falsy = re.compile(r"^([Ff](alse)?|0+)$")
 defaults = {
     "autobump": {
         "git": "git",
@@ -78,7 +78,7 @@ defaults = {
         "classpath": ""
     },
 }
-cached = dict()
+_cached = dict()
 _configparser = None
 
 
@@ -109,7 +109,7 @@ def export_config():
 def get(category, name):
     """Get the value of a configuration parameter
     by checking several sources in succession."""
-    value = cached.get((category, name), None)
+    value = _cached.get((category, name), None)
     if value is not None:
         return value
 
@@ -126,13 +126,13 @@ def get(category, name):
             _configparser.read(CONFIG_FILE)
         value = _configparser.get(category, name, fallback=defaults[category][name])
 
-    if falsy.match(str(value)):
+    if _falsy.match(str(value)):
         value = False
 
     logger.info("{}/{} is {}"
                 .format(category, name, (value if value != "" else "not set")))
 
-    cached[(category, name)] = value
+    _cached[(category, name)] = value
     return value
 
 
@@ -149,15 +149,15 @@ class config_overrides(object):
         self.overrides = overrides
 
     def __enter__(self):
-        global cached
-        self.previous = deepcopy(cached)
+        global _cached
+        self.previous = deepcopy(_cached)
         for category in self.overrides:
             for name in self.overrides[category]:
                 set(category, name, self.overrides[category][name])
 
     def __exit__(self, *args):
-        global cached
-        cached = deepcopy(self.previous)
+        global _cached
+        _cached = deepcopy(self.previous)
 
 
 def config_override(category, name, value):
@@ -173,8 +173,8 @@ def config_override(category, name, value):
 
 def set(category, name, value):
     """Permanently override the value of an option."""
-    global cached
-    cached[(category, name)] = value
+    global _cached
+    _cached[(category, name)] = value
 
 
 # autobump
