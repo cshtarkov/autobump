@@ -97,9 +97,15 @@ def evaluate(args, all_revisions):
         b_revision = all_revisions[rev_i + 1]
         # Omit version pairs that are the same one, just
         # with a different label.
-        if Semver.guess_from_string(b_revision).drop_label() == \
-           Semver.guess_from_string(a_revision).drop_label():
+        try:
+            if Semver.guess_from_string(b_revision).drop_label() == \
+            Semver.guess_from_string(a_revision).drop_label():
+                continue
+        except Semver.NotAVersionNumber:
+            logger.warning("Omitting interval {} -- {}"
+                           .format(a_revision, b_revision))
             continue
+
         logger.debug("Evaluating revisions {}...{}"
                      .format(a_revision, b_revision))
         setattr(args, "from", a_revision)
