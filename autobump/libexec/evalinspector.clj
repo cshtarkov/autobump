@@ -178,10 +178,22 @@
       (eval `(clojure.core.typed/cf ~s)))
     (catch Exception -)))
 
+(defn- dummy-arguments
+  "Generate dummy argument names."
+  []
+  (map str (repeat "arg") (range)))
+
+(defn- strip-arrow
+  "Strip arrow symbol from annotation."
+  [a]
+  (remove #(= % '->) a))
+
 (defn- describe-annotation
   [a]
+  (let* [types (strip-arrow a)
+         return-type (last types)]
   (list 'signature
-        (into '() a)))
+        (map list (dummy-arguments) (map #(list 'type % (list %)) (drop-last types))))))
 
 (defn- describe-signature
   [signature]
@@ -201,7 +213,7 @@
   (list 'field
         name
         (if (annotation name)
-          (annotation name)
+          (list 'type (annotation name) (list (annotation name)))
         (describe-type (type value)))))
 
 (defn- describe-unit
