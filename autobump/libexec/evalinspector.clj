@@ -40,6 +40,9 @@
     'defmulti
     'defmethod
     'ann
+    'ann-record
+    'ann-protocol
+    'ann-many
     'ann-form})
 
 (defn- abort!
@@ -159,6 +162,27 @@
   [symbol]
   (:arglists (meta symbol)))
 
+(defn- annotation
+  "Returns the static annotation of a symbol, nil if it doesn't have one."
+  [s]
+  (try
+    ;; TODO: Figure out a way to rebind *out*
+    ;; to a /dev/null kind of stream, instead of
+    ;; rebinding the printing functions.
+    ;; (output-stream nil) does not work.
+    (with-redefs [println (fn [& rest])
+                  print (fn [& rest])
+                  prn (fn [& rest])
+                  pr (fn [& rest])]
+      (require 'clojure.core.typed)
+      (eval `(clojure.core.typed/cf ~s)))
+    (catch Exception -)))
+
+(defn- describe-annotation
+  [a]
+  (list 'signature
+        (into '() a)))
+
 (defn- describe-signature
   [signature]
   (concat (list 'signature)
@@ -168,13 +192,17 @@
   [{name :name qname :qname function :value}]
   (list 'function
         name
-        (map describe-signature (signatures qname))))
+        (if (annotation name)
+          (list (describe-annotation (annotation name)))
+        (map describe-signature (signatures qname)))))
 
 (defn- describe-field
   [{name :name qname :qname value :value}]
   (list 'field
         name
-        (describe-type (type value))))
+        (if (annotation name)
+          (annotation name)
+        (describe-type (type value)))))
 
 (defn- describe-unit
   ([name fields functions units]
