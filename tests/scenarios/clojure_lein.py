@@ -206,6 +206,53 @@ index 71902a2..7a973c8 100644
 +(defn p [^Object s] (println s))
 
  (defn- identity [x] x)
+     """),
+
+    ("Add statically typed function",
+     "3.2.0",
+     """
+diff --git a/project.clj b/project.clj
+index f30bea7..43375ef 100644
+--- a/project.clj
++++ b/project.clj
+@@ -1,4 +1,4 @@
+ (defproject clojure_lein "0.1.0-SNAPSHOT"
+   :dependencies [[org.clojure/clojure "1.8.0"]
+-                 [org.clojure/core.typed "0.3.21"]]
++                 [org.clojure/core.typed "0.3.32"]]
+   :plugins [[lein-exec "0.3.6"]])
+diff --git a/src/clojure_lein/core.clj b/src/clojure_lein/core.clj
+index 7a973c8..ea9e81b 100644
+--- a/src/clojure_lein/core.clj
++++ b/src/clojure_lein/core.clj
+@@ -8,3 +8,8 @@
+ (defn p [^Object s] (println s))
+
+ (defn- identity [x] x)
++
++(t/ann sum [t/AnyInteger t/AnyInteger :-> t/AnyInteger])
++(defn sum [a b]
++  (+ a b))
++
+     """),
+
+    ("Change type annotation",
+     "4.0.0",
+     """
+diff --git a/src/clojure_lein/core.clj b/src/clojure_lein/core.clj
+index ea9e81b..6912cfb 100644
+--- a/src/clojure_lein/core.clj
++++ b/src/clojure_lein/core.clj
+@@ -9,7 +9,7 @@
+
+ (defn- identity [x] x)
+
+-(t/ann sum [t/AnyInteger t/AnyInteger :-> t/AnyInteger])
++(t/ann sum [t/Bool t/Bool :-> t/Bool])
+ (defn sum [a b]
+-  (+ a b))
++  (or a b))
+
      """)
 
 ]
