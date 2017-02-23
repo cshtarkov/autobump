@@ -53,6 +53,7 @@ class TestSemver(unittest.TestCase):
             "project-1.0.0": "1.0.0",
             "vproject-1.0.0": "1.0.0",
             "versionedproject-v2.3.4-beta": "2.3.4-beta",
+            "project.with.dots-0.1.12": "0.1.12",
             "with-dash-v1.0.0": "1.0.0",
             "with_underscore-v1.0.0": "1.0.0",
             "10.0.0": "10.0.0"
