@@ -192,7 +192,13 @@ def clojure_codebase_to_units(location):
 
     units = dict()
     for cljfile in cljfiles:
-        units.update(_sexp_read(_run_inspector(cljfile, location)))
+        try:
+            inspector_out = _run_inspector(cljfile, location)
+            units.update(_sexp_read(inspector_out))
+        except _ClojureUtilityException:
+            logger.warn("File {} failed to parse".format(cljfile))
+            if not config.clojure_omit_on_error():
+                raise
     return units
 
 

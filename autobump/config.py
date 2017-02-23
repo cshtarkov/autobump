@@ -75,7 +75,8 @@ defaults = {
     },
 
     "clojure": {
-        "classpath": ""
+        "classpath": "",
+        "omit_on_error": False
     },
 }
 _cached = dict()
@@ -239,3 +240,4 @@ java_omit_on_error = _make_get("java_ast", "omit_on_error")
 
 # clojure
 clojure_classpath = _make_get("clojure", "classpath")
+clojure_omit_on_error = _make_get("clojure", "omit_on_error")
