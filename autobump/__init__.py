@@ -99,7 +99,7 @@ def evaluate(args, all_revisions):
         # with a different label.
         try:
             if Semver.guess_from_string(b_revision).drop_label() == \
-            Semver.guess_from_string(a_revision).drop_label():
+               Semver.guess_from_string(a_revision).drop_label():
                 continue
         except Semver.NotAVersionNumber:
             logger.warning("Omitting interval {} -- {}"
