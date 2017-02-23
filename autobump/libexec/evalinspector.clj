@@ -193,7 +193,8 @@
   (let* [types (strip-arrow a)
          return-type (last types)]
   (list 'signature
-        (map list (dummy-arguments) (map #(list 'type % (list %)) (drop-last types))))))
+        (map list (dummy-arguments) (map #(list 'type % (list %)) (drop-last types)))
+        (list))))
 
 (defn- describe-signature
   [signature]
