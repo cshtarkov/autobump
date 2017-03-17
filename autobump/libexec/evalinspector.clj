@@ -115,7 +115,8 @@
 (defn- get-ns
   "Returns the namespace in a list of forms."
   [forms]
-  (let [ns-form (first (filter #(= (first %) 'ns) forms))]
+  (let* [first-form (first forms)
+         ns-form (when (= (first first-form) 'ns) first-form)]
     (when ns-form
       (second ns-form))))
 
@@ -174,10 +175,7 @@
                   prn (fn [& rest])
                   pr (fn [& rest])]
       (require 'clojure.core.typed)
-      (eval
-       `(try
-          (clojure.core.typed/cf ~s)
-          (catch (Exception -#)))))
+      (eval `(clojure.core.typed/cf ~s)))
     (catch Exception -)))
 
 (defn- dummy-arguments
@@ -250,15 +248,12 @@
 
 (defn- describe-ns
   [namespace]
-  (if (nil? namespace)
-    (describe-unit nil '() '() '())
-    (do
-      (use namespace)
-      (in-ns namespace)
-      (let [symbols (map (partial describe-symbol namespace) (symbols-in-ns namespace))]
-        (let [fields (filter is-field symbols)
-              functions (filter is-function symbols)]
-          (describe-unit namespace fields functions '()))))))
+  (use namespace)
+  (in-ns namespace)
+  (let [symbols (map (partial describe-symbol namespace) (symbols-in-ns namespace))]
+    (let [fields (filter is-field symbols)
+          functions (filter is-function symbols)]
+      (describe-unit namespace fields functions '()))))
 
 (defn describe-files
   [files]
